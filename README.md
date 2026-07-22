@@ -11,7 +11,6 @@ Demo du parcours Scribe en React (Next.js, App Router) avec un backend Node.js i
 ## Installation
 
 ```bash
-cd scribe-demo
 npm install
 ```
 
@@ -55,22 +54,21 @@ Les integrations Voxtral et Mistral sont ecrites au meilleur effort a partir de 
 ## Structure du projet
 
 ```
-scribe-demo/
-  app/
-    page.tsx                    accueil / historique
-    new/                        choix du mode + parcours visio et dictaphone
-    reunion/[id]/                vue CR organisateur
-    cr/[shareId]/                vue CR participant sans compte
-    participant/consent/         notification participant (mockup)
-    rgpd/                        formulaire droits RGPD
-    api/                         routes Node.js (transcribe, generate-cr, meetings, rgpd-request, mock-complete)
-  lib/
-    store.ts                     persistance des reunions (fichier JSON local)
-    mock.ts                      generateurs de transcription/CR simules
-    voxtral.ts                    integration reelle Voxtral (avec fallback mock)
-    mistral.ts                   integration reelle Mistral (avec fallback mock)
-  data/
-    meetings.json                genere automatiquement au premier lancement (seed + reunions creees en demo)
+app/
+  page.tsx                    accueil / historique
+  new/                        choix du mode + parcours visio et dictaphone
+  reunion/[id]/                vue CR organisateur
+  cr/[shareId]/                vue CR participant sans compte
+  participant/consent/         notification participant (mockup)
+  rgpd/                        formulaire droits RGPD
+  api/                         routes Node.js (transcribe, generate-cr, meetings, rgpd-request, mock-complete)
+lib/
+  store.ts                     persistance des reunions (fichier JSON local)
+  mock.ts                      generateurs de transcription/CR simules
+  voxtral.ts                    integration reelle Voxtral (avec fallback mock)
+  mistral.ts                   integration reelle Mistral (avec fallback mock)
+data/
+  meetings.json                genere automatiquement au premier lancement (seed + reunions creees en demo)
 ```
 
 ## Limites connues (demo)
