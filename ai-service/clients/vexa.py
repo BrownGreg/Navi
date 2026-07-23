@@ -30,6 +30,7 @@ Key = tuple[str, str]
 _transcripts: dict[Key, list[TranscriptSegment]] = {}
 _sources: dict[Key, str] = {}
 _poll_tasks: dict[Key, "asyncio.Task"] = {}
+_epoch_refs: dict[Key, float] = {}
 
 
 def _headers() -> dict[str, str]:
@@ -49,12 +50,23 @@ async def _poll(platform: str, native_meeting_id: str) -> None:
                     logger.error("[vexa] poll error %s for %s", res.status_code, key)
                     continue
                 raw_segments = res.json().get("segments", [])
+                # Vexa renvoie start/end en timestamps Unix absolus (epoch), pas en
+                # secondes relatives au debut de la reunion comme Voxtral (dictaphone).
+                # La doc publique ne documente aucun champ dedie donnant ce point zero
+                # au join (cf. ecart de version 0.10/0.12 signale plus haut, pas fiable
+                # a presumer) : on fige donc comme reference le plus petit timestamp
+                # absolu recu au premier poll non vide, reutilisee pour tous les polls
+                # suivants, pour exposer des TranscriptSegment relatifs comme le mode
+                # dictaphone, sans dependre de l'horloge locale du process FastAPI.
+                if raw_segments and key not in _epoch_refs:
+                    _epoch_refs[key] = min(s.get("start", 0) for s in raw_segments)
+                ref = _epoch_refs.get(key, 0)
                 _transcripts[key] = [
                     TranscriptSegment(
                         speaker=s.get("speaker") or "Intervenant",
                         text=s.get("text", ""),
-                        start=s.get("start", 0),
-                        end=s.get("end"),
+                        start=s.get("start", 0) - ref,
+                        end=(s.get("end") - ref) if s.get("end") is not None else None,
                     )
                     for s in raw_segments
                 ]
@@ -84,6 +96,7 @@ async def join_bot(platform: str, native_meeting_id: str, bot_name: str | None =
 
         _sources[key] = "real"
         _transcripts[key] = []
+        _epoch_refs.pop(key, None)
         _poll_tasks[key] = asyncio.create_task(_poll(platform, native_meeting_id))
         return True, "real"
     except Exception as err:  # noqa: BLE001 - filet de securite volontaire
