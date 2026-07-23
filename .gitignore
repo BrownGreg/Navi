@@ -1,6 +1,12 @@
 node_modules
 .next
 .env.local
+.env
 data/meetings.json
 tsconfig.tsbuildinfo
 .claude
+
+ai-service/.venv
+ai-service/__pycache__
+ai-service/**/__pycache__
+*.pyc

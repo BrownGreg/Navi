@@ -13,9 +13,8 @@ function ProcessingInner() {
 
   useEffect(() => {
     if (!meetingId) return;
-    // Garde contre le double appel de React 18 Strict Mode (dev) qui monte,
-    // demonte puis remonte cet effet : sans elle, /api/generate-cr etait
-    // declenche deux fois pour la meme reunion.
+    // Meme garde que app/new/dictaphone/processing/page.tsx : evite le
+    // double appel a /api/generate-cr sous React 18 Strict Mode (dev).
     if (requestedRef.current === meetingId) return;
     requestedRef.current = meetingId;
 
@@ -36,8 +35,8 @@ function ProcessingInner() {
       <h1>Traitement en cours</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>Cela prend quelques secondes</p>
 
-      <div className="card">✓ Transcription (Whisper / Voxtral)</div>
-      <div className="card">✓ Diarisation des locuteurs</div>
+      <div className="card">✓ Transcription et diarisation (bot Vexa)</div>
+      <div className="card">✓ Moderation du contenu</div>
       <div className="card" style={{ color: crDone ? "inherit" : "var(--text-secondary)" }}>
         {crDone ? "✓" : "⟳"} Generation du compte-rendu
         {source ? <span className="pill" style={{ marginLeft: 8 }}>{source === "real" ? "API reelle" : "mode demo"}</span> : null}
@@ -50,7 +49,7 @@ function ProcessingInner() {
   );
 }
 
-export default function ProcessingPage() {
+export default function VisioProcessingPage() {
   return (
     <Suspense fallback={<div className="page">Chargement…</div>}>
       <ProcessingInner />

@@ -1,3 +1,8 @@
+// DEPRECIE — conserve pour historique uniquement, plus importe nulle part.
+// La stack a bascule de Mistral vers Kimi K3 (Moonshot AI) pour le LLM en juillet 2026.
+// Voir lib/kimi.ts pour l'integration active, et Stack_Technique_Souveraine.md pour
+// le point de vigilance souverainete que ce changement souleve.
+
 import type { TranscriptSegment, MeetingCR } from "./store";
 import { mockGenerateCR } from "./mock";
 

@@ -3,6 +3,24 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const AUDIO_MIME_CANDIDATES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/ogg;codecs=opus",
+  "audio/mp4",
+];
+
+function pickSupportedMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  return AUDIO_MIME_CANDIDATES.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
+}
+
+function extensionForMimeType(mimeType: string): string {
+  if (mimeType.includes("ogg")) return "ogg";
+  if (mimeType.includes("mp4")) return "mp4";
+  return "webm";
+}
+
 function RecordInner() {
   const params = useSearchParams();
   const router = useRouter();
@@ -20,38 +38,56 @@ function RecordInner() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    startRecording();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // En dev, React 18 Strict Mode monte/demonte/remonte cet effet une fois
+    // pour verifier l'idempotence. Sans le flag "cancelled" ci-dessous, les
+    // deux invocations declenchent chacune leur propre getUserMedia/MediaRecorder,
+    // et les deux ecrivent dans le meme chunksRef (reinitialise par la seconde
+    // invocation) : c'est ce qui produisait un audio vide ou tronque en sortie.
+    let cancelled = false;
+    let localStream: MediaStream | null = null;
 
-  async function startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
-      chunksRef.current = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-          setSizeKb((prev) => prev + e.data.size / 1024);
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-      };
+        localStream = stream;
+        streamRef.current = stream;
 
-      recorder.start(1000);
-      setRecording(true);
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
-    } catch (err) {
-      setError(
-        "Acces au microphone refuse ou indisponible. Autorisez le micro dans votre navigateur puis rechargez la page."
-      );
+        const mimeType = pickSupportedMimeType();
+        const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+        mediaRecorderRef.current = recorder;
+        chunksRef.current = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            chunksRef.current.push(e.data);
+            setSizeKb((prev) => prev + e.data.size / 1024);
+          }
+        };
+
+        recorder.start(1000);
+        setRecording(true);
+        timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            "Acces au microphone refuse ou indisponible. Autorisez le micro dans votre navigateur puis rechargez la page."
+          );
+        }
+      }
     }
-  }
+
+    startRecording();
+
+    return () => {
+      cancelled = true;
+      if (timerRef.current) clearInterval(timerRef.current);
+      localStream?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
 
   async function stopAndProcess() {
     const recorder = mediaRecorderRef.current;
@@ -66,10 +102,19 @@ function RecordInner() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     await stopped;
 
-    const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+    // Le type du Blob doit refleter le mimeType reellement negocie par le
+    // MediaRecorder (recorder.mimeType) : lui coller un type different (ex.
+    // "audio/webm" en dur alors que le navigateur a enregistre autre chose)
+    // ne re-encode rien, ca ment juste sur le conteneur envoye a Voxtral, qui
+    // echoue alors a le decoder.
+    const mimeType = recorder.mimeType || "audio/webm";
+    const blob = new Blob(chunksRef.current, { type: mimeType });
+    // eslint-disable-next-line no-console
+    console.log(`[dictaphone] blob pret pour upload: ${blob.size} octets, type=${mimeType}`);
+
     const form = new FormData();
     form.append("meetingId", meetingId);
-    form.append("audio", blob, "recording.webm");
+    form.append("audio", blob, `recording.${extensionForMimeType(mimeType)}`);
     form.append("durationSec", String(seconds));
 
     await fetch("/api/transcribe", { method: "POST", body: form });

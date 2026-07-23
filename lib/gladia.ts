@@ -1,3 +1,7 @@
+// DEPRECIE — conserve pour historique uniquement, plus importe nulle part.
+// La stack a bascule de Gladia vers Voxtral (Mistral) en juillet 2026.
+// Voir lib/voxtral.ts pour l'integration active.
+
 import type { TranscriptSegment } from "./store";
 import { mockTranscribe } from "./mock";
 
