@@ -29,7 +29,7 @@ export default function NewMeetingPage() {
       >
         <div className="hatch" style={{ width: 36, height: 36, borderRadius: "50%", margin: "0 auto 8px" }} />
         <div style={{ fontSize: 14, fontWeight: 500 }}>Mode visio</div>
-        <div className="muted">Teams, Zoom ou integre — mockup de parcours, non fonctionnel</div>
+        <div className="muted">Google Meet, Teams ou Zoom — un bot Vexa rejoint la reunion</div>
       </div>
 
       <div

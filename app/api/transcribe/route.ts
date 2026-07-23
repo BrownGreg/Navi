@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { updateMeeting } from "@/lib/store";
-import { transcribeAudio } from "@/lib/gladia";
+import { transcribeAudio } from "@/lib/voxtral";
+import { moderateTranscript } from "@/lib/moderation";
 
 export const runtime = "nodejs";
 
@@ -19,16 +20,18 @@ export async function POST(request: Request) {
   const mimeType = audio.type || "audio/webm";
 
   const { segments, source } = await transcribeAudio(buffer, mimeType);
+  const moderation = await moderateTranscript(segments);
 
   const updated = updateMeeting(meetingId, {
     transcript: segments,
     durationMin: Math.max(1, Math.round(durationSec / 60)),
-    source
+    source,
+    moderation
   });
 
   if (!updated) {
     return NextResponse.json({ error: "reunion introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json({ segments, source });
+  return NextResponse.json({ segments, source, moderation });
 }

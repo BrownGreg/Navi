@@ -14,6 +14,13 @@ export type MeetingCR = {
   themes: string[];
 };
 
+export type ModerationResult = {
+  flagged: boolean;
+  category?: string | null;
+  rationale?: string | null;
+  source: "real" | "mock";
+};
+
 export type Meeting = {
   id: string;
   shareId: string;
@@ -26,6 +33,9 @@ export type Meeting = {
   retentionDays: number;
   transcript?: TranscriptSegment[];
   cr?: MeetingCR;
+  platform?: "google_meet" | "teams" | "zoom";
+  nativeMeetingId?: string;
+  moderation?: ModerationResult;
 };
 
 const DATA_DIR = path.join(process.cwd(), "data");

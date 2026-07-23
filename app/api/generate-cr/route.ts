@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMeetingById, updateMeeting } from "@/lib/store";
-import { generateCR } from "@/lib/mistral";
+import { generateCR } from "@/lib/kimi";
 
 export const runtime = "nodejs";
 
