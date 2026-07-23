@@ -1,6 +1,6 @@
-# Scribe — demo fonctionnelle
+# Navi — demo fonctionnelle
 
-Demo du parcours Scribe en React (Next.js, App Router) avec un backend Node.js integre (routes API Next.js). Le mode **dictaphone** est fonctionnel de bout en bout (enregistrement micro → transcription → diarisation → generation du compte-rendu). Le mode **visio** reste un mockup non fonctionnel (voir la contrainte projet : pas d'integration SDK visio en demo). Les ecrans participant (consentement, acces au CR sans compte, droits RGPD) sont inclus.
+Demo du parcours Navi en React (Next.js, App Router) avec un backend Node.js integre (routes API Next.js). Le mode **dictaphone** est fonctionnel de bout en bout (enregistrement micro → transcription → diarisation → generation du compte-rendu). Le mode **visio** reste un mockup non fonctionnel (voir la contrainte projet : pas d'integration SDK visio en demo). Les ecrans participant (consentement, acces au CR sans compte, droits RGPD) sont inclus.
 
 ## Prerequis
 
