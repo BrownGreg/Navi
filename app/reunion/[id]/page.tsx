@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMeetingById } from "@/lib/store";
 
-export default function MeetingPage({ params }: { params: { id: string } }) {
-  const meeting = getMeetingById(params.id);
+export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const meeting = getMeetingById(id);
   if (!meeting) return notFound();
 
   return (
@@ -24,6 +25,15 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
           </span>
         ) : null}
       </p>
+
+      {meeting.moderation?.flagged ? (
+        <div className="card" style={{ color: "var(--danger)", marginBottom: 10 }}>
+          ⚠ Contenu a verifier{meeting.moderation.category ? ` — ${meeting.moderation.category}` : ""}
+          {meeting.moderation.rationale ? (
+            <div className="muted" style={{ marginTop: 4 }}>{meeting.moderation.rationale}</div>
+          ) : null}
+        </div>
+      ) : null}
 
       {meeting.status === "processing" || !meeting.cr ? (
         <div className="card">Traitement en cours pour cette reunion.</div>
