@@ -18,6 +18,7 @@ Le Node.js n'appelle plus aucun fournisseur IA directement : il passe par le ser
 
 ```bash
 cp .env.example .env
+echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env   # obligatoire, voir note ci-dessous
 npm install
 
 cd ai-service
@@ -27,7 +28,7 @@ pip install -r requirements.txt
 cd ..
 ```
 
-Sans cle renseignee dans `.env`, tout fonctionne quand meme en mode simule (mock) — voir "Activer les vraies API" plus bas pour brancher les vraies integrations.
+**`JWT_SECRET` est obligatoire**, contrairement aux autres variables : `lib/auth.ts` (session JWT) leve une erreur si elle est absente, et ce module est importe par `middleware.ts`, charge par le bundle Edge — resultat, `npm run build` et `npm run dev` echouent tant que `JWT_SECRET` n'est pas renseigne (l'echec n'est pas silencieux, il bloque la commande). Toutes les autres cles (Mistral, Vexa, ...) restent optionnelles : sans elles, la demo fonctionne quand meme en mode simule (mock) — voir "Activer les vraies API" plus bas pour brancher les vraies integrations.
 
 ### Alternative : Docker Compose
 
