@@ -4,3 +4,7 @@ node_modules
 data/meetings.json
 tsconfig.tsbuildinfo
 .claude
+
+/lib/generated/prisma
+/dev.db
+/dev.db-journal

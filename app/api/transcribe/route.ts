@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { updateMeeting } from "@/lib/store";
 import { transcribeAudio } from "@/lib/gladia";
+import { requireAuth } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ("error" in auth) return auth.error;
+
   const form = await request.formData();
   const meetingId = form.get("meetingId");
   const audio = form.get("audio");

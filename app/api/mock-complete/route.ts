@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { updateMeeting } from "@/lib/store";
 import { mockTranscribe, mockGenerateCR } from "@/lib/mock";
+import { requireAuth } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
 // Utilise par le mockup visio (non fonctionnel) pour simuler une fin de reunion
 // et alimenter un CR de demonstration, sans passer par un vrai enregistrement audio.
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ("error" in auth) return auth.error;
+
   const { meetingId, durationMin } = await request.json();
   const segments = await mockTranscribe();
   const { resume, decisions, actions, themes } = await mockGenerateCR(segments);
