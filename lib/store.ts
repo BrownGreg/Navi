@@ -1,3 +1,6 @@
+// Etat transitoire : persistance par fichier JSON local, en attendant le
+// branchement complet de Prisma/Postgres (ticket P2-05). Ne pas etendre ce
+// store pour de nouvelles features qui pourraient a la place vivre en base.
 import fs from "fs";
 import path from "path";
 

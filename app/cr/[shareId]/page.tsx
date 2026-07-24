@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMeetingByShareId } from "@/lib/store";
 
-export default function SharedCRPage({ params }: { params: { shareId: string } }) {
-  const meeting = getMeetingByShareId(params.shareId);
+export default async function SharedCRPage({ params }: { params: Promise<{ shareId: string }> }) {
+  const { shareId } = await params;
+  const meeting = getMeetingByShareId(shareId);
   if (!meeting) return notFound();
 
   return (
