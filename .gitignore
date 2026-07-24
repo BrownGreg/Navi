@@ -1,12 +1,14 @@
 node_modules
 .next
-.env.local
 .env
+.env.local
 data/meetings.json
 tsconfig.tsbuildinfo
 .claude
+gitkraken-amd64.deb
+test.mp3
 
+# Python (ai-service)
 ai-service/.venv
-ai-service/__pycache__
 ai-service/**/__pycache__
-*.pyc
+ai-service/**/*.pyc
