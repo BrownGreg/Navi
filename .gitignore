@@ -12,3 +12,7 @@ test.mp3
 ai-service/.venv
 ai-service/**/__pycache__
 ai-service/**/*.pyc
+
+/lib/generated/prisma
+/dev.db
+/dev.db-journal

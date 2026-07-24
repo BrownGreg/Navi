@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getMeetingById, updateMeeting } from "@/lib/store";
 import { generateCR } from "@/lib/kimi";
+import { requireAuth } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ("error" in auth) return auth.error;
+
   const body = await request.json();
   const meetingId: string = body.meetingId;
 
