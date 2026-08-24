@@ -10,3 +10,5 @@ ai-service/.venv
 ai-service/__pycache__
 ai-service/**/__pycache__
 *.pyc
+ai-service/*.db
+projet_certifiant

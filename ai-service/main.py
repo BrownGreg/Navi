@@ -3,17 +3,28 @@ import logging
 from fastapi import FastAPI
 
 import config
-from routers import generate_cr, moderate, transcribe, visio
+from db import init_db
+from routers import auth, generate_cr, meetings, moderate, rgpd, transcribe, visio
 from schemas import HealthResponse
 
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Scribe AI service", version="0.1.0")
 
-app.include_router(transcribe.router)
-app.include_router(visio.router)
-app.include_router(moderate.router)
-app.include_router(generate_cr.router)
+API_PREFIX = "/api"
+
+app.include_router(auth.router, prefix=API_PREFIX)
+app.include_router(meetings.router, prefix=API_PREFIX)
+app.include_router(transcribe.router, prefix=API_PREFIX)
+app.include_router(visio.router, prefix=API_PREFIX)
+app.include_router(moderate.router, prefix=API_PREFIX)
+app.include_router(generate_cr.router, prefix=API_PREFIX)
+app.include_router(rgpd.router, prefix=API_PREFIX)
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    init_db()
 
 
 @app.get("/health", response_model=HealthResponse)

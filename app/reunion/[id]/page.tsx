@@ -1,11 +1,31 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMeetingById } from "@/lib/store";
+import { fetchAuthed } from "@/lib/server-api";
+
+type Meeting = {
+  id: string;
+  shareId: string;
+  title: string;
+  mode: "visio" | "dictaphone";
+  date: string;
+  durationMin: number;
+  status: "processing" | "ready";
+  source?: "real" | "mock";
+  transcript?: { speaker: string; text: string }[];
+  cr?: {
+    resume: string;
+    decisions: string[];
+    actions: { text: string; owner: string }[];
+    themes: string[];
+  };
+  moderation?: { flagged: boolean; category?: string | null; rationale?: string | null };
+};
 
 export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const meeting = getMeetingById(id);
-  if (!meeting) return notFound();
+  const res = await fetchAuthed(`/meetings/${id}`);
+  if (res.status === 404) return notFound();
+  const meeting: Meeting = await res.json();
 
   return (
     <div className="page">

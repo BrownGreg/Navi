@@ -1,10 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMeetingByShareId } from "@/lib/store";
+import { fetchPublic } from "@/lib/server-api";
 
-export default function SharedCRPage({ params }: { params: { shareId: string } }) {
-  const meeting = getMeetingByShareId(params.shareId);
-  if (!meeting) return notFound();
+type Meeting = {
+  id: string;
+  title: string;
+  date: string;
+  durationMin: number;
+  cr?: {
+    resume: string;
+    decisions: string[];
+    actions: { text: string; owner: string }[];
+  };
+};
+
+export default async function SharedCRPage({ params }: { params: Promise<{ shareId: string }> }) {
+  const { shareId } = await params;
+  const res = await fetchPublic(`/meetings/by-share/${shareId}`);
+  if (res.status === 404) return notFound();
+  const meeting: Meeting = await res.json();
 
   return (
     <div className="page">
