@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: scribe-web
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    port: 3000
+    envVars:
+      - key: AI_SERVICE_URL
+        # URL du service scribe-ai-service une fois deploye sur Render.
+        # Format : https://scribe-ai-service.onrender.com
+        # A remplir dans le dashboard Render apres le premier deploy d'ai-service.
+        sync: false
+
+  - type: web
+    name: scribe-ai-service
+    env: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: free
+    port: 8000
+    envVars:
+      - key: JWT_SECRET
+        # Obligatoire — generer avec : openssl rand -base64 32
+        sync: false
+      - key: AI_SERVICE_DATABASE_URL
+        # Pour Render sans disque persistant : utiliser une URL PostgreSQL externe
+        # (ex: Render PostgreSQL, Supabase, Neon). En demo/test : sqlite:///./scribe.db
+        sync: false
+      - key: MISTRAL_API_KEY
+        # Transcription Voxtral (dictaphone) — https://console.mistral.ai
+        sync: false
+      - key: MOONSHOT_API_KEY
+        # Generation du CR (Kimi K3) — https://platform.kimi.ai
+        sync: false
+      - key: VEXA_API_KEY
+        # Bot de reunion visio — https://docs.vexa.ai
+        sync: false
+      - key: VEXA_BASE_URL
+        value: https://api.cloud.vexa.ai
+      - key: GROQ_API_KEY
+        # Moderation gpt-oss-safeguard-20b — https://console.groq.com
+        sync: false
+      - key: GPT_OSS_SAFEGUARD_ENDPOINT
+        value: https://api.groq.com/openai/v1/chat/completions
+      - key: GPT_OSS_SAFEGUARD_MODEL
+        value: openai/gpt-oss-safeguard-20b

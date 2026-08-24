@@ -62,3 +62,29 @@ def get_meeting(
     if not meeting:
         raise HTTPException(status_code=404, detail="not found")
     return meeting
+
+
+@router.delete("/{meeting_id}")
+def delete_meeting(
+    meeting_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, bool]:
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+
+    meeting.transcript = None
+    meeting.cr = None
+    meeting.title = "[réunion supprimée]"
+    meeting.status = "ready"
+    meeting.moderation = None
+    meeting.classification = None
+
+    rgpd_entry = models.RgpdRequest(
+        email=current_user.email,
+        meeting_id=meeting_id,
+        type="erasure",
+    )
+    db.add(rgpd_entry)
+    db.commit()
+
+    return {"ok": True}

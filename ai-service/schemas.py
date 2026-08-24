@@ -134,6 +134,32 @@ class MeetingOut(CamelModel):
     platform: Optional[Platform] = None
     native_meeting_id: Optional[str] = None
     moderation: Optional[ModerateResponse] = None
+    classification: Optional["ClassificationResult"] = None
+
+
+# --- Classification ---
+
+
+class SegmentClassification(BaseModel):
+    speaker: str
+    theme: str
+    tone: str
+
+
+class ClassificationResult(BaseModel):
+    tone: str
+    urgency: str
+    themes: list[str]
+    per_segment: list[SegmentClassification]
+
+
+class ClassifyRequest(CamelModel):
+    meeting_id: str
+
+
+class ClassifyResponse(BaseModel):
+    classification: ClassificationResult
+    source: Source
 
 
 # --- RGPD ---

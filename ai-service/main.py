@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 import config
 from db import init_db
-from routers import auth, generate_cr, meetings, moderate, rgpd, transcribe, visio
+from routers import auth, classify, export, generate_cr, meetings, moderate, rgpd, transcribe, visio
 from schemas import HealthResponse
 
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +19,8 @@ app.include_router(transcribe.router, prefix=API_PREFIX)
 app.include_router(visio.router, prefix=API_PREFIX)
 app.include_router(moderate.router, prefix=API_PREFIX)
 app.include_router(generate_cr.router, prefix=API_PREFIX)
+app.include_router(classify.router, prefix=API_PREFIX)
+app.include_router(export.router, prefix=API_PREFIX)
 app.include_router(rgpd.router, prefix=API_PREFIX)
 
 
