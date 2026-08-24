@@ -48,6 +48,7 @@ class Meeting(Base):
     platform: Mapped[str | None] = mapped_column(String, nullable=True)
     native_meeting_id: Mapped[str | None] = mapped_column(String, nullable=True)
     moderation: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    classification: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     owner: Mapped["User"] = relationship(back_populates="meetings")
 

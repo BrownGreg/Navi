@@ -1,0 +1,6 @@
+line-length = 100
+exclude = [".venv", "__pycache__"]
+
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]  # longueur de ligne geree separement via line-length

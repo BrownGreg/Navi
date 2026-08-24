@@ -1,0 +1,83 @@
+name: CD (deploiement semi-automatique)
+
+# Declenche uniquement sur push vers la branche principale du projet.
+# Le job est entierement commente : il montre la structure d'un deploiement Railway
+# mais ne s'execute pas tant que les secrets ne sont pas configures.
+#
+# Pour activer le deploiement :
+#   1. Creer un compte sur https://railway.app et recuperer votre token :
+#      Railway Dashboard > Account Settings > Tokens > New Token
+#   2. Ajouter les secrets suivants dans GitHub :
+#      Repo > Settings > Secrets and variables > Actions > New repository secret
+#
+#   Secrets necessaires :
+#     RAILWAY_TOKEN          : token d'authentification Railway CLI
+#     MISTRAL_API_KEY        : cle Mistral (transcription Voxtral)
+#     MOONSHOT_API_KEY       : cle Moonshot AI (generation CR via Kimi K3)
+#     GROQ_API_KEY           : cle Groq (moderation gpt-oss-safeguard-20b)
+#     VEXA_API_KEY           : cle Vexa (bot de reunion visio)
+#     VEXA_BASE_URL          : URL de base de l'API Vexa
+#     JWT_SECRET             : secret de signature JWT pour ai-service
+#     AI_SERVICE_DATABASE_URL: URL de la base de donnees (ex: postgresql://...)
+
+on:
+  push:
+    branches:
+      - feature/functional-demo-nextjs
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      VEXA_API_KEY: ${{ secrets.VEXA_API_KEY }}
+      VEXA_BASE_URL: ${{ secrets.VEXA_BASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      AI_SERVICE_DATABASE_URL: ${{ secrets.AI_SERVICE_DATABASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Les etapes ci-dessous sont commentees jusqu'a la configuration des
+      # secrets Railway dans GitHub Actions.
+      # -----------------------------------------------------------------------
+
+      # - name: Install Railway CLI
+      #   run: npm install -g @railway/cli
+
+      # - name: Deploy ai-service (FastAPI)
+      #   # Selectionne le service ai-service dans votre projet Railway et deploie.
+      #   # Remplacer <RAILWAY_SERVICE_AI> par l'ID ou le nom du service Railway.
+      #   run: |
+      #     railway up \
+      #       --service <RAILWAY_SERVICE_AI> \
+      #       --detach \
+      #       ./ai-service
+
+      # - name: Deploy frontend (Next.js)
+      #   # Selectionne le service web dans votre projet Railway et deploie.
+      #   # Remplacer <RAILWAY_SERVICE_WEB> par l'ID ou le nom du service Railway.
+      #   run: |
+      #     railway up \
+      #       --service <RAILWAY_SERVICE_WEB> \
+      #       --detach \
+      #       .
+
+      # - name: Verifier que les services repondent (healthcheck)
+      #   run: |
+      #     sleep 30
+      #     curl --fail https://<AI_SERVICE_DOMAIN>/health || exit 1
+      #     curl --fail https://<WEB_DOMAIN>/ || exit 1
+
+      - name: Deploiement non configure
+        run: |
+          echo "Le deploiement CD n'est pas encore active."
+          echo "Configurez les secrets Railway dans GitHub Actions pour activer ce job."
+          echo "Voir les instructions en commentaire dans ce fichier."

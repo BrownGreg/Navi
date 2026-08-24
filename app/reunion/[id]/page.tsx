@@ -1,31 +1,54 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchAuthed } from "@/lib/server-api";
+import { getMeetingById } from "@/lib/store";
+import type { ClassificationTon, ClassificationUrgence } from "@/lib/store";
+import ClassifyButton from "./ClassifyButton";
 
-type Meeting = {
-  id: string;
-  shareId: string;
-  title: string;
-  mode: "visio" | "dictaphone";
-  date: string;
-  durationMin: number;
-  status: "processing" | "ready";
-  source?: "real" | "mock";
-  transcript?: { speaker: string; text: string }[];
-  cr?: {
-    resume: string;
-    decisions: string[];
-    actions: { text: string; owner: string }[];
-    themes: string[];
+function tonBadgeStyle(ton: ClassificationTon): React.CSSProperties {
+  const map: Record<ClassificationTon, { color: string; background: string; border: string }> = {
+    positif: { color: "#166534", background: "#dcfce7", border: "#86efac" },
+    neutre:  { color: "var(--text-secondary)", background: "var(--surface-1)", border: "var(--border-strong)" },
+    negatif: { color: "#9a3412", background: "#ffedd5", border: "#fdba74" },
+    tendu:   { color: "var(--danger)", background: "#fee2e2", border: "#fca5a5" },
   };
-  moderation?: { flagged: boolean; category?: string | null; rationale?: string | null };
-};
+  const s = map[ton] ?? map.neutre;
+  return {
+    display: "inline-block",
+    fontSize: 12,
+    padding: "3px 10px",
+    borderRadius: 999,
+    border: `1px solid ${s.border}`,
+    color: s.color,
+    background: s.background,
+  };
+}
+
+function urgenceBadgeStyle(urgence: ClassificationUrgence): React.CSSProperties {
+  const map: Record<ClassificationUrgence, { color: string; background: string; border: string }> = {
+    faible:  { color: "#1e40af", background: "#dbeafe", border: "#93c5fd" },
+    normale: { color: "var(--text-secondary)", background: "var(--surface-1)", border: "var(--border-strong)" },
+    haute:   { color: "var(--danger)", background: "#fee2e2", border: "#fca5a5" },
+  };
+  const s = map[urgence] ?? map.normale;
+  return {
+    display: "inline-block",
+    fontSize: 12,
+    padding: "3px 10px",
+    borderRadius: 999,
+    border: `1px solid ${s.border}`,
+    color: s.color,
+    background: s.background,
+  };
+}
 
 export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const res = await fetchAuthed(`/meetings/${id}`);
-  if (res.status === 404) return notFound();
-  const meeting: Meeting = await res.json();
+  const meeting = getMeetingById(id);
+  if (!meeting) return notFound();
+
+  const hasCR = meeting.status === "ready" && !!meeting.cr;
+  const hasClassification = !!meeting.classification;
+  const showClassifyButton = meeting.status === "ready" && !hasClassification;
 
   return (
     <div className="page">
@@ -45,15 +68,6 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
           </span>
         ) : null}
       </p>
-
-      {meeting.moderation?.flagged ? (
-        <div className="card" style={{ color: "var(--danger)", marginBottom: 10 }}>
-          ⚠ Contenu a verifier{meeting.moderation.category ? ` — ${meeting.moderation.category}` : ""}
-          {meeting.moderation.rationale ? (
-            <div className="muted" style={{ marginTop: 4 }}>{meeting.moderation.rationale}</div>
-          ) : null}
-        </div>
-      ) : null}
 
       {meeting.status === "processing" || !meeting.cr ? (
         <div className="card">Traitement en cours pour cette reunion.</div>
@@ -84,6 +98,62 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
             ))}
           </div>
 
+          {/* Section Classification */}
+          {hasClassification && meeting.classification ? (
+            <>
+              <div className="label" style={{ marginTop: 6 }}>Classification</div>
+              <div className="card" style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                  <div>
+                    <span className="muted" style={{ marginRight: 6 }}>Ton global</span>
+                    <span style={tonBadgeStyle(meeting.classification.ton)}>
+                      {meeting.classification.ton}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="muted" style={{ marginRight: 6 }}>Urgence</span>
+                    <span style={urgenceBadgeStyle(meeting.classification.urgence)}>
+                      {meeting.classification.urgence}
+                    </span>
+                  </div>
+                </div>
+
+                {meeting.classification.themes.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                    {meeting.classification.themes.map((t, i) => (
+                      <span className="pill" key={i}>{t}</span>
+                    ))}
+                  </div>
+                )}
+
+                {meeting.classification.per_segment && meeting.classification.per_segment.length > 0 && (
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "4px 8px", color: "var(--text-muted)", fontWeight: 400, borderBottom: "1px solid var(--border)" }}>Intervenant</th>
+                          <th style={{ textAlign: "left", padding: "4px 8px", color: "var(--text-muted)", fontWeight: 400, borderBottom: "1px solid var(--border)" }}>Theme</th>
+                          <th style={{ textAlign: "left", padding: "4px 8px", color: "var(--text-muted)", fontWeight: 400, borderBottom: "1px solid var(--border)" }}>Ton</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {meeting.classification.per_segment.map((seg, i) => (
+                          <tr key={i}>
+                            <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>{seg.speaker}</td>
+                            <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>{seg.theme}</td>
+                            <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>
+                              <span style={tonBadgeStyle(seg.ton)}>{seg.ton}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : null}
+
           {meeting.transcript ? (
             <details style={{ marginBottom: 14 }}>
               <summary className="secondary-text" style={{ cursor: "pointer" }}>Transcription complete</summary>
@@ -97,8 +167,21 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
         </>
       )}
 
-      <div className="btn-row">
-        <button className="btn" disabled>⬇ Export PDF</button>
+      {/* Bouton Classer la reunion */}
+      {showClassifyButton && <ClassifyButton meetingId={meeting.id} />}
+
+      <div className="btn-row" style={{ marginTop: showClassifyButton ? 8 : 12 }}>
+        {hasCR ? (
+          <a
+            href={`/api/meetings/${meeting.id}/pdf`}
+            download
+            style={{ flex: 1, textDecoration: "none" }}
+          >
+            <button className="btn" style={{ width: "100%", marginTop: 0 }}>⬇ Export PDF</button>
+          </a>
+        ) : (
+          <button className="btn" disabled style={{ flex: 1 }}>⬇ Export PDF</button>
+        )}
         <Link href={`/cr/${meeting.shareId}`} style={{ flex: 1 }}>
           <button className="btn">↗ Vue participant</button>
         </Link>

@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/functional-demo-nextjs
+  pull_request:
+    branches:
+      - main
+      - feature/functional-demo-nextjs
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1 : Lint Python (ruff)
+  # ---------------------------------------------------------------------------
+  lint-python:
+    name: Lint Python (ruff)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('ai-service/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install ruff
+          pip install -r ai-service/requirements.txt
+
+      - name: Ruff -- check lint rules
+        run: ruff check ai-service/ --exclude .venv
+
+      - name: Ruff -- check formatting
+        run: ruff format --check ai-service/ --exclude .venv
+
+  # ---------------------------------------------------------------------------
+  # Job 2 : Tests Python (pytest + coverage)
+  # ---------------------------------------------------------------------------
+  test-python:
+    name: Test Python (pytest)
+    runs-on: ubuntu-latest
+    needs: lint-python
+
+    env:
+      JWT_SECRET: test-secret-ci
+      AI_SERVICE_DATABASE_URL: sqlite:///./test.db
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('ai-service/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov
+          pip install -r ai-service/requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest ai-service/tests/ \
+            --cov=ai-service \
+            --cov-report=xml \
+            --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # Job 3 : Lint frontend (ESLint + TypeScript)
+  # ---------------------------------------------------------------------------
+  lint-frontend:
+    name: Lint Frontend (ESLint + tsc)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        # Le script "lint" est defini dans package.json ("next lint").
+        # On verifie d'abord qu'il existe pour skiper gracieusement si absent.
+        run: |
+          if npm run | grep -qw "lint"; then
+            npm run lint
+          else
+            echo "Aucun script 'lint' trouve dans package.json -- etape ignoree."
+          fi
+
+      - name: TypeScript -- verification des types
+        run: npx tsc --noEmit
+
+  # ---------------------------------------------------------------------------
+  # Job 4 : Build Docker (smoke test)
+  # ---------------------------------------------------------------------------
+  build-docker:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs:
+      - test-python
+      - lint-frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image ai-service
+        run: docker build -t scribe-ai-service ./ai-service
+
+      - name: Build image frontend (Next.js)
+        run: docker build -t scribe-web .
