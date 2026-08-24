@@ -1,38 +1,71 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from clients.safeguard import moderate as run_moderation
 from clients.vexa import get_transcript, join_bot, leave_bot
-from schemas import VisioJoinRequest, VisioJoinResponse, VisioTranscriptResponse
+from crud import get_owned_meeting
+from db import get_db
+from deps import get_current_user
+import models
+from schemas import VisioJoinRequest, VisioJoinResponse, VisioLeaveRequest, VisioTranscriptResponse
 
-router = APIRouter()
+router = APIRouter(prefix="/visio", tags=["visio"])
 
-# meeting_id expose aux appelants (Node) est une cle composite "platform:native_meeting_id"
-# pour rester sur un seul path param comme suggere par la consigne initiale
-# (GET /visio/{meeting_id}/transcript), tout en adressant Vexa avec la paire
-# platform + native_meeting_id qu'il attend reellement.
-
-
-def _split_meeting_id(meeting_id: str) -> tuple[str, str]:
-    if ":" not in meeting_id:
-        raise HTTPException(status_code=400, detail="meeting_id doit avoir la forme 'platform:native_meeting_id'")
-    platform, native_meeting_id = meeting_id.split(":", 1)
-    return platform, native_meeting_id
+# meeting_id est desormais l'id interne du Meeting (plus la cle composite
+# "platform:native_meeting_id") : ai-service resout platform/native_meeting_id
+# depuis sa propre ligne DB, cette traduction ne vit plus cote Next.js.
 
 
-@router.post("/visio/join", response_model=VisioJoinResponse)
-async def visio_join(body: VisioJoinRequest):
+@router.post("/join", response_model=VisioJoinResponse)
+async def visio_join(
+    body: VisioJoinRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> VisioJoinResponse:
+    meeting = get_owned_meeting(db, body.meeting_id, current_user.id)
+
     joined, source = await join_bot(body.platform, body.native_meeting_id, body.bot_name)
+
+    meeting.platform = body.platform
+    meeting.native_meeting_id = body.native_meeting_id
+    meeting.source = source
+    db.commit()
+
     return VisioJoinResponse(joined=joined, source=source)
 
 
-@router.get("/visio/{meeting_id}/transcript", response_model=VisioTranscriptResponse)
-async def visio_transcript(meeting_id: str):
-    platform, native_meeting_id = _split_meeting_id(meeting_id)
-    segments, source, live = get_transcript(platform, native_meeting_id)
+@router.get("/{meeting_id}/transcript", response_model=VisioTranscriptResponse)
+def visio_transcript(
+    meeting_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> VisioTranscriptResponse:
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+    if not meeting.platform or not meeting.native_meeting_id:
+        raise HTTPException(status_code=404, detail="reunion visio introuvable")
+
+    segments, source, live = get_transcript(meeting.platform, meeting.native_meeting_id)
     return VisioTranscriptResponse(segments=segments, source=source, live=live)
 
 
-@router.post("/visio/{meeting_id}/leave", response_model=VisioTranscriptResponse)
-async def visio_leave(meeting_id: str):
-    platform, native_meeting_id = _split_meeting_id(meeting_id)
-    segments, source = await leave_bot(platform, native_meeting_id)
+@router.post("/{meeting_id}/leave", response_model=VisioTranscriptResponse)
+async def visio_leave(
+    meeting_id: str,
+    body: VisioLeaveRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> VisioTranscriptResponse:
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+    if not meeting.platform or not meeting.native_meeting_id:
+        raise HTTPException(status_code=404, detail="reunion visio introuvable")
+
+    segments, source = await leave_bot(meeting.platform, meeting.native_meeting_id)
+    moderation = await run_moderation(segments)
+
+    meeting.transcript = [s.model_dump() for s in segments]
+    meeting.duration_min = body.duration_min or max(1, meeting.duration_min)
+    meeting.source = source
+    meeting.moderation = moderation.model_dump()
+    db.commit()
+
     return VisioTranscriptResponse(segments=segments, source=source, live=False)

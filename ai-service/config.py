@@ -26,3 +26,12 @@ MISTRAL_TRANSCRIBE_URL = "https://api.mistral.ai/v1/audio/transcriptions"
 KIMI_URL = "https://api.moonshot.ai/v1/chat/completions"
 
 VEXA_POLL_INTERVAL_SECONDS = 4
+
+# Auth + persistance : desormais entierement geres ici (ai-service), plus
+# jamais cote Next.js. Nom dedie (pas "DATABASE_URL") pour eviter toute
+# collision avec la valeur "file:./dev.db" (format Prisma, invalide pour
+# SQLAlchemy) laissee dans .env.local par une experimentation TS anterieure.
+JWT_SECRET = os.environ.get("JWT_SECRET")
+AI_SERVICE_DATABASE_URL = os.environ.get("AI_SERVICE_DATABASE_URL", "sqlite:///./scribe.db")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
+IS_PRODUCTION = ENVIRONMENT == "production"

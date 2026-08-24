@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
 
 const AUDIO_MIME_CANDIDATES = [
   "audio/webm;codecs=opus",
@@ -117,7 +118,7 @@ function RecordInner() {
     form.append("audio", blob, `recording.${extensionForMimeType(mimeType)}`);
     form.append("durationSec", String(seconds));
 
-    await fetch("/api/transcribe", { method: "POST", body: form });
+    await apiFetch("/api/transcribe", { method: "POST", body: form });
     router.push(`/new/dictaphone/processing?id=${meetingId}`);
   }
 

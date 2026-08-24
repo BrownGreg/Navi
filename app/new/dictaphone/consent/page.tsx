@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api-client";
 
 export default function DictaphoneConsentPage() {
   const [title, setTitle] = useState("Reunion sans titre");
@@ -14,7 +15,7 @@ export default function DictaphoneConsentPage() {
 
   async function start() {
     setStarting(true);
-    const res = await fetch("/api/meetings", {
+    const res = await apiFetch("/api/meetings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, mode: "dictaphone", retentionDays: Number(retention) })

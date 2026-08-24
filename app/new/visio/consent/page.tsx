@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api-client";
 
 const PLATFORMS = [
   { value: "google_meet", label: "Google Meet", hint: "code de reunion, ex: abc-defg-hij" },
@@ -23,14 +24,14 @@ export default function VisioConsentPage() {
     setError(null);
     setStarting(true);
     try {
-      const meetingRes = await fetch("/api/meetings", {
+      const meetingRes = await apiFetch("/api/meetings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, mode: "visio", retentionDays: Number(retention) })
       });
       const meeting = await meetingRes.json();
 
-      const joinRes = await fetch("/api/visio/join", {
+      const joinRes = await apiFetch("/api/visio/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ meetingId: meeting.id, platform, nativeMeetingId: nativeMeetingId.trim() })

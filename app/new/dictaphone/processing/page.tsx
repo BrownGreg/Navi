@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
 
 function ProcessingInner() {
   const params = useSearchParams();
@@ -19,7 +20,7 @@ function ProcessingInner() {
     if (requestedRef.current === meetingId) return;
     requestedRef.current = meetingId;
 
-    fetch("/api/generate-cr", {
+    apiFetch("/api/generate-cr", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ meetingId })

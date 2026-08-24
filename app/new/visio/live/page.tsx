@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
 
 type LiveSegment = { speaker: string; text: string; start: number };
 
@@ -24,7 +25,7 @@ function VisioLiveInner() {
 
     async function poll() {
       try {
-        const res = await fetch(`/api/visio/${meetingId}/transcript`);
+        const res = await apiFetch(`/api/visio/${meetingId}/transcript`);
         if (!res.ok) return;
         const data = await res.json();
         setSegments(data.segments ?? []);
@@ -47,7 +48,7 @@ function VisioLiveInner() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (pollRef.current) clearInterval(pollRef.current);
 
-    await fetch(`/api/visio/${meetingId}/leave`, {
+    await apiFetch(`/api/visio/${meetingId}/leave`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ durationMin: Math.max(1, Math.round(seconds / 60)) })

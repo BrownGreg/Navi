@@ -1,14 +1,28 @@
 import Link from "next/link";
-import { getAllMeetings } from "@/lib/store";
+import { fetchAuthed } from "@/lib/server-api";
+import { SignOutButton } from "./sign-out-button";
 
-export default function HomePage() {
-  const meetings = getAllMeetings();
+type Meeting = {
+  id: string;
+  title: string;
+  mode: "visio" | "dictaphone";
+  date: string;
+  status: "processing" | "ready";
+  durationMin: number;
+};
+
+export default async function HomePage() {
+  const res = await fetchAuthed("/meetings");
+  const meetings: Meeting[] = res.ok ? await res.json() : [];
 
   return (
     <div className="page">
       <div className="row" style={{ marginBottom: 14 }}>
         <div style={{ fontWeight: 500, fontSize: 15 }}>Scribe</div>
-        <Link href="/participant/consent" style={{ fontSize: 12 }}>Vue participant</Link>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/participant/consent" style={{ fontSize: 12 }}>Vue participant</Link>
+          <SignOutButton />
+        </div>
       </div>
 
       <h1>Historique</h1>

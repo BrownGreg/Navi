@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Backend entierement en Python : web n'a besoin d'aucune cle IA ni
+      # d'aucun acces base de donnees, uniquement l'adresse d'ai-service pour
+      # le rewrite /api/* (voir next.config.js).
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      ai-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AI_SERVICE_DATABASE_URL=sqlite:////data/scribe.db
+    env_file:
+      # Cles API + JWT_SECRET - voir ai-service/.env.example.
+      - ./ai-service/.env
+    volumes:
+      - scribe_ai_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  scribe_ai_data:
