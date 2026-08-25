@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMeetingById } from "@/lib/store";
-import type { ClassificationTon, ClassificationUrgence } from "@/lib/store";
+import { fetchAuthed } from "@/lib/server-api";
+import type { Meeting } from "@/lib/types";
 import ClassifyButton from "./ClassifyButton";
 
-function tonBadgeStyle(ton: ClassificationTon): React.CSSProperties {
-  const map: Record<ClassificationTon, { color: string; background: string; border: string }> = {
+function tonBadgeStyle(ton: string): React.CSSProperties {
+  const map: Record<string, { color: string; background: string; border: string }> = {
     positif: { color: "#166534", background: "#dcfce7", border: "#86efac" },
     neutre:  { color: "var(--text-secondary)", background: "var(--surface-1)", border: "var(--border-strong)" },
     negatif: { color: "#9a3412", background: "#ffedd5", border: "#fdba74" },
@@ -23,8 +23,8 @@ function tonBadgeStyle(ton: ClassificationTon): React.CSSProperties {
   };
 }
 
-function urgenceBadgeStyle(urgence: ClassificationUrgence): React.CSSProperties {
-  const map: Record<ClassificationUrgence, { color: string; background: string; border: string }> = {
+function urgenceBadgeStyle(urgence: string): React.CSSProperties {
+  const map: Record<string, { color: string; background: string; border: string }> = {
     faible:  { color: "#1e40af", background: "#dbeafe", border: "#93c5fd" },
     normale: { color: "var(--text-secondary)", background: "var(--surface-1)", border: "var(--border-strong)" },
     haute:   { color: "var(--danger)", background: "#fee2e2", border: "#fca5a5" },
@@ -43,8 +43,9 @@ function urgenceBadgeStyle(urgence: ClassificationUrgence): React.CSSProperties 
 
 export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const meeting = getMeetingById(id);
-  if (!meeting) return notFound();
+  const res = await fetchAuthed(`/meetings/${id}`);
+  if (res.status === 404) return notFound();
+  const meeting: Meeting = await res.json();
 
   const hasCR = meeting.status === "ready" && !!meeting.cr;
   const hasClassification = !!meeting.classification;
@@ -106,14 +107,14 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
                   <div>
                     <span className="muted" style={{ marginRight: 6 }}>Ton global</span>
-                    <span style={tonBadgeStyle(meeting.classification.ton)}>
-                      {meeting.classification.ton}
+                    <span style={tonBadgeStyle(meeting.classification.tone)}>
+                      {meeting.classification.tone}
                     </span>
                   </div>
                   <div>
                     <span className="muted" style={{ marginRight: 6 }}>Urgence</span>
-                    <span style={urgenceBadgeStyle(meeting.classification.urgence)}>
-                      {meeting.classification.urgence}
+                    <span style={urgenceBadgeStyle(meeting.classification.urgency)}>
+                      {meeting.classification.urgency}
                     </span>
                   </div>
                 </div>
@@ -126,7 +127,7 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
 
-                {meeting.classification.per_segment && meeting.classification.per_segment.length > 0 && (
+                {meeting.classification.perSegment && meeting.classification.perSegment.length > 0 && (
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                       <thead>
@@ -137,12 +138,12 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
                         </tr>
                       </thead>
                       <tbody>
-                        {meeting.classification.per_segment.map((seg, i) => (
+                        {meeting.classification.perSegment.map((seg, i) => (
                           <tr key={i}>
                             <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>{seg.speaker}</td>
                             <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>{seg.theme}</td>
                             <td style={{ padding: "4px 8px", borderBottom: "1px solid var(--border)" }}>
-                              <span style={tonBadgeStyle(seg.ton)}>{seg.ton}</span>
+                              <span style={tonBadgeStyle(seg.tone)}>{seg.tone}</span>
                             </td>
                           </tr>
                         ))}

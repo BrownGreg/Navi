@@ -29,11 +29,11 @@ services:
         # (ex: Render PostgreSQL, Supabase, Neon). En demo/test : sqlite:///./scribe.db
         sync: false
       - key: MISTRAL_API_KEY
-        # Transcription Voxtral (dictaphone) — https://console.mistral.ai
+        # Transcription Voxtral (dictaphone), generation du CR et classification
+        # — https://console.mistral.ai
         sync: false
-      - key: MOONSHOT_API_KEY
-        # Generation du CR (Kimi K3) — https://platform.kimi.ai
-        sync: false
+      - key: MISTRAL_CHAT_MODEL
+        value: mistral-large-latest
       - key: VEXA_API_KEY
         # Bot de reunion visio — https://docs.vexa.ai
         sync: false
@@ -46,3 +46,23 @@ services:
         value: https://api.groq.com/openai/v1/chat/completions
       - key: GPT_OSS_SAFEGUARD_MODEL
         value: openai/gpt-oss-safeguard-20b
+      - key: GOOGLE_CLIENT_ID
+        # OAuth calendrier auto-join — console.cloud.google.com
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        # Doit pointer vers l'origine publique de scribe-web (le service ci-dessus),
+        # pas vers cette URL onrender.com d'ai-service. Ex :
+        # https://scribe-web.onrender.com/api/calendar/google/callback
+        sync: false
+      - key: MICROSOFT_CLIENT_ID
+        # OAuth calendrier auto-join — portal.azure.com
+        sync: false
+      - key: MICROSOFT_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_TENANT_ID
+        value: common
+      - key: MICROSOFT_REDIRECT_URI
+        # Meme remarque que GOOGLE_REDIRECT_URI : origine scribe-web, pas ai-service.
+        sync: false

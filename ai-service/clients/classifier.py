@@ -1,11 +1,10 @@
 """Client de classification IA pour les reunions Scribe.
 
-Utilise Kimi K3 (Moonshot AI) pour extraire le ton global, le niveau
-d'urgence et les themes d'une transcription. Bascule sur un mock si la
-cle MOONSHOT_API_KEY est absente ou si l'appel echoue.
-
-Meme reserve de conformite que pour clients/kimi.py : Kimi K3 est heberge
-hors UE — a re-evaluer avant un passage en production.
+Utilise l'API Chat Completions de Mistral AI (meme fournisseur/compte que la
+transcription Voxtral et la generation du CR - cf. config.py) pour extraire
+le ton global, le niveau d'urgence et les themes d'une transcription.
+Bascule sur un mock si la cle MISTRAL_API_KEY est absente ou si l'appel
+echoue. Remplace l'ancienne integration Kimi K3 (Moonshot AI, hors UE).
 """
 
 import asyncio
@@ -30,7 +29,7 @@ SYSTEM_PROMPT = (
 )
 
 # Delais (secondes) entre les tentatives suivant un 429/5xx ou une erreur
-# reseau transitoire. Meme politique de retry que clients/kimi.py.
+# reseau transitoire. Meme politique de retry que clients/mistral_cr.py.
 RETRY_DELAYS_SECONDS = (1, 3)
 
 _MOCK_RESULT = ClassificationResult(
@@ -42,7 +41,7 @@ _MOCK_RESULT = ClassificationResult(
 
 
 async def _post_with_retry(payload: dict) -> httpx.Response:
-    """Envoie une requete POST a l'API Kimi avec logique de retry.
+    """Envoie une requete POST a l'API Mistral Chat Completions avec logique de retry.
 
     Args:
         payload: Corps JSON de la requete Chat Completions.
@@ -64,9 +63,9 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
         try:
             async with httpx.AsyncClient(timeout=60) as client:
                 res = await client.post(
-                    config.KIMI_URL,
+                    config.MISTRAL_CHAT_URL,
                     headers={
-                        "Authorization": f"Bearer {config.MOONSHOT_API_KEY}",
+                        "Authorization": f"Bearer {config.MISTRAL_API_KEY}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -84,7 +83,7 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
             raise
 
         if res.status_code == 429 or res.status_code >= 500:
-            last_err = RuntimeError(f"Kimi K3 API transient error: {res.status_code}")
+            last_err = RuntimeError(f"Mistral chat API transient error: {res.status_code}")
             if attempt < len(RETRY_DELAYS_SECONDS):
                 logger.warning(
                     "[classifier] erreur transitoire %s, retry %d/%d",
@@ -96,7 +95,7 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
             raise last_err
 
         if res.status_code >= 400:
-            raise RuntimeError(f"Kimi K3 API error: {res.status_code}")
+            raise RuntimeError(f"Mistral chat API error: {res.status_code}")
 
         return res
 
@@ -104,7 +103,7 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
 
 
 async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationResult, str]:
-    """Classifie une transcription de reunion via Kimi K3.
+    """Classifie une transcription de reunion via l'API Chat Completions de Mistral.
 
     Extrait le ton global, le niveau d'urgence, les themes principaux et
     une classification par segment. Retourne un mock si la cle API est
@@ -116,8 +115,8 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
     Returns:
         Tuple (ClassificationResult, source) ou source vaut "real" ou "mock".
     """
-    if not config.MOONSHOT_API_KEY:
-        logger.info("[classifier] MOONSHOT_API_KEY absente, retour mock")
+    if not config.MISTRAL_API_KEY:
+        logger.info("[classifier] MISTRAL_API_KEY absente, retour mock")
         return _MOCK_RESULT, "mock"
 
     try:
@@ -126,7 +125,7 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
         )
 
         res = await _post_with_retry({
-            "model": "kimi-k3",
+            "model": config.MISTRAL_CHAT_MODEL,
             "response_format": {"type": "json_object"},
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -137,7 +136,7 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
         body = res.json()
         content = body.get("choices", [{}])[0].get("message", {}).get("content")
         if not content:
-            raise RuntimeError("empty response from Kimi K3")
+            raise RuntimeError("empty response from Mistral chat")
 
         parsed = json.loads(content)
         result = ClassificationResult(

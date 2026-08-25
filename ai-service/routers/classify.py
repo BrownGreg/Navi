@@ -31,7 +31,7 @@ async def classify_meeting(
     """Classifie la transcription d'une reunion et stocke le resultat.
 
     Recupere la transcription de la reunion identifiee par `meeting_id`,
-    appelle le client Kimi K3 pour en extraire le ton global, l'urgence et
+    appelle le client Mistral pour en extraire le ton global, l'urgence et
     les themes, puis persiste le resultat dans `meeting.classification`.
 
     Args:

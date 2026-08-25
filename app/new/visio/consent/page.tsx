@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
@@ -11,16 +11,72 @@ const PLATFORMS = [
   { value: "zoom", label: "Zoom", hint: "identifiant numerique de la reunion" }
 ] as const;
 
+type Platform = (typeof PLATFORMS)[number]["value"];
+
 export default function VisioConsentPage() {
   const [title, setTitle] = useState("Reunion sans titre");
   const [retention, setRetention] = useState("30");
-  const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["value"]>("google_meet");
-  const [nativeMeetingId, setNativeMeetingId] = useState("");
+
+  const [url, setUrl] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const [resolvedPlatform, setResolvedPlatform] = useState<Platform | null>(null);
+  const [resolvedNativeId, setResolvedNativeId] = useState<string | null>(null);
+  const [showManualFallback, setShowManualFallback] = useState(false);
+
+  const [manualPlatform, setManualPlatform] = useState<Platform>("google_meet");
+  const [manualNativeId, setManualNativeId] = useState("");
+
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function resolveUrl(value: string) {
+    const trimmed = value.trim();
+    setResolvedPlatform(null);
+    setResolvedNativeId(null);
+    if (!trimmed) {
+      setShowManualFallback(false);
+      return;
+    }
+    setResolving(true);
+    try {
+      const res = await apiFetch("/api/visio/resolve-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: trimmed })
+      });
+      const data = res.ok ? await res.json() : { resolved: false };
+      if (data.resolved) {
+        setResolvedPlatform(data.platform);
+        setResolvedNativeId(data.nativeMeetingId);
+        setShowManualFallback(false);
+      } else {
+        setShowManualFallback(true);
+      }
+    } catch {
+      setShowManualFallback(true);
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  function onUrlChange(value: string) {
+    setUrl(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => resolveUrl(value), 500);
+  }
+
+  function onUrlBlurOrPaste() {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    resolveUrl(url);
+  }
 
   async function join() {
+    const platform = resolvedPlatform ?? (showManualFallback ? manualPlatform : null);
+    const nativeMeetingId = resolvedNativeId ?? (showManualFallback ? manualNativeId.trim() : "");
+    if (!platform || !nativeMeetingId) return;
+
     setError(null);
     setStarting(true);
     try {
@@ -34,18 +90,18 @@ export default function VisioConsentPage() {
       const joinRes = await apiFetch("/api/visio/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meetingId: meeting.id, platform, nativeMeetingId: nativeMeetingId.trim() })
+        body: JSON.stringify({ meetingId: meeting.id, platform, nativeMeetingId })
       });
       if (!joinRes.ok) throw new Error("echec du join");
 
       router.push(`/new/visio/live?id=${meeting.id}`);
     } catch (err) {
-      setError("Impossible de rejoindre la reunion. Verifiez l'identifiant et reessayez.");
+      setError("Impossible de rejoindre la reunion. Verifiez le lien et reessayez.");
       setStarting(false);
     }
   }
 
-  const canJoin = nativeMeetingId.trim().length > 0;
+  const canJoin = !!(resolvedPlatform && resolvedNativeId) || !!(showManualFallback && manualNativeId.trim());
 
   return (
     <div className="page">
@@ -61,31 +117,56 @@ export default function VisioConsentPage() {
       <div className="label">Titre de la reunion</div>
       <input className="input" style={{ marginBottom: 12 }} value={title} onChange={(e) => setTitle(e.target.value)} />
 
-      <div className="label">Plateforme</div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        {PLATFORMS.map((p) => (
-          <div
-            key={p.value}
-            className={`card selectable ${platform === p.value ? "selected" : ""}`}
-            style={{ flex: 1, textAlign: "center", padding: 10 }}
-            onClick={() => setPlatform(p.value)}
-          >
-            {p.label}
-          </div>
-        ))}
-      </div>
-
-      <div className="label">Identifiant ou lien de la reunion</div>
+      <div className="label">Lien de la reunion</div>
       <input
         className="input"
         style={{ marginBottom: 4 }}
-        placeholder={PLATFORMS.find((p) => p.value === platform)?.hint}
-        value={nativeMeetingId}
-        onChange={(e) => setNativeMeetingId(e.target.value)}
+        placeholder="https://meet.google.com/abc-defg-hij"
+        value={url}
+        onChange={(e) => onUrlChange(e.target.value)}
+        onBlur={onUrlBlurOrPaste}
+        onPaste={() => setTimeout(onUrlBlurOrPaste, 0)}
       />
-      <p className="muted" style={{ marginBottom: 12 }}>
-        Format exact selon la plateforme — voir le guide de test dans le README avant un premier essai.
-      </p>
+
+      {resolving ? (
+        <p className="muted" style={{ marginBottom: 12 }}>Detection de la plateforme…</p>
+      ) : resolvedPlatform ? (
+        <p className="muted" style={{ marginBottom: 12, color: "var(--accent)" }}>
+          {PLATFORMS.find((p) => p.value === resolvedPlatform)?.label ?? resolvedPlatform} detecte ✓
+        </p>
+      ) : (
+        <p className="muted" style={{ marginBottom: 12 }}>Collez le lien de la reunion Meet, Zoom ou Teams.</p>
+      )}
+
+      {showManualFallback ? (
+        <>
+          <p className="muted" style={{ marginBottom: 10 }}>
+            Plateforme non detectee automatiquement — selectionnez-la :
+          </p>
+          <div className="label">Plateforme</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {PLATFORMS.map((p) => (
+              <div
+                key={p.value}
+                className={`card selectable ${manualPlatform === p.value ? "selected" : ""}`}
+                style={{ flex: 1, textAlign: "center", padding: 10 }}
+                onClick={() => setManualPlatform(p.value)}
+              >
+                {p.label}
+              </div>
+            ))}
+          </div>
+
+          <div className="label">Identifiant de la reunion</div>
+          <input
+            className="input"
+            style={{ marginBottom: 12 }}
+            placeholder={PLATFORMS.find((p) => p.value === manualPlatform)?.hint}
+            value={manualNativeId}
+            onChange={(e) => setManualNativeId(e.target.value)}
+          />
+        </>
+      ) : null}
 
       <div className="card">✓ J&apos;autorise l&apos;enregistrement et la transcription de cette reunion</div>
       <div className="card">✓ Je consens au traitement IA (resume, classification)</div>

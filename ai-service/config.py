@@ -11,7 +11,6 @@ load_dotenv(_ROOT / ".env.local")
 load_dotenv(_ROOT / ".env")
 
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 VEXA_API_KEY = os.environ.get("VEXA_API_KEY")
 VEXA_BASE_URL = os.environ.get("VEXA_BASE_URL", "https://api.cloud.vexa.ai")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -23,9 +22,37 @@ GPT_OSS_SAFEGUARD_MODEL = os.environ.get(
 )
 
 MISTRAL_TRANSCRIBE_URL = "https://api.mistral.ai/v1/audio/transcriptions"
-KIMI_URL = "https://api.moonshot.ai/v1/chat/completions"
+MISTRAL_CHAT_URL = "https://api.mistral.ai/v1/chat/completions"
+# Meme cle MISTRAL_API_KEY pour la transcription (Voxtral), la generation du
+# CR et la classification : un seul fournisseur/compte a gerer desormais
+# (remplace l'ancienne integration Kimi K3 / Moonshot AI, hors UE - cf.
+# rapport_technique.md pour l'historique de cette decision).
+MISTRAL_CHAT_MODEL = os.environ.get("MISTRAL_CHAT_MODEL", "mistral-large-latest")
 
 VEXA_POLL_INTERVAL_SECONDS = 4
+
+# OAuth calendrier (auto-join) - Google Calendar et Microsoft Graph. Les
+# redirect URI DOIVENT pointer vers l'origine publique Next.js (proxyee par
+# le rewrite /api/*), jamais vers le domaine propre d'ai-service : le cookie
+# de session scribe_session n'est jamais attache a une redirection directe
+# vers l'origine ai-service (cf. next.config.js).
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.environ.get(
+    "GOOGLE_REDIRECT_URI", "http://localhost:3000/api/calendar/google/callback"
+)
+
+MICROSOFT_CLIENT_ID = os.environ.get("MICROSOFT_CLIENT_ID")
+MICROSOFT_CLIENT_SECRET = os.environ.get("MICROSOFT_CLIENT_SECRET")
+MICROSOFT_TENANT_ID = os.environ.get("MICROSOFT_TENANT_ID", "common")
+MICROSOFT_REDIRECT_URI = os.environ.get(
+    "MICROSOFT_REDIRECT_URI", "http://localhost:3000/api/calendar/microsoft/callback"
+)
+
+CALENDAR_SYNC_INTERVAL_MINUTES = int(os.environ.get("CALENDAR_SYNC_INTERVAL_MINUTES", "5"))
+CALENDAR_LOOKAHEAD_MINUTES = int(os.environ.get("CALENDAR_LOOKAHEAD_MINUTES", "60"))
+CALENDAR_JOIN_LEAD_SECONDS = int(os.environ.get("CALENDAR_JOIN_LEAD_SECONDS", "60"))
+CALENDAR_JOIN_GRACE_SECONDS = int(os.environ.get("CALENDAR_JOIN_GRACE_SECONDS", "300"))
 
 # Auth + persistance : desormais entierement geres ici (ai-service), plus
 # jamais cote Next.js. Nom dedie (pas "DATABASE_URL") pour eviter toute

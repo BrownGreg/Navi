@@ -52,3 +52,37 @@ def decode_session_token(token: str) -> Optional[SessionPayload]:
     if not isinstance(user_id, str) or not isinstance(email, str):
         return None
     return {"user_id": user_id, "email": email}
+
+
+# Etat CSRF du flux OAuth calendrier : un JWT signe de courte duree plutot
+# qu'un store serveur (pas de Redis/session store dans cette stack), meme
+# logique que le cookie de session.
+
+OAUTH_STATE_DURATION = timedelta(minutes=10)
+
+
+class OAuthStatePayload(TypedDict):
+    user_id: str
+    provider: str
+
+
+def create_oauth_state(user_id: str, provider: str) -> str:
+    payload = {
+        "userId": user_id,
+        "provider": provider,
+        "exp": datetime.now(timezone.utc) + OAUTH_STATE_DURATION,
+    }
+    return jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
+
+
+def verify_oauth_state(token: str) -> Optional[OAuthStatePayload]:
+    try:
+        payload = jwt.decode(token, config.JWT_SECRET, algorithms=["HS256"])
+    except JWTError:
+        return None
+
+    user_id = payload.get("userId")
+    provider = payload.get("provider")
+    if not isinstance(user_id, str) or not isinstance(provider, str):
+        return None
+    return {"user_id": user_id, "provider": provider}

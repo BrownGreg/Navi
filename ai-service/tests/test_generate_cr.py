@@ -1,6 +1,6 @@
 """Tests du router /api/generate-cr (génération du compte-rendu IA).
 
-Le client kimi est mocké. Les tests vérifient la structure de la réponse,
+Le client Mistral (génération du CR) est mocké. Les tests vérifient la structure de la réponse,
 la persistance du CR en base et le passage du statut à 'ready'.
 """
 from __future__ import annotations
@@ -46,7 +46,7 @@ class TestGenerateCR:
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_success(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
         test_meeting: models.Meeting,
@@ -54,7 +54,7 @@ class TestGenerateCR:
     ) -> None:
         """POST /generate-cr retourne le CR et le persiste en base."""
         _inject_transcript(test_meeting, db_session)
-        mock_kimi.return_value = (_FAKE_CR, "mock")
+        mock_generate_cr.return_value = (_FAKE_CR, "mock")
 
         resp = await client.post(
             "/api/generate-cr",
@@ -73,7 +73,7 @@ class TestGenerateCR:
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_persists_in_db(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
         test_meeting: models.Meeting,
@@ -81,7 +81,7 @@ class TestGenerateCR:
     ) -> None:
         """Le CR et le statut 'ready' sont persistés après l'appel."""
         _inject_transcript(test_meeting, db_session)
-        mock_kimi.return_value = (_FAKE_CR, "mock")
+        mock_generate_cr.return_value = (_FAKE_CR, "mock")
 
         await client.post(
             "/api/generate-cr",
@@ -97,7 +97,7 @@ class TestGenerateCR:
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_without_transcript_returns_404(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
         test_meeting: models.Meeting,
@@ -111,12 +111,12 @@ class TestGenerateCR:
         )
 
         assert resp.status_code == 404
-        mock_kimi.assert_not_called()
+        mock_generate_cr.assert_not_called()
 
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_nonexistent_meeting_returns_404(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
     ) -> None:
@@ -128,12 +128,12 @@ class TestGenerateCR:
         )
 
         assert resp.status_code == 404
-        mock_kimi.assert_not_called()
+        mock_generate_cr.assert_not_called()
 
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_without_auth_returns_401(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         test_meeting: models.Meeting,
         db_session: Session,
@@ -150,22 +150,25 @@ class TestGenerateCR:
                 json={"meetingId": test_meeting.id},
             )
             assert resp.status_code == 401
-            mock_kimi.assert_not_called()
+            mock_generate_cr.assert_not_called()
         finally:
             client.cookies.update(saved_cookies)
 
     @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
     async def test_generate_cr_real_source_propagated(
         self,
-        mock_kimi: AsyncMock,
+        mock_generate_cr: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
         test_meeting: models.Meeting,
         db_session: Session,
     ) -> None:
-        """La source 'real' est propagée correctement au meeting."""
+        """La source 'real' n'est propagee que si la transcription ET la
+        generation de CR ont toutes les deux appele une vraie API."""
         _inject_transcript(test_meeting, db_session)
-        mock_kimi.return_value = (_FAKE_CR, "real")
+        test_meeting.source = "real"  # simule une transcription deja reelle
+        db_session.commit()
+        mock_generate_cr.return_value = (_FAKE_CR, "real")
 
         await client.post(
             "/api/generate-cr",
@@ -175,3 +178,29 @@ class TestGenerateCR:
 
         db_session.refresh(test_meeting)
         assert test_meeting.source == "real"
+
+    @patch("routers.generate_cr.run_generate_cr", new_callable=AsyncMock)
+    async def test_generate_cr_mock_transcript_stays_mock_even_if_cr_is_real(
+        self,
+        mock_generate_cr: AsyncMock,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+        db_session: Session,
+    ) -> None:
+        """Si la transcription est retombee en mock, le badge du meeting doit
+        rester 'mock' meme quand la generation de CR elle-meme reussit en reel
+        (regression : le CR reel resumerait alors un contenu simule sans que
+        l'utilisateur en soit informe)."""
+        _inject_transcript(test_meeting, db_session)
+        assert test_meeting.source == "mock"  # valeur par defaut, transcription non reelle
+        mock_generate_cr.return_value = (_FAKE_CR, "real")
+
+        await client.post(
+            "/api/generate-cr",
+            json={"meetingId": test_meeting.id},
+            headers=auth_headers,
+        )
+
+        db_session.refresh(test_meeting)
+        assert test_meeting.source == "mock"
