@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import type { Meeting } from "@/lib/store";
+import type { Meeting } from "@/lib/types";
 
 type Props = {
   meetings: Meeting[];

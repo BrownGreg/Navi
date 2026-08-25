@@ -78,6 +78,16 @@ class VisioLeaveRequest(CamelModel):
     duration_min: Optional[int] = None
 
 
+class VisioResolveRequest(CamelModel):
+    url: str
+
+
+class VisioResolveResponse(CamelModel):
+    resolved: bool
+    platform: Optional[Platform] = None
+    native_meeting_id: Optional[str] = None
+
+
 class VisioTranscriptResponse(BaseModel):
     segments: list[TranscriptSegment]
     source: Source
@@ -160,6 +170,26 @@ class ClassifyRequest(CamelModel):
 class ClassifyResponse(BaseModel):
     classification: ClassificationResult
     source: Source
+
+
+# --- Calendrier (auto-join) ---
+
+CalendarProvider = Literal["google", "microsoft"]
+
+
+class CalendarConnectionOut(CamelModel):
+    provider: CalendarProvider
+    connected: bool
+    account_email: Optional[str] = None
+    needs_reauth: bool = False
+    connected_at: Optional[datetime] = None
+
+
+class UpcomingCalendarEventOut(CamelModel):
+    title: str
+    provider: CalendarProvider
+    start_time: datetime
+    platform: Optional[Platform] = None
 
 
 # --- RGPD ---

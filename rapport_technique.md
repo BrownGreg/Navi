@@ -21,8 +21,7 @@ C4Container
         ContainerDb(db, "SQLite", "SQLAlchemy", "Users, Meetings, RgpdRequests — volume Docker /data")
     }
 
-    System_Ext(mistral, "Mistral AI (EU)", "Transcription audio Voxtral (voxtral-mini-latest)")
-    System_Ext(moonshot, "Moonshot AI / Kimi", "Génération CR (kimi-k3) — open-weight, hébergeable UE")
+    System_Ext(mistral, "Mistral AI (EU)", "Transcription Voxtral, génération CR et classification (Chat Completions)")
     System_Ext(groq, "Groq + gpt-oss-safeguard", "Modération transcription (open-weight Apache 2.0)")
     System_Ext(vexa, "Vexa Cloud", "Bot de réunion visio — open-source, auto-hébergeable")
 
@@ -31,7 +30,7 @@ C4Container
     Rel(web, ai, "HTTP proxy", "/api/* → AI_SERVICE_URL:8000")
     Rel(ai, db, "SQLAlchemy", "SQLite")
     Rel(ai, mistral, "HTTPS", "POST /v1/audio/transcriptions")
-    Rel(ai, moonshot, "HTTPS", "POST /v1/chat/completions")
+    Rel(ai, mistral, "HTTPS", "POST /v1/chat/completions")
     Rel(ai, groq, "HTTPS", "POST /openai/v1/chat/completions")
     Rel(ai, vexa, "HTTPS", "POST/GET/DELETE /bots, /transcripts")
 ```
@@ -44,11 +43,11 @@ C4Container
                               ▼
                     [ai-service (FastAPI) :8000]
                          │           │
-                    [SQLite]    ──── API externes ─────────────────
-                                │              │          │        │
-                           Mistral AI      Moonshot AI  Groq     Vexa
-                          (Voxtral STT)   (Kimi K3 CR) (Safeguard) (bot)
-                           open/EU         open-weight  open-weight open-source
+                    [SQLite]    ──── API externes ────────────
+                                │                    │        │
+                           Mistral AI              Groq     Vexa
+                    (Voxtral STT + CR + classif.) (Safeguard) (bot)
+                           UE (France)            open-weight open-source
 ```
 
 ### Flux de données global
@@ -66,7 +65,7 @@ POST /api/visio/{id}/leave
 clients/safeguard.py  ──► ModerateResponse {flagged, category, rationale}
         │
         ▼
-POST /api/generate-cr ──► clients/kimi.py  →  MeetingCR {resume, decisions, actions, themes}
+POST /api/generate-cr ──► clients/mistral_cr.py  →  MeetingCR {resume, decisions, actions, themes}
         │
         ▼
 Persistance SQLite  ──► Meeting.{transcript, moderation, cr, status="ready"}
@@ -77,7 +76,7 @@ Persistance SQLite  ──► Meeting.{transcript, moderation, cr, status="ready
 | Composant | Pré-production (`feature/functional-demo-nextjs`) | Production (branche courante) | Justification |
 |---|---|---|---|
 | Transcription | Gladia v2 (upload → job → poll, Node.js, `lib/gladia.ts`) | Voxtral / Mistral (`voxtral-mini-latest`, Python) | Gladia impose un pipeline asynchrone à trois étapes (upload, création de job, polling) nettement plus complexe. Voxtral offre la diarisation native en un seul appel synchrone, partage la clé API Mistral déjà requise pour le CR, et performe mieux sur le français (WER 3,2 % sur Common Voice contre 4,9 % pour Whisper large-v3). **Écart majeur vs pré-production :** AssemblyAI avait également été envisagé comme cible mais a été écarté pour contrainte budgétaire (budget API < 20 €) et risque CLOUD Act (fournisseur US). |
-| Génération CR | Mistral `mistral-large-latest` (Node.js, `lib/mistral.ts`) | Kimi K3 / Moonshot AI (`kimi-k3`, Python) | Kimi K3 présente de meilleures performances sur la structuration JSON en français lors des tests manuels, avec un coût moindre sur les transcriptions courtes. Modèle open-weight : hébergeable en UE sans CLOUD Act. |
+| Génération CR | Mistral `mistral-large-latest` (Node.js, `lib/mistral.ts`) | Mistral `mistral-large-latest` (Python, `clients/mistral_cr.py`) | Kimi K3 / Moonshot AI avait été retenu un temps pour son coût par token et ses performances constatées manuellement sur la structuration JSON en français, mais présentait un risque de conformité documenté (hébergement hors UE, cf. section 5). Décision finale : consolidation sur Mistral (déjà utilisé pour Voxtral) pour la génération du CR **et** la classification — un seul fournisseur/compte à gérer, surface de risque CLOUD Act/RGPD réduite, au prix d'un coût par token plus élevé que Kimi K3 sur ce cas d'usage (cf. section 2.2). |
 | Modération | Absent en pré-production | `gpt-oss-safeguard-20b` via Groq (Python) | Nouvelle brique de sécurité : détection d'injections de prompt et contenus interdits. Poids ouverts Apache 2.0, auto-hébergeable en UE. |
 | Bot visio | Vexa mockup côté Node.js (`lib/vexa.ts`) | Vexa cloud managé réel (Python, polling asyncio) | Intégration effective de l'API Vexa avec join/poll/leave réels. La résolution `platform/native_meeting_id` est désormais côté ai-service uniquement. |
 | Backend | Routes API Next.js (Node.js) + persistance fichier JSON | FastAPI centralisé + SQLite via SQLAlchemy | Séparation frontend/backend nette ; toute la logique métier, l'auth (JWT/cookie httpOnly, bcrypt) et la DB migrent en Python. Next.js devient un frontend pur qui proxie `/api/*` vers ai-service via `AI_SERVICE_URL`. |
@@ -87,7 +86,7 @@ Persistance SQLite  ──► Meeting.{transcript, moderation, cr, status="ready
 
 L'argument de souveraineté de Scribe n'est **pas** "fournisseur français" mais "**modèle open-weight auto-hébergeable en UE sous notre contrôle**". Cette distinction est fondamentale : le CLOUD Act américain oblige tout fournisseur soumis à la juridiction US à livrer des données où qu'elles soient stockées, y compris sur des serveurs européens. Héberger en UE chez un hébergeur US ne suffit donc pas.
 
-En revanche, Kimi K3 (Moonshot AI) et gpt-oss-safeguard (OpenAI) sont des **modèles à poids ouverts** : l'inférence peut être opérée sur une infrastructure EU entièrement sous contrôle de l'opérateur de Scribe (OVHcloud, Scaleway), neutralisant le risque CLOUD Act. Dans l'état actuel, l'inférence passe par des API hébergées (Moonshot, Groq) qui présentent un risque résiduel documenté — l'auto-hébergement est la trajectoire recommandée avant un passage en production réelle.
+Deux leviers coexistent désormais dans Scribe : (1) l'hébergement direct en UE par le fournisseur — Mistral AI (France) couvre la transcription, la génération du CR et la classification, sous juridiction UE sans transfert hors UE ; (2) les **modèles à poids ouverts** auto-hébergeables — gpt-oss-safeguard (Apache 2.0) et Vexa (MIT), dont l'inférence peut être rapatriée sur une infrastructure EU entièrement sous contrôle de l'opérateur de Scribe (OVHcloud, Scaleway) si le risque résiduel de l'API hébergée (Groq, USA) devient inacceptable. La migration de la génération du CR et de la classification de Kimi K3 (Moonshot AI, Chine) vers Mistral AI supprime le risque de transfert hors UE qui existait sur ces deux briques (cf. section 5, matrice des sous-traitants).
 
 ### Abstraction "source audio" commune
 
@@ -118,14 +117,15 @@ Les deux modes produisent le même type de sortie : `list[TranscriptSegment]` av
 
 - **Gestion des erreurs :** Un statut `>= 400` lève une `RuntimeError`. Toute exception est capturée par le filet `except Exception` et déclenche le fallback mock (log `ERROR` émis). Timeout configuré à 60 s (fichiers audio longs).
 - **Fallback mock :** `mock_transcribe()` — 4 segments fixes avec délai simulé de 1,2 s — activé si `MISTRAL_API_KEY` est absent ou si l'appel échoue.
-- **Coût estimé (10 min d'audio) :** Voxtral mini ≈ 0,0001 $/min → **≈ 0,001 $** pour 10 min. Poste dominant sur une heure de réunion : transcription en entrée (~8 000–10 000 tokens de texte produit par Voxtral, puis envoyés à Kimi).
+- **Coût estimé (10 min d'audio) :** Voxtral mini ≈ 0,0001 $/min → **≈ 0,001 $** pour 10 min. Poste dominant sur une heure de réunion : transcription en entrée (~8 000–10 000 tokens de texte produit par Voxtral, puis envoyés à Mistral pour la génération du CR).
 
-### 2.2 Kimi K3 / Moonshot AI — Génération du compte-rendu
+### 2.2 Mistral AI — Génération du compte-rendu et classification
 
-- **Rôle :** Structurer la transcription en CR JSON (`resume`, `decisions`, `actions[{text, owner}]`, `themes`).
-- **Endpoint :** `POST https://api.moonshot.ai/v1/chat/completions`
-- **Modèle :** `kimi-k3`
+- **Rôle :** Structurer la transcription en CR JSON (`resume`, `decisions`, `actions[{text, owner}]`, `themes`) et extraire une classification (`tone`, `urgency`, `themes`, `per_segment`). Deux clients distincts (`clients/mistral_cr.py`, `clients/classifier.py`) mais même fournisseur, même clé `MISTRAL_API_KEY` que la transcription Voxtral.
+- **Endpoint :** `POST https://api.mistral.ai/v1/chat/completions`
+- **Modèle :** `mistral-large-latest` (configurable via `MISTRAL_CHAT_MODEL`)
 - **Format de réponse demandé :** `response_format: {type: "json_object"}` avec system prompt structuré.
+- **Historique :** cette brique a été opérée un temps par Kimi K3 (Moonshot AI, `kimi-k3`) avant migration vers Mistral — voir la justification en section 1 (« Écarts par rapport à la pré-production ») et le risque de conformité que cela supprime en section 5.
 
 **Stratégie de retry :**
 
@@ -136,10 +136,8 @@ RETRY_DELAYS_SECONDS = (1, 3)  # 3 tentatives au total
 - Retry sur : HTTP 429 (rate limit), 5xx (erreur serveur transitoire), `httpx.TimeoutException`, `httpx.TransportError`.
 - Pas de retry sur les 4xx de validation (clé invalide, format incorrect) — elles ne se résolvent pas en réessayant.
 
-- **Fallback mock :** `mock_generate_cr()` — CR exemple fixe avec délai simulé de 0,9 s — activé si `MOONSHOT_API_KEY` est absent ou si les 3 tentatives échouent.
-- **Coût estimé (10 min) :** Kimi K3 ≈ 0,15 $/M tokens input, 0,60 $/M output. Transcription 10 min ≈ 800 tokens input, CR ≈ 300 tokens output → **≈ 0,0003 $**.
-
-À titre de comparaison : Mistral Small (0,20 $/1M input, 0,60 $/1M output), Gemini 2.5 Flash (0,30 $/1M input, 2,50 $/1M output), Claude Haiku 4.5 (1 $/1M input, 5 $/1M output). Kimi K3 est compétitif et open-weight.
+- **Fallback mock :** `mock_generate_cr()` pour le CR (délai simulé de 0,9 s), résultat fixe pour la classification — activés si `MISTRAL_API_KEY` est absent ou si les 3 tentatives échouent.
+- **Coût estimé (10 min) :** non recalculé dans cette révision — à vérifier sur la grille tarifaire actuelle de `mistral-large-latest` ([console.mistral.ai](https://console.mistral.ai)), plus élevée par token que Kimi K3 (~0,15 $/M input, 0,60 $/M output, cf. historique ci-dessus) sur ce même volume (CR ≈ 300 tokens output à partir d'une transcription d'entrée ≈ 800 tokens). Le compromis assumé est documenté en section 1.
 
 ### 2.3 gpt-oss-safeguard-20b / Groq — Modération
 
@@ -222,12 +220,12 @@ os.environ.setdefault("AI_SERVICE_DATABASE_URL", "sqlite:///:memory:")
 
 ### Ce qui est mocké et pourquoi
 
-Les appels HTTP sortants vers Mistral, Moonshot, Groq et Vexa ne sont pas appelés dans les tests automatisés pour trois raisons : coût réel des appels, instabilité réseau en CI, et vitesse d'exécution. Les tests s'appuient sur le mécanisme de fallback mock intégré : absence de clé API → mock automatique sans instrumentation de test supplémentaire.
+Les appels HTTP sortants vers Mistral, Groq et Vexa ne sont pas appelés dans les tests automatisés pour trois raisons : coût réel des appels, instabilité réseau en CI, et vitesse d'exécution. Les tests s'appuient sur le mécanisme de fallback mock intégré : absence de clé API → mock automatique sans instrumentation de test supplémentaire.
 
 ### Couverture atteinte
 
 - **Auth et meetings (routers + persistance) :** couverture fonctionnelle complète des cas nominaux et des cas d'erreur — 22 cas de test.
-- **Clients IA (voxtral, kimi, safeguard, vexa) :** testés manuellement uniquement. Pas de tests unitaires automatisés sur ces modules — la cible de 70 % des fonctions critiques n'est pas encore atteinte.
+- **Clients IA (voxtral, mistral_cr, classifier, safeguard, vexa) :** testés manuellement uniquement. Pas de tests unitaires automatisés sur ces modules — la cible de 70 % des fonctions critiques n'est pas encore atteinte.
 - **Routers transcribe, visio, generate-cr, rgpd, moderate :** couverts par les tests d'intégration manuels (parcours complets en mode réel et en mode mock).
 
 **Synthèse :** palier Socle atteint (22 tests automatisés sur les composants critiques, mocks corrects pour les APIs IA). La cible ≥ 70 % sur l'ensemble des fonctions critiques requiert l'ajout de tests unitaires sur les clients IA avec `pytest-httpx` ou `respx` pour mocker les appels `httpx.AsyncClient`.
@@ -301,12 +299,13 @@ L'effacement effectif des champs `transcript`, `cr`, `moderation` n'est pas enco
 
 | Sous-traitant | Données transmises | Localisation | Statut DPA art.28 | Recommandation |
 |---|---|---|---|---|
-| Mistral AI | Audio (voix brute) | UE (France) | Faible risque | DPA à signer |
-| Moonshot AI (Kimi K3) | Transcription texte | Chine | Risque élevé — transfert hors UE | Migrer vers auto-hébergement UE dès que possible |
+| Mistral AI | Audio (voix brute) + transcription texte (génération CR, classification) | UE (France) | Faible risque | DPA à signer |
 | Groq (gpt-oss-safeguard) | Transcription texte | USA | Risque moyen — CLOUD Act | Évaluer SCCs, ou auto-héberger gpt-oss-safeguard en UE |
 | Vexa Cloud | Flux audio (visio) | À vérifier | À évaluer | Envisager auto-hébergement Vexa (open-source) |
 
 Les DPA (Data Processing Agreements, art. 28 RGPD) sont obligatoires avec chaque sous-traitant. Leur absence expose à des sanctions jusqu'à 10 M€ ou 2 % du CA mondial.
+
+**Évolution notable :** la ligne « Moonshot AI (Kimi K3) — Chine — Risque élevé, transfert hors UE » a été supprimée de cette matrice suite à la migration de la génération du CR et de la classification vers Mistral AI (UE) — cf. section 1 et section 2.2. C'était le seul sous-traitant à risque élevé identifié dans cette table ; sa suppression réduit le nombre de sous-traitants actifs de quatre à trois et ne laisse plus subsister qu'un risque moyen (Groq, CLOUD Act).
 
 ---
 
@@ -316,8 +315,8 @@ Les DPA (Data Processing Agreements, art. 28 RGPD) sont obligatoires avec chaque
 |---|---|---|
 | **Captation** | **Cible** | Deux modes fonctionnels (dictaphone via MediaRecorder/WebM + visio via bot Vexa). Dictaphone robuste (buffer local, gestion refus micro). Visio avec pistes séparées par participant. L'avancé (bot type Recall.ai) n'est pas implémenté. |
 | **Transcription** | **Cible** | Diarisation réelle sur les deux modes : Voxtral avec `diarize=true` (dictaphone), Vexa avec pistes séparées (visio). Transcription en français. Normalisation `speaker_id` → "Intervenant N" (`clients/voxtral.py`). L'identification nominative (avancé) n'est pas implémentée. |
-| **Classification** | **Cible** | Thèmes générés par Kimi K3 à partir de la transcription entière. Modération safeguard ajoute une dimension `flagged + category`. La classification par segment (avancé) n'est pas implémentée. |
-| **Compte-rendu** | **Cible** | CR structuré (`resume`, `decisions`, `actions[{text, owner}]`, `themes`) généré par Kimi K3 et persisté en DB (`Meeting.cr`). Badge source réelle/mock en UI. L'export PDF et les statuts d'actions (avancé) ne sont pas implémentés. |
+| **Classification** | **Cible** | Thèmes générés par Mistral (Chat Completions) à partir de la transcription entière. Modération safeguard ajoute une dimension `flagged + category`. La classification par segment est implémentée (`per_segment`). |
+| **Compte-rendu** | **Cible** | CR structuré (`resume`, `decisions`, `actions[{text, owner}]`, `themes`) généré par Mistral et persisté en DB (`Meeting.cr`). Badge source réelle/mock en UI, cohérent entre transcription et génération du CR. L'export PDF et les statuts d'actions (avancé) ne sont pas implémentés. |
 | **Persistance** | **Cible** | Modèle relationnel SQLAlchemy (Users, Meetings, RgpdRequests). Auth JWT cookie httpOnly + bcrypt 12 rounds. `retention_days` configurable. `share_id` unique pour accès public au CR. Filtrage par owner strict. L'auto-purge à expiration (avancé) n'est pas implémentée. |
 | **Tableau de bord** | **Socle** | Page d'accueil listant les réunions avec titre, mode, date et statut (`app/page.tsx`). Pas de filtres ni de graphes (avancé hors périmètre du sprint). |
 | **Architecture** | **Cible** | Deux services conteneurisés (Next.js + FastAPI), orchestrés par docker-compose avec healthcheck sur `/health`. Abstraction source audio commune (`TranscriptSegment`). Next.js pur frontend (proxy `/api/*` vers `AI_SERVICE_URL`). L'avancé (async webhooks, scalabilité horizontale) est limité par SQLite non distribué. |
@@ -376,7 +375,8 @@ Configuré au niveau `INFO` à l'entrée du service (`main.py` : `logging.basicC
 | Logger | Événements couverts |
 |---|---|
 | `ai-service.voxtral` | Erreurs Voxtral → fallback mock |
-| `ai-service.kimi` | Retries (WARNING), erreurs → fallback mock |
+| `ai-service.mistral_cr` | Retries (WARNING), erreurs → fallback mock |
+| `ai-service.classifier` | Retries (WARNING), erreurs → fallback mock |
 | `ai-service.safeguard` | Erreurs modération → fallback mock |
 | `ai-service.vexa` | Erreurs de poll (par itération), erreurs de join/leave |
 
@@ -391,7 +391,6 @@ Les basculements sur le mock sont loggués au niveau `ERROR`, ce qui permet de l
   "status": "ok",
   "providers": {
     "mistral": true,
-    "moonshot": false,
     "vexa": true,
     "groq": true
   }
@@ -417,8 +416,8 @@ Utilisé par docker-compose pour conditionner le démarrage de Next.js (`depends
 
 | Rôle | Prénom | Contribution principale |
 |---|---|---|
-| Architecture & intégrations IA | Greg | Architecture globale, ai-service FastAPI, clients Voxtral/Kimi/Safeguard/Vexa, docker-compose, Next.js proxy |
-| Choix technologiques | Amadou | Analyse comparative des APIs (Vexa, Voxtral, Kimi K3, safeguard), justification des écarts vs pré-production, positionnement concurrentiel |
+| Architecture & intégrations IA | Greg | Architecture globale, ai-service FastAPI, clients Voxtral/Mistral (CR + classification)/Safeguard/Vexa, docker-compose, Next.js proxy |
+| Choix technologiques | Amadou | Analyse comparative des APIs (Vexa, Voxtral, Mistral, safeguard), justification des écarts vs pré-production, positionnement concurrentiel |
 | RGPD & éthique IA | Othmane | Analyse de conformité RGPD, matrice de risques, politique de rétention, écrans de consentement, registre des sous-traitants |
 
 ### Accès au projet
@@ -439,8 +438,7 @@ cd Scribe
 cp ai-service/.env.example ai-service/.env
 # Renseigner dans ai-service/.env :
 #   JWT_SECRET=<openssl rand -base64 32>
-#   MISTRAL_API_KEY=<clé Mistral pour Voxtral>
-#   MOONSHOT_API_KEY=<clé Moonshot AI pour Kimi K3>
+#   MISTRAL_API_KEY=<clé Mistral pour Voxtral, génération du CR et classification>
 #   VEXA_API_KEY=<clé Vexa cloud>
 #   GROQ_API_KEY=<clé Groq pour safeguard>
 

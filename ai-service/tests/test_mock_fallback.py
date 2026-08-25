@@ -1,6 +1,6 @@
 """Tests critiques des fallbacks mock des clients IA.
 
-Vérifie que chaque client (voxtral, kimi, safeguard) bascule automatiquement
+Vérifie que chaque client (voxtral, mistral_cr, safeguard) bascule automatiquement
 sur le mock lorsque la clé API correspondante est absente de la configuration.
 Ces tests sont essentiels pour garantir que la démo fonctionne sans clés API.
 """
@@ -60,17 +60,17 @@ class TestVoxtralFallback:
         assert isinstance(segments, list)
 
 
-class TestKimiFallback:
-    """Vérifie le fallback mock de clients.kimi.generate_cr."""
+class TestMistralCrFallback:
+    """Vérifie le fallback mock de clients.mistral_cr.generate_cr."""
 
-    async def test_generate_cr_returns_mock_when_no_moonshot_key(self) -> None:
-        """Sans MOONSHOT_API_KEY, generate_cr retourne (MeetingCR, 'mock')."""
+    async def test_generate_cr_returns_mock_when_no_mistral_key(self) -> None:
+        """Sans MISTRAL_API_KEY, generate_cr retourne (MeetingCR, 'mock')."""
         transcript = [
             TranscriptSegment(speaker="Alice", text="On valide.", start=0.0),
         ]
 
-        with patch("config.MOONSHOT_API_KEY", None):
-            from clients.kimi import generate_cr
+        with patch("config.MISTRAL_API_KEY", None):
+            from clients.mistral_cr import generate_cr
 
             cr, source = await generate_cr(transcript)
 
@@ -87,8 +87,8 @@ class TestKimiFallback:
             TranscriptSegment(speaker="Pierre", text="Je m'en occupe.", start=0.0),
         ]
 
-        with patch("config.MOONSHOT_API_KEY", None):
-            from clients.kimi import generate_cr
+        with patch("config.MISTRAL_API_KEY", None):
+            from clients.mistral_cr import generate_cr
 
             cr, source = await generate_cr(transcript)
 
@@ -106,10 +106,10 @@ class TestKimiFallback:
         fake_resp.status_code = 500
         fake_resp.text = "Internal Server Error"
 
-        with patch("config.MOONSHOT_API_KEY", "fake-key"):
+        with patch("config.MISTRAL_API_KEY", "fake-key"):
             with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
-                from clients import kimi
-                cr, source = await kimi.generate_cr(transcript)
+                from clients import mistral_cr
+                cr, source = await mistral_cr.generate_cr(transcript)
 
         assert source == "mock"
         assert isinstance(cr, MeetingCR)

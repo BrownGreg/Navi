@@ -16,8 +16,9 @@ logger = logging.getLogger("ai-service.safeguard")
 # sans reentrainer le modele. Format recommande par Groq : sections
 # Instructions / Definitions / Criteria / Examples, ~400-600 tokens.
 #
-# Meme reserve de conformite que pour Kimi K3 (voir clients/kimi.py) si Groq
-# n'est pas heberge en UE : a re-evaluer avant un usage en production.
+# Reserve de conformite si Groq n'est pas heberge en UE : a re-evaluer avant
+# un usage en production (contrairement a Mistral, utilise par ailleurs pour
+# la transcription, la generation du CR et la classification - cf. config.py).
 #
 # Non bloquant par choix produit : le flag est informatif sur la reunion, il
 # ne bloque jamais la generation du CR (voir POST /moderate et son usage cote
