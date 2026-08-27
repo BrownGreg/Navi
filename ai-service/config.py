@@ -17,9 +17,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GPT_OSS_SAFEGUARD_ENDPOINT = os.environ.get(
     "GPT_OSS_SAFEGUARD_ENDPOINT", "https://api.groq.com/openai/v1/chat/completions"
 )
-GPT_OSS_SAFEGUARD_MODEL = os.environ.get(
-    "GPT_OSS_SAFEGUARD_MODEL", "openai/gpt-oss-safeguard-20b"
-)
+GPT_OSS_SAFEGUARD_MODEL = os.environ.get("GPT_OSS_SAFEGUARD_MODEL", "openai/gpt-oss-safeguard-20b")
 
 MISTRAL_TRANSCRIBE_URL = "https://api.mistral.ai/v1/audio/transcriptions"
 MISTRAL_CHAT_URL = "https://api.mistral.ai/v1/chat/completions"
@@ -53,6 +51,11 @@ CALENDAR_SYNC_INTERVAL_MINUTES = int(os.environ.get("CALENDAR_SYNC_INTERVAL_MINU
 CALENDAR_LOOKAHEAD_MINUTES = int(os.environ.get("CALENDAR_LOOKAHEAD_MINUTES", "60"))
 CALENDAR_JOIN_LEAD_SECONDS = int(os.environ.get("CALENDAR_JOIN_LEAD_SECONDS", "60"))
 CALENDAR_JOIN_GRACE_SECONDS = int(os.environ.get("CALENDAR_JOIN_GRACE_SECONDS", "300"))
+
+# Purge RGPD automatique (art. 5.1.e RGPD - limitation de la conservation) :
+# anonymise les reunions dont retention_days est depasse. Intervalle large par
+# defaut (peu de cout a verifier moins souvent que le calendrier).
+RGPD_PURGE_INTERVAL_MINUTES = int(os.environ.get("RGPD_PURGE_INTERVAL_MINUTES", "60"))
 
 # Auth + persistance : desormais entierement geres ici (ai-service), plus
 # jamais cote Next.js. Nom dedie (pas "DATABASE_URL") pour eviter toute

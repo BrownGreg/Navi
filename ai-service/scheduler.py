@@ -28,7 +28,75 @@ def start_scheduler() -> None:
         id="calendar_sync",
         replace_existing=True,
     )
+    scheduler.add_job(
+        purge_expired_meetings,
+        "interval",
+        minutes=config.RGPD_PURGE_INTERVAL_MINUTES,
+        id="rgpd_purge",
+        replace_existing=True,
+    )
     scheduler.start()
+
+
+async def purge_expired_meetings() -> None:
+    """Anonymise les reunions dont la duree de conservation (retention_days) est depassee.
+
+    Politique de retention documentee dans rapport_technique.md section 5 : la
+    purge doit etre automatique, pas seulement une valeur affichee en UI. Reutilise
+    la meme anonymisation que la suppression manuelle organisateur (routers/meetings.py) :
+    transcript/cr/moderation/classification effaces, titre remplace, statut inchange.
+    """
+    db = SessionLocal()
+    try:
+        purged = _purge_expired_meetings(db)
+        if purged:
+            logger.info(
+                "[scheduler] rgpd purge: %d reunion(s) anonymisee(s) (retention_days depasse)",
+                purged,
+            )
+    finally:
+        db.close()
+
+
+def _purge_expired_meetings(db) -> int:
+    """Anonymise en base les reunions expirees et renvoie le nombre traite.
+
+    Isolee de ``purge_expired_meetings`` (qui gere le cycle de vie de la
+    session) pour rester testable avec une session SQLAlchemy quelconque.
+    """
+    now = datetime.now(timezone.utc)
+    # Filtre uniquement sur `status` (colonne simple) : la colonne JSON
+    # `transcript` stocke None comme le literal JSON 'null', pas un SQL NULL
+    # (comportement par defaut de SQLAlchemy JSON), donc `.isnot(None)` ne
+    # filtrerait pas correctement au niveau SQL. Le check "deja purgee" se
+    # fait cote Python ci-dessous a la place.
+    candidates = db.query(models.Meeting).filter(models.Meeting.status == "ready").all()
+
+    purged = 0
+    for meeting in candidates:
+        if meeting.transcript is None:
+            continue  # deja purgee, ou jamais eu de transcript
+
+        # SQLite ne conserve pas le fuseau horaire : une valeur relue depuis
+        # la DB revient "naive" meme si elle a ete ecrite avec tzinfo=utc
+        # (cf. models._now). On la re-tague explicitement pour rester
+        # comparable a `now`, sans dependre de l'horloge locale du process.
+        meeting_date = (
+            meeting.date if meeting.date.tzinfo else meeting.date.replace(tzinfo=timezone.utc)
+        )
+        expires_at = meeting_date + timedelta(days=meeting.retention_days)
+        if expires_at > now:
+            continue
+        meeting.transcript = None
+        meeting.cr = None
+        meeting.moderation = None
+        meeting.classification = None
+        meeting.title = "[réunion expirée - durée de conservation dépassée]"
+        purged += 1
+
+    if purged:
+        db.commit()
+    return purged
 
 
 async def sync_and_join_calendars() -> None:
@@ -54,7 +122,9 @@ async def _sync_one_connection(db, connection: models.CalendarConnection) -> Non
         try:
             token_set = await client.refresh_access_token(connection.refresh_token)
         except Exception as err:  # noqa: BLE001 - refresh invalide : signaler, ne pas planter le tick
-            logger.error("[scheduler] token refresh failed for connection=%s: %s", connection.id, err)
+            logger.error(
+                "[scheduler] token refresh failed for connection=%s: %s", connection.id, err
+            )
             connection.needs_reauth = True
             db.commit()
             return
@@ -111,7 +181,10 @@ async def _join_due_events(db) -> None:
 
     due_events = (
         db.query(models.CalendarSyncedEvent, models.CalendarConnection.owner_id)
-        .join(models.CalendarConnection, models.CalendarSyncedEvent.connection_id == models.CalendarConnection.id)
+        .join(
+            models.CalendarConnection,
+            models.CalendarSyncedEvent.connection_id == models.CalendarConnection.id,
+        )
         .filter(
             models.CalendarSyncedEvent.status == "pending",
             models.CalendarSyncedEvent.start_time >= window_start,
