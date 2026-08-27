@@ -11,6 +11,7 @@ Architecture d'isolation :
 - ``get_db`` est remplacée par une factory qui yield la session de test.
 - L'engine est disposé après chaque test pour libérer la mémoire.
 """
+
 from __future__ import annotations
 
 import os
@@ -25,14 +26,13 @@ from typing import AsyncGenerator, Generator
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlalchemy.orm import sessionmaker, Session
 
 import models  # noqa: F401 – enregistre les modèles sur Base.metadata
 from db import Base, get_db
 from main import app as _app
 from security import SESSION_COOKIE_NAME
-
 
 # ---------------------------------------------------------------------------
 # Fixtures d'infrastructure (engine + session + client HTTP)
@@ -71,9 +71,7 @@ def db_session(db_engine) -> Generator[Session, None, None]:
     Yields:
         Session SQLAlchemy prête à l'emploi.
     """
-    TestingSessionLocal = sessionmaker(
-        bind=db_engine, autoflush=False, autocommit=False
-    )
+    TestingSessionLocal = sessionmaker(bind=db_engine, autoflush=False, autocommit=False)
     db = TestingSessionLocal()
     try:
         yield db

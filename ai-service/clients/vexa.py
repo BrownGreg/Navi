@@ -76,7 +76,9 @@ async def _poll(platform: str, native_meeting_id: str) -> None:
         pass
 
 
-async def join_bot(platform: str, native_meeting_id: str, bot_name: str | None = None) -> tuple[bool, str]:
+async def join_bot(
+    platform: str, native_meeting_id: str, bot_name: str | None = None
+) -> tuple[bool, str]:
     key = (platform, native_meeting_id)
 
     if not config.VEXA_API_KEY:
@@ -106,7 +108,9 @@ async def join_bot(platform: str, native_meeting_id: str, bot_name: str | None =
         return True, "mock"
 
 
-def get_transcript(platform: str, native_meeting_id: str) -> tuple[list[TranscriptSegment], str, bool]:
+def get_transcript(
+    platform: str, native_meeting_id: str
+) -> tuple[list[TranscriptSegment], str, bool]:
     key = (platform, native_meeting_id)
     segments = _transcripts.get(key, [])
     source = _sources.get(key, "mock")

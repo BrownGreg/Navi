@@ -3,6 +3,7 @@
 Le client safeguard est mocké pour éviter les appels API réels.
 Les tests vérifient les cas flagged=False et flagged=True.
 """
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
@@ -11,7 +12,6 @@ import pytest
 from httpx import AsyncClient
 
 from schemas import ModerateResponse, TranscriptSegment
-
 
 pytestmark = pytest.mark.asyncio
 

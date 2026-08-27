@@ -25,7 +25,9 @@ class SessionPayload(TypedDict):
 
 
 def hash_password(plain: str) -> str:
-    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode("utf-8")
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode(
+        "utf-8"
+    )
 
 
 def verify_password(plain: str, password_hash: str) -> bool:

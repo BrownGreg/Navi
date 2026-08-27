@@ -4,14 +4,14 @@ Vérifie que chaque client (voxtral, mistral_cr, safeguard) bascule automatiquem
 sur le mock lorsque la clé API correspondante est absente de la configuration.
 Ces tests sont essentiels pour garantir que la démo fonctionne sans clés API.
 """
+
 from __future__ import annotations
 
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from schemas import MeetingCR, ModerateResponse, TranscriptSegment
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -53,6 +53,7 @@ class TestVoxtralFallback:
         with patch("config.MISTRAL_API_KEY", "fake-key-for-test"):
             with patch("httpx.AsyncClient.post", side_effect=_raise):
                 from clients import voxtral
+
                 # Recharge le module pour prendre en compte le patch
                 segments, source = await voxtral.transcribe_audio(b"dummy", "audio/webm")
 
@@ -99,7 +100,6 @@ class TestMistralCrFallback:
 
     async def test_generate_cr_fallback_on_api_error(self) -> None:
         """En cas d'erreur API (clé présente mais réponse invalide), fallback sur mock."""
-        import httpx
 
         transcript = [TranscriptSegment(speaker="A", text="Bonjour", start=0)]
         fake_resp = AsyncMock()
@@ -109,6 +109,7 @@ class TestMistralCrFallback:
         with patch("config.MISTRAL_API_KEY", "fake-key"):
             with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
                 from clients import mistral_cr
+
                 cr, source = await mistral_cr.generate_cr(transcript)
 
         assert source == "mock"
@@ -146,7 +147,6 @@ class TestSafeguardFallback:
 
     async def test_moderate_fallback_on_api_error(self) -> None:
         """En cas d'erreur API (clé présente mais indisponible), fallback sur mock."""
-        import httpx
 
         transcript = [TranscriptSegment(speaker="A", text="test", start=0)]
         fake_resp = AsyncMock()
@@ -156,6 +156,7 @@ class TestSafeguardFallback:
         with patch("config.GROQ_API_KEY", "fake-key"):
             with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
                 from clients import safeguard
+
                 result = await safeguard.moderate(transcript)
 
         assert result.source == "mock"
