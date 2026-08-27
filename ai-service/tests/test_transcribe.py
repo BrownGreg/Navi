@@ -4,6 +4,7 @@ Les clients IA réels (voxtral, safeguard) sont mockés pour éviter toute
 dépendance aux clés API. Les tests vérifient le code HTTP, la structure de
 la réponse et la persistance du transcript en base.
 """
+
 from __future__ import annotations
 
 import io
@@ -15,7 +16,6 @@ from sqlalchemy.orm import Session
 
 import models
 from schemas import ModerateResponse, TranscriptSegment
-
 
 pytestmark = pytest.mark.asyncio
 

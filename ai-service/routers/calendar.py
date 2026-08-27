@@ -36,7 +36,9 @@ def calendar_status(
 ) -> list[CalendarConnectionOut]:
     connections = {
         c.provider: c
-        for c in db.query(models.CalendarConnection).filter(models.CalendarConnection.owner_id == current_user.id)
+        for c in db.query(models.CalendarConnection).filter(
+            models.CalendarConnection.owner_id == current_user.id
+        )
     }
     result = []
     for provider in _PROVIDER_CLIENTS:
@@ -148,7 +150,10 @@ def calendar_upcoming(
     horizon = datetime.now(timezone.utc) + timedelta(minutes=config.CALENDAR_LOOKAHEAD_MINUTES)
     rows = (
         db.query(models.CalendarSyncedEvent, models.CalendarConnection.provider)
-        .join(models.CalendarConnection, models.CalendarSyncedEvent.connection_id == models.CalendarConnection.id)
+        .join(
+            models.CalendarConnection,
+            models.CalendarSyncedEvent.connection_id == models.CalendarConnection.id,
+        )
         .filter(
             models.CalendarConnection.owner_id == current_user.id,
             models.CalendarSyncedEvent.status == "pending",

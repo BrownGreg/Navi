@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
+import models
 from clients.safeguard import moderate as run_moderation
 from clients.voxtral import transcribe_audio
 from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
-import models
 from schemas import TranscribeResponse
 
 router = APIRouter(tags=["transcribe"])

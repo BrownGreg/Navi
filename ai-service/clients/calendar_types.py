@@ -5,7 +5,9 @@ from datetime import datetime
 @dataclass
 class TokenSet:
     access_token: str
-    refresh_token: str | None  # absent sur une reponse de refresh Google : l'appelant garde l'ancien
+    refresh_token: (
+        str | None
+    )  # absent sur une reponse de refresh Google : l'appelant garde l'ancien
     expires_at: datetime
     account_email: str | None = None
 

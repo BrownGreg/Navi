@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
@@ -78,10 +78,14 @@ class CalendarConnection(Base):
 
 class CalendarSyncedEvent(Base):
     __tablename__ = "calendar_synced_events"
-    __table_args__ = (UniqueConstraint("connection_id", "external_event_id", name="uq_calendar_event"),)
+    __table_args__ = (
+        UniqueConstraint("connection_id", "external_event_id", name="uq_calendar_event"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
-    connection_id: Mapped[str] = mapped_column(ForeignKey("calendar_connections.id"), index=True, nullable=False)
+    connection_id: Mapped[str] = mapped_column(
+        ForeignKey("calendar_connections.id"), index=True, nullable=False
+    )
     external_event_id: Mapped[str] = mapped_column(String, nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
     start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)

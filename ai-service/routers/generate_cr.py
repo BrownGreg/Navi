@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+import models
 from clients.mistral_cr import generate_cr as run_generate_cr
 from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
-import models
 from schemas import GenerateCRRequest, GenerateCRResponse, TranscriptSegment
 
 router = APIRouter(tags=["generate-cr"])

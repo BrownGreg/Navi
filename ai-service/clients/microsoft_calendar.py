@@ -32,7 +32,8 @@ async def _fetch_account_email(access_token: str) -> str | None:
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             res = await client.get(
-                "https://graph.microsoft.com/v1.0/me", headers={"Authorization": f"Bearer {access_token}"}
+                "https://graph.microsoft.com/v1.0/me",
+                headers={"Authorization": f"Bearer {access_token}"},
             )
         if res.status_code >= 400:
             return None

@@ -4,7 +4,18 @@ from fastapi import FastAPI
 
 import config
 from db import init_db
-from routers import auth, calendar, classify, export, generate_cr, meetings, moderate, rgpd, transcribe, visio
+from routers import (
+    auth,
+    calendar,
+    classify,
+    export,
+    generate_cr,
+    meetings,
+    moderate,
+    rgpd,
+    transcribe,
+    visio,
+)
 from scheduler import start_scheduler
 from schemas import HealthResponse
 

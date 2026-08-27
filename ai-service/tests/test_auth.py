@@ -4,13 +4,13 @@ Couvre les cas nominaux et les cas d'erreur pour chaque endpoint
 d'authentification, en vérifiant les codes de statut HTTP, les corps de
 réponse et la gestion du cookie de session.
 """
+
 from __future__ import annotations
 
 import pytest
 from httpx import AsyncClient
 
 from security import SESSION_COOKIE_NAME
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -160,9 +160,7 @@ class TestSignout:
         cookie_val = resp.cookies.get(SESSION_COOKIE_NAME, "")
         assert cookie_val == "" or cookie_val is None
 
-    async def test_signout_without_session_still_returns_200(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_signout_without_session_still_returns_200(self, client: AsyncClient) -> None:
         """Le signout réussit même sans cookie (idempotent)."""
         resp = await client.post("/api/auth/signout")
         assert resp.status_code == 200
