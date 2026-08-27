@@ -34,7 +34,9 @@ def _set_session_cookie(response: Response, user: models.User) -> None:
 def signup(body: SignupRequest, response: Response, db: Session = Depends(get_db)) -> models.User:
     email = body.email.strip().lower()
     if len(body.password) < 8:
-        raise HTTPException(status_code=400, detail="le mot de passe doit faire au moins 8 caractères")
+        raise HTTPException(
+            status_code=400, detail="le mot de passe doit faire au moins 8 caractères"
+        )
 
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:

@@ -38,7 +38,9 @@ def build_authorize_url(state: str) -> str:
 async def _fetch_account_email(access_token: str) -> str | None:
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.get(USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"})
+            res = await client.get(
+                USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"}
+            )
         if res.status_code >= 400:
             return None
         return res.json().get("email")
@@ -116,7 +118,9 @@ async def list_upcoming_events(access_token: str, lookahead_minutes: int) -> lis
         "orderBy": "startTime",
     }
     async with httpx.AsyncClient(timeout=15) as client:
-        res = await client.get(EVENTS_URL, params=params, headers={"Authorization": f"Bearer {access_token}"})
+        res = await client.get(
+            EVENTS_URL, params=params, headers={"Authorization": f"Bearer {access_token}"}
+        )
     if res.status_code >= 400:
         raise RuntimeError(f"Google events list error: {res.status_code} {res.text}")
 

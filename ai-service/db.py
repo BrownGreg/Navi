@@ -3,7 +3,9 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 import config
 
-_connect_args = {"check_same_thread": False} if config.AI_SERVICE_DATABASE_URL.startswith("sqlite") else {}
+_connect_args = (
+    {"check_same_thread": False} if config.AI_SERVICE_DATABASE_URL.startswith("sqlite") else {}
+)
 
 engine = create_engine(config.AI_SERVICE_DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
@@ -39,7 +41,9 @@ def _add_missing_columns() -> None:
                 continue
             column_type = column.type.compile(dialect=engine.dialect)
             with engine.begin() as conn:
-                conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {column_type}"))
+                conn.execute(
+                    text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {column_type}")
+                )
 
 
 def init_db() -> None:

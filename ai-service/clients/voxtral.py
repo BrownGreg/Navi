@@ -27,7 +27,9 @@ def _speaker_label(speaker_id: object) -> str:
     return f"Intervenant {speaker_id}"
 
 
-async def transcribe_audio(audio_bytes: bytes, mime_type: str) -> tuple[list[TranscriptSegment], str]:
+async def transcribe_audio(
+    audio_bytes: bytes, mime_type: str
+) -> tuple[list[TranscriptSegment], str]:
     if not config.MISTRAL_API_KEY:
         return await mock_transcribe(), "mock"
 
@@ -55,7 +57,9 @@ async def transcribe_audio(audio_bytes: bytes, mime_type: str) -> tuple[list[Tra
 
         if not isinstance(raw_segments, list) or len(raw_segments) == 0:
             if not fallback_text:
-                raise RuntimeError(f"empty or unrecognized transcription shape from Voxtral: {body}")
+                raise RuntimeError(
+                    f"empty or unrecognized transcription shape from Voxtral: {body}"
+                )
             return [TranscriptSegment(speaker="Intervenant 1", text=fallback_text, start=0)], "real"
 
         segments = [

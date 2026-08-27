@@ -3,6 +3,7 @@
 Le client Mistral (génération du CR) est mocké. Les tests vérifient la structure de la réponse,
 la persistance du CR en base et le passage du statut à 'ready'.
 """
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
@@ -13,7 +14,6 @@ from sqlalchemy.orm import Session
 
 import models
 from schemas import CRAction, MeetingCR, TranscriptSegment
-
 
 pytestmark = pytest.mark.asyncio
 

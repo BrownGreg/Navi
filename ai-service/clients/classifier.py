@@ -21,8 +21,8 @@ logger = logging.getLogger("ai-service.classifier")
 SYSTEM_PROMPT = (
     "Tu analyses des transcriptions de reunions professionnelles en francais. "
     "Reponds uniquement en JSON avec les cles suivantes :\n"
-    "- tone : string parmi \"positif\", \"neutre\", \"negatif\", \"tendu\"\n"
-    "- urgency : string parmi \"faible\", \"normale\", \"haute\"\n"
+    '- tone : string parmi "positif", "neutre", "negatif", "tendu"\n'
+    '- urgency : string parmi "faible", "normale", "haute"\n'
     "- themes : array de string (5 themes maximum)\n"
     "- per_segment : array d'objets {speaker: string, theme: string, tone: string}, "
     "un objet par segment de la transcription fournie"
@@ -124,14 +124,19 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
             f"[Segment {i + 1}] {s.speaker}: {s.text}" for i, s in enumerate(transcript)
         )
 
-        res = await _post_with_retry({
-            "model": config.MISTRAL_CHAT_MODEL,
-            "response_format": {"type": "json_object"},
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Voici la transcription a analyser:\n\n{transcript_text}"},
-            ],
-        })
+        res = await _post_with_retry(
+            {
+                "model": config.MISTRAL_CHAT_MODEL,
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": f"Voici la transcription a analyser:\n\n{transcript_text}",
+                    },
+                ],
+            }
+        )
 
         body = res.json()
         content = body.get("choices", [{}])[0].get("message", {}).get("content")

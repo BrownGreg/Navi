@@ -10,10 +10,22 @@ from schemas import CRAction, MeetingCR, ModerateResponse, TranscriptSegment
 async def mock_transcribe() -> list[TranscriptSegment]:
     await asyncio.sleep(1.2)
     return [
-        TranscriptSegment(speaker="Intervenant 1", text="On peut demarrer, merci d'etre la.", start=0),
-        TranscriptSegment(speaker="Intervenant 2", text="Cote avancement, le module de transcription est branche.", start=6),
-        TranscriptSegment(speaker="Intervenant 1", text="Il reste a valider la generation du compte-rendu avant la demo.", start=14),
-        TranscriptSegment(speaker="Intervenant 2", text="On peut viser vendredi pour la version stable.", start=22),
+        TranscriptSegment(
+            speaker="Intervenant 1", text="On peut demarrer, merci d'etre la.", start=0
+        ),
+        TranscriptSegment(
+            speaker="Intervenant 2",
+            text="Cote avancement, le module de transcription est branche.",
+            start=6,
+        ),
+        TranscriptSegment(
+            speaker="Intervenant 1",
+            text="Il reste a valider la generation du compte-rendu avant la demo.",
+            start=14,
+        ),
+        TranscriptSegment(
+            speaker="Intervenant 2", text="On peut viser vendredi pour la version stable.", start=22
+        ),
     ]
 
 
@@ -26,7 +38,9 @@ async def mock_generate_cr(transcript: list[TranscriptSegment]) -> MeetingCR:
             "module de transcription et la planification de la version stable."
         ),
         decisions=["Cibler vendredi pour la version stable de la demo"],
-        actions=[CRAction(text="Valider la generation du compte-rendu de bout en bout", owner=owner)],
+        actions=[
+            CRAction(text="Valider la generation du compte-rendu de bout en bout", owner=owner)
+        ],
         themes=["Avancement", "Planification"],
     )
 

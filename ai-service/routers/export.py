@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import (
     Paragraph,
@@ -34,8 +34,8 @@ logger = logging.getLogger("ai-service.export")
 router = APIRouter(tags=["export"])
 
 # Palette de couleurs Scribe
-_COLOR_PRIMARY = colors.HexColor("#1E40AF")   # bleu fonce
-_COLOR_FLAG = colors.HexColor("#DC2626")      # rouge alerte
+_COLOR_PRIMARY = colors.HexColor("#1E40AF")  # bleu fonce
+_COLOR_FLAG = colors.HexColor("#DC2626")  # rouge alerte
 _COLOR_SECTION_BG = colors.HexColor("#EFF6FF")  # bleu tres clair
 _COLOR_TABLE_HEADER = colors.HexColor("#3B82F6")  # bleu moyen
 _COLOR_LIGHT_GREY = colors.HexColor("#F3F4F6")
@@ -138,7 +138,9 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
     )
     duration_str = f"{meeting.duration_min} min" if meeting.duration_min else "durée inconnue"
     mode_label = "Visioconférence" if meeting.mode == "visio" else "Dictaphone"
-    story.append(Paragraph(f"Date : {date_str} — Durée : {duration_str} — Mode : {mode_label}", style_meta))
+    story.append(
+        Paragraph(f"Date : {date_str} — Durée : {duration_str} — Mode : {mode_label}", style_meta)
+    )
     story.append(Spacer(1, 6))
 
     # --- Badge moderation ---
@@ -174,24 +176,26 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         col_widths = [doc.width * 0.68, doc.width * 0.32]
         action_table = Table(table_data, colWidths=col_widths)
         action_table.setStyle(
-            TableStyle([
-                # En-tete
-                ("BACKGROUND", (0, 0), (-1, 0), _COLOR_TABLE_HEADER),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
-                ("TOPPADDING", (0, 0), (-1, 0), 7),
-                # Corps
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 9),
-                ("TOPPADDING", (0, 1), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _COLOR_LIGHT_GREY]),
-                # Bordures
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ])
+            TableStyle(
+                [
+                    # En-tete
+                    ("BACKGROUND", (0, 0), (-1, 0), _COLOR_TABLE_HEADER),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+                    ("TOPPADDING", (0, 0), (-1, 0), 7),
+                    # Corps
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ("TOPPADDING", (0, 1), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _COLOR_LIGHT_GREY]),
+                    # Bordures
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ]
+            )
         )
         story.append(action_table)
     else:
@@ -211,7 +215,9 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         story.append(Paragraph("Classification IA", style_section))
         tone = classification.get("tone", "—")
         urgency = classification.get("urgency", "—")
-        story.append(Paragraph(f"Ton global : <b>{tone}</b> — Urgence : <b>{urgency}</b>", style_body))
+        story.append(
+            Paragraph(f"Ton global : <b>{tone}</b> — Urgence : <b>{urgency}</b>", style_body)
+        )
 
     # --- Pied de page ---
     story.append(Spacer(1, 20))

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+import models
 from clients.meeting_url import resolve_meeting_url
 from clients.safeguard import moderate as run_moderation
 from clients.vexa import get_transcript, leave_bot
 from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
-import models
 from schemas import (
     VisioJoinRequest,
     VisioJoinResponse,
@@ -33,7 +33,9 @@ async def visio_join(
 ) -> VisioJoinResponse:
     meeting = get_owned_meeting(db, body.meeting_id, current_user.id)
 
-    joined, source = await join_meeting(db, meeting, body.platform, body.native_meeting_id, body.bot_name)
+    joined, source = await join_meeting(
+        db, meeting, body.platform, body.native_meeting_id, body.bot_name
+    )
 
     return VisioJoinResponse(joined=joined, source=source)
 

@@ -3,6 +3,7 @@
 L'endpoint est public (sans authentification) par choix délibéré :
 les participants à une réunion sans compte doivent pouvoir exercer leurs droits.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -10,7 +11,6 @@ from httpx import AsyncClient
 from sqlalchemy.orm import Session
 
 import models
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -65,9 +65,7 @@ class TestRgpdRequest:
         assert resp.status_code == 200
         assert resp.json()["type"] == "rectification"
 
-    async def test_rgpd_request_is_public_no_auth_needed(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_rgpd_request_is_public_no_auth_needed(self, client: AsyncClient) -> None:
         """L'endpoint est accessible sans cookie de session (public par design)."""
         resp = await client.post(
             "/api/rgpd-request",
@@ -102,9 +100,7 @@ class TestRgpdRequest:
         assert entry.meeting_id == "m-persist-test"
         assert entry.type == "erasure"
 
-    async def test_rgpd_request_invalid_type_returns_422(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_rgpd_request_invalid_type_returns_422(self, client: AsyncClient) -> None:
         """Un type non reconnu (pas dans l'enum) lève 422."""
         resp = await client.post(
             "/api/rgpd-request",

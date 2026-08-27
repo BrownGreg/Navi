@@ -49,7 +49,9 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
             if attempt < len(RETRY_DELAYS_SECONDS):
                 logger.warning(
                     "[mistral_cr] erreur reseau, retry %d/%d: %s",
-                    attempt + 1, len(RETRY_DELAYS_SECONDS), err,
+                    attempt + 1,
+                    len(RETRY_DELAYS_SECONDS),
+                    err,
                 )
                 continue
             raise
@@ -59,7 +61,9 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
             if attempt < len(RETRY_DELAYS_SECONDS):
                 logger.warning(
                     "[mistral_cr] erreur transitoire %s, retry %d/%d",
-                    res.status_code, attempt + 1, len(RETRY_DELAYS_SECONDS),
+                    res.status_code,
+                    attempt + 1,
+                    len(RETRY_DELAYS_SECONDS),
                 )
                 continue
             raise last_err
@@ -79,14 +83,16 @@ async def generate_cr(transcript: list[TranscriptSegment]) -> tuple[MeetingCR, s
     try:
         transcript_text = "\n".join(f"{s.speaker}: {s.text}" for s in transcript)
 
-        res = await _post_with_retry({
-            "model": config.MISTRAL_CHAT_MODEL,
-            "response_format": {"type": "json_object"},
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Voici la transcription:\n\n{transcript_text}"},
-            ],
-        })
+        res = await _post_with_retry(
+            {
+                "model": config.MISTRAL_CHAT_MODEL,
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Voici la transcription:\n\n{transcript_text}"},
+                ],
+            }
+        )
 
         body = res.json()
         content = body.get("choices", [{}])[0].get("message", {}).get("content")
