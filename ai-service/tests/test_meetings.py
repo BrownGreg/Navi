@@ -3,6 +3,7 @@
 Couvre la liste, la création, la récupération par id et par share_id,
 ainsi que les contrôles d'accès et les 404 attendus.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -10,8 +11,6 @@ from httpx import AsyncClient
 from sqlalchemy.orm import Session
 
 import models
-from security import SESSION_COOKIE_NAME
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -41,9 +40,7 @@ class TestListMeetings:
         assert data[0]["id"] == test_meeting.id
         assert data[0]["title"] == test_meeting.title
 
-    async def test_list_meetings_without_auth_returns_401(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_list_meetings_without_auth_returns_401(self, client: AsyncClient) -> None:
         """GET /meetings sans cookie lève 401."""
         resp = await client.get("/api/meetings")
         assert resp.status_code == 401
@@ -110,9 +107,7 @@ class TestCreateMeeting:
         assert resp.status_code == 200
         assert resp.json()["mode"] == "visio"
 
-    async def test_create_meeting_without_auth_returns_401(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_meeting_without_auth_returns_401(self, client: AsyncClient) -> None:
         """POST /meetings sans cookie lève 401."""
         resp = await client.post(
             "/api/meetings",
@@ -155,9 +150,7 @@ class TestGetMeetingById:
         test_meeting: models.Meeting,
     ) -> None:
         """Un meeting appartenant à l'utilisateur est retourné."""
-        resp = await client.get(
-            f"/api/meetings/{test_meeting.id}", headers=auth_headers
-        )
+        resp = await client.get(f"/api/meetings/{test_meeting.id}", headers=auth_headers)
         assert resp.status_code == 200
         assert resp.json()["id"] == test_meeting.id
 
@@ -165,9 +158,7 @@ class TestGetMeetingById:
         self, client: AsyncClient, auth_headers: dict[str, str]
     ) -> None:
         """Un id inexistant lève 404."""
-        resp = await client.get(
-            "/api/meetings/nonexistent-id-000", headers=auth_headers
-        )
+        resp = await client.get("/api/meetings/nonexistent-id-000", headers=auth_headers)
         assert resp.status_code == 404
 
     async def test_get_meeting_of_other_user_returns_404(
@@ -189,9 +180,7 @@ class TestGetMeetingById:
         db_session.add(other_meeting)
         db_session.commit()
 
-        resp = await client.get(
-            f"/api/meetings/{other_meeting.id}", headers=auth_headers
-        )
+        resp = await client.get(f"/api/meetings/{other_meeting.id}", headers=auth_headers)
         assert resp.status_code == 404
 
     async def test_get_meeting_without_auth_returns_401(
@@ -221,9 +210,67 @@ class TestGetMeetingByShare:
         assert resp.status_code == 200
         assert resp.json()["id"] == test_meeting.id
 
-    async def test_get_by_share_nonexistent_returns_404(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_get_by_share_nonexistent_returns_404(self, client: AsyncClient) -> None:
         """Un share_id inexistant lève 404."""
         resp = await client.get("/api/meetings/by-share/shr-doesnotexist")
         assert resp.status_code == 404
+
+
+class TestDeleteMeeting:
+    """Tests de DELETE /api/meetings/{meeting_id} (effacement RGPD organisateur)."""
+
+    async def test_delete_meeting_anonymizes_content(
+        self,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+        db_session: Session,
+    ) -> None:
+        """La suppression anonymise le contenu et trace une demande RGPD 'erasure'."""
+        resp = await client.delete(f"/api/meetings/{test_meeting.id}", headers=auth_headers)
+        assert resp.status_code == 200
+        assert resp.json() == {"ok": True}
+
+        db_session.expire_all()
+        meeting = db_session.get(models.Meeting, test_meeting.id)
+        assert meeting.title == "[réunion supprimée]"
+        assert meeting.transcript is None
+        assert meeting.cr is None
+
+        entry = (
+            db_session.query(models.RgpdRequest)
+            .filter(models.RgpdRequest.meeting_id == test_meeting.id)
+            .first()
+        )
+        assert entry is not None
+        assert entry.type == "erasure"
+
+    async def test_delete_meeting_of_other_user_returns_404(
+        self,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        db_session: Session,
+    ) -> None:
+        """La suppression d'une réunion d'un autre utilisateur lève 404."""
+        other_user = models.User(email="other3@example.com", password_hash="fakehash")
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+        other_meeting = models.Meeting(owner_id=other_user.id, title="Privée", mode="dictaphone")
+        db_session.add(other_meeting)
+        db_session.commit()
+
+        resp = await client.delete(f"/api/meetings/{other_meeting.id}", headers=auth_headers)
+        assert resp.status_code == 404
+
+    async def test_delete_meeting_without_auth_returns_401(
+        self, client: AsyncClient, test_meeting: models.Meeting
+    ) -> None:
+        """DELETE sans cookie lève 401."""
+        saved_cookies = dict(client.cookies)
+        client.cookies.clear()
+        try:
+            resp = await client.delete(f"/api/meetings/{test_meeting.id}")
+            assert resp.status_code == 401
+        finally:
+            client.cookies.update(saved_cookies)
