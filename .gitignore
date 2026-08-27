@@ -11,4 +11,8 @@ ai-service/__pycache__
 ai-service/**/__pycache__
 *.pyc
 ai-service/*.db
+ai-service/.coverage
 projet_certifiant
+rapport_technique.md
+dev.db
+test.mp3
