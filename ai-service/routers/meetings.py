@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import models
+from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
 from schemas import MeetingCreate, MeetingOut
