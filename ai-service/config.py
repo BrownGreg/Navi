@@ -13,19 +13,17 @@ load_dotenv(_ROOT / ".env")
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 VEXA_API_KEY = os.environ.get("VEXA_API_KEY")
 VEXA_BASE_URL = os.environ.get("VEXA_BASE_URL", "https://api.cloud.vexa.ai")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GPT_OSS_SAFEGUARD_ENDPOINT = os.environ.get(
-    "GPT_OSS_SAFEGUARD_ENDPOINT", "https://api.groq.com/openai/v1/chat/completions"
-)
-GPT_OSS_SAFEGUARD_MODEL = os.environ.get("GPT_OSS_SAFEGUARD_MODEL", "openai/gpt-oss-safeguard-20b")
 
 MISTRAL_TRANSCRIBE_URL = "https://api.mistral.ai/v1/audio/transcriptions"
 MISTRAL_CHAT_URL = "https://api.mistral.ai/v1/chat/completions"
+MISTRAL_MODERATION_URL = "https://api.mistral.ai/v1/moderations"
 # Meme cle MISTRAL_API_KEY pour la transcription (Voxtral), la generation du
-# CR et la classification : un seul fournisseur/compte a gerer desormais
-# (remplace l'ancienne integration Kimi K3 / Moonshot AI, hors UE - cf.
-# rapport_technique.md pour l'historique de cette decision).
+# CR, la classification et desormais la moderation (Mistral Moderation 2) :
+# un seul fournisseur/compte a gerer (remplace l'ancienne integration Kimi K3
+# / Moonshot AI, hors UE, et gpt-oss-safeguard-20b via Groq - cf.
+# rapport_technique.md pour l'historique de ces decisions).
 MISTRAL_CHAT_MODEL = os.environ.get("MISTRAL_CHAT_MODEL", "mistral-large-latest")
+MISTRAL_MODERATION_MODEL = os.environ.get("MISTRAL_MODERATION_MODEL", "mistral-moderation-2603")
 
 VEXA_POLL_INTERVAL_SECONDS = 4
 

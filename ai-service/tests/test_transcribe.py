@@ -1,6 +1,6 @@
 """Tests du router /api/transcribe (transcription audio dictaphone).
 
-Les clients IA réels (voxtral, safeguard) sont mockés pour éviter toute
+Les clients IA réels (voxtral, moderation) sont mockés pour éviter toute
 dépendance aux clés API. Les tests vérifient le code HTTP, la structure de
 la réponse et la persistance du transcript en base.
 """

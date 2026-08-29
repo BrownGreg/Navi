@@ -4,7 +4,7 @@ Demo du parcours Navi : frontend **Next.js** (App Router, React 19) + backend **
 
 Les deux modes de captation sont fonctionnels de bout en bout avec de vraies API :
 
-- **Dictaphone** : enregistrement micro navigateur → transcription reelle (**Voxtral**, Mistral) → moderation reelle (**gpt-oss-safeguard-20b**, via Groq) → generation du compte-rendu reelle (**Mistral**, Chat Completions).
+- **Dictaphone** : enregistrement micro navigateur → transcription reelle (**Voxtral**, Mistral) → moderation reelle (**Mistral Moderation 2**) → generation du compte-rendu reelle (**Mistral**, Chat Completions).
 - **Visio** : un bot **Vexa** rejoint une vraie reunion Google Meet, Microsoft Teams ou Zoom, recupere la transcription diarisee en direct, qui alimente ensuite le meme pipeline moderation → CR. Un **auto-join calendrier** (OAuth Google Calendar / Microsoft Graph) peut declencher ce join automatiquement a l'heure de la reunion, sans action manuelle.
 
 **Le mock n'est pas un mode par defaut** : chaque integration bascule dessus uniquement en filet de securite (cle API absente, timeout, quota, reponse inattendue) — jamais comme chemin nominal. Sans cle API, tout fonctionne quand meme en mode simule de bout en bout (badge "mode demo" dans l'UI).
@@ -57,15 +57,14 @@ Ce fichier est partage par Next.js et par `ai-service` (charge via `python-doten
 | `AI_SERVICE_URL` | URL du service FastAPI appele par Next.js | `http://localhost:8000` par defaut |
 | `JWT_SECRET` | Signature des cookies de session (`openssl rand -base64 32`) | A generer soi-meme |
 | `AI_SERVICE_DATABASE_URL` | Base de donnees d'ai-service | `sqlite:///./navi.db` par defaut ; URL Postgres en production sans disque persistant |
-| `MISTRAL_API_KEY` | Transcription (Voxtral, dictaphone), generation du CR et classification (Chat Completions) | [console.mistral.ai](https://console.mistral.ai) |
+| `MISTRAL_API_KEY` | Transcription (Voxtral, dictaphone), generation du CR, classification (Chat Completions) et moderation (Mistral Moderation 2) | [console.mistral.ai](https://console.mistral.ai) |
 | `VEXA_API_KEY` / `VEXA_BASE_URL` | Bot de reunion visio (Vexa cloud) | [docs.vexa.ai](https://docs.vexa.ai) |
-| `GROQ_API_KEY` | Moderation (gpt-oss-safeguard-20b via Groq) | [console.groq.com](https://console.groq.com) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Auto-join calendrier Google Meet | [console.cloud.google.com](https://console.cloud.google.com) |
 | `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` | Auto-join calendrier Teams | [portal.azure.com](https://portal.azure.com) |
 
 Redemarrer les deux process apres modification du `.env.local`. Si une cle est absente ou si un appel echoue, `ai-service` journalise l'erreur (`logging`, niveau `ERROR`) et bascule automatiquement sur le mock correspondant plutot que de planter.
 
-**Point de vigilance conformite** : la transcription, la generation du CR et la classification passent toutes par Mistral (UE). Reserve encore ouverte pour gpt-oss-safeguard-20b tant qu'il est servi par Groq (USA) plutot que par une infra UE — le modele est a poids ouverts (Apache 2.0) et pourrait etre auto-heberge le jour ou une infra UE est disponible. Voir `ai-service/clients/safeguard.py` et `rapport_technique.md` (non versionne, cf. plus bas) pour l'analyse complete.
+**Conformite** : la transcription, la generation du CR, la classification et desormais la moderation (Mistral Moderation 2, migree depuis gpt-oss-safeguard-20b/Groq) passent toutes par Mistral (UE) — un seul sous-traitant IA a evaluer. Voir `ai-service/clients/moderation.py` et `rapport_technique.md` (non versionne, cf. plus bas) pour l'historique de cette decision.
 
 Les integrations sont ecrites au meilleur effort a partir de leur documentation publique (verifiee mi-2026, cf. commentaires dans le code). Voir `ai-service/clients/*.py`.
 
@@ -76,8 +75,8 @@ Les integrations sont ecrites au meilleur effort a partir de leur documentation 
 | Connexion / inscription | `/sign-in`, `/sign-up` | Oui (JWT cookie httpOnly, bcrypt) |
 | Accueil / historique | `/` | Oui (protege, une fois connecte) |
 | Choix du mode | `/new` | Oui |
-| Dictaphone — consentement → enregistrement → traitement → CR | `/new/dictaphone/consent` | Oui, de bout en bout (Voxtral + gpt-oss-safeguard + Mistral) |
-| Visio — consentement → join Vexa → reunion en direct → traitement → CR | `/new/visio/consent` | Oui, de bout en bout (Vexa + gpt-oss-safeguard + Mistral) |
+| Dictaphone — consentement → enregistrement → traitement → CR | `/new/dictaphone/consent` | Oui, de bout en bout (Voxtral + Mistral Moderation 2 + Mistral) |
+| Visio — consentement → join Vexa → reunion en direct → traitement → CR | `/new/visio/consent` | Oui, de bout en bout (Vexa + Mistral Moderation 2 + Mistral) |
 | Auto-join calendrier | `/settings/calendar` | Oui (OAuth Google / Microsoft, sync toutes les 5 min) |
 | Notification participant en reunion | `/participant/consent` | Mockup |
 | Compte-rendu sans compte (lien partage) | `/cr/[shareId]` | Oui |
@@ -108,7 +107,7 @@ ai-service/                    FastAPI — backend complet (Python 3.12)
   security.py, deps.py           JWT cookie httpOnly, bcrypt, dependance get_current_user
   scheduler.py                   APScheduler : sync calendriers (5 min) + purge RGPD automatique (retention_days)
   routers/                       auth, meetings, transcribe, visio, moderate, generate_cr, classify, export, rgpd, calendar
-  clients/                       un fournisseur par fichier (voxtral, mistral_cr, classifier, safeguard, vexa, google_calendar, microsoft_calendar), fallback mock inclus
+  clients/                       un fournisseur par fichier (voxtral, mistral_cr, classifier, moderation, vexa, google_calendar, microsoft_calendar), fallback mock inclus
   services/                      logique partagee entre routers et scheduler (ex: visio_join.py)
   tests/                         suite pytest (voir plus bas)
 ```
@@ -135,7 +134,7 @@ Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tes
 - Etat des reunions visio en cours (transcription en direct) garde en memoire cote `ai-service`, pas persiste : un redemarrage du service pendant une reunion perd la transcription accumulee jusqu'a ce moment (elle est persistee cote base des que "Terminer la reunion" est appele).
 - `ai-service` tourne en un seul worker/process (`uvicorn` sans `--workers`) — suffisant pour une demo, pas dimensionne pour de la charge.
 - Aucune camera n'est utilisee, ni en mode visio ni en mode dictaphone : seul l'audio est traite. La grille video du mode visio reste un placeholder statique (choix assume, Navi n'accede jamais a la camera).
-- La moderation (gpt-oss-safeguard-20b) est non-bloquante par choix produit : un flag informatif est affiche sur la reunion, mais la generation du CR n'est jamais suspendue.
+- La moderation (Mistral Moderation 2) est non-bloquante par choix produit : un flag informatif est affiche sur la reunion, mais la generation du CR n'est jamais suspendue.
 
 ## Documentation complementaire
 

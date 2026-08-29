@@ -1,6 +1,6 @@
 """Tests du router /api/moderate (modération de transcription).
 
-Le client safeguard est mocké pour éviter les appels API réels.
+Le client de modération (Mistral Moderation 2) est mocké pour éviter les appels API réels.
 Les tests vérifient les cas flagged=False et flagged=True.
 """
 
@@ -113,7 +113,7 @@ class TestModerateEndpoint:
         mock_moderate: AsyncMock,
         client: AsyncClient,
     ) -> None:
-        """Les segments envoyés par le client HTTP sont bien transmis au client safeguard."""
+        """Les segments envoyés par le client HTTP sont bien transmis au client de modération."""
         mock_moderate.return_value = ModerateResponse(flagged=False, source="mock")
 
         await client.post(

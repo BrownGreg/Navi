@@ -27,23 +27,18 @@ services:
         # (ex: Render PostgreSQL, Supabase, Neon). En demo/test : sqlite:///./navi.db
         sync: false
       - key: MISTRAL_API_KEY
-        # Transcription Voxtral (dictaphone), generation du CR et classification
-        # — https://console.mistral.ai
+        # Transcription Voxtral (dictaphone), generation du CR, classification
+        # et moderation (Mistral Moderation 2) — https://console.mistral.ai
         sync: false
       - key: MISTRAL_CHAT_MODEL
         value: mistral-large-latest
+      - key: MISTRAL_MODERATION_MODEL
+        value: mistral-moderation-2603
       - key: VEXA_API_KEY
         # Bot de reunion visio — https://docs.vexa.ai
         sync: false
       - key: VEXA_BASE_URL
         value: https://api.cloud.vexa.ai
-      - key: GROQ_API_KEY
-        # Moderation gpt-oss-safeguard-20b — https://console.groq.com
-        sync: false
-      - key: GPT_OSS_SAFEGUARD_ENDPOINT
-        value: https://api.groq.com/openai/v1/chat/completions
-      - key: GPT_OSS_SAFEGUARD_MODEL
-        value: openai/gpt-oss-safeguard-20b
       - key: GOOGLE_CLIENT_ID
         # OAuth calendrier auto-join — console.cloud.google.com
         sync: false
