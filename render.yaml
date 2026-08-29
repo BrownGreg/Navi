@@ -11,6 +11,12 @@ services:
         # Format : https://navi-ai-service.onrender.com
         # A remplir dans le dashboard Render apres le premier deploy d'ai-service.
         sync: false
+      - key: PORT
+        # Render injecte PORT=10000 par defaut, ce qui fait ecouter le
+        # serveur Next.js standalone sur 10000 alors que Render route le
+        # trafic vers le port declare par EXPOSE dans le Dockerfile (3000)
+        # -> 502 Bad Gateway. On force PORT a matcher EXPOSE 3000.
+        value: "3000"
 
   - type: web
     name: navi-ai-service
