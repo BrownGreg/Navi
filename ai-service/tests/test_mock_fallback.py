@@ -1,6 +1,6 @@
 """Tests critiques des fallbacks mock des clients IA.
 
-Vérifie que chaque client (voxtral, mistral_cr, safeguard) bascule automatiquement
+Vérifie que chaque client (voxtral, mistral_cr, moderation) bascule automatiquement
 sur le mock lorsque la clé API correspondante est absente de la configuration.
 Ces tests sont essentiels pour garantir que la démo fonctionne sans clés API.
 """
@@ -116,17 +116,17 @@ class TestMistralCrFallback:
         assert isinstance(cr, MeetingCR)
 
 
-class TestSafeguardFallback:
-    """Vérifie le fallback mock de clients.safeguard.moderate."""
+class TestModerationFallback:
+    """Vérifie le fallback mock de clients.moderation.moderate."""
 
-    async def test_moderate_returns_mock_when_no_groq_key(self) -> None:
-        """Sans GROQ_API_KEY, moderate retourne un ModerateResponse avec source='mock'."""
+    async def test_moderate_returns_mock_when_no_mistral_key(self) -> None:
+        """Sans MISTRAL_API_KEY, moderate retourne un ModerateResponse avec source='mock'."""
         transcript = [
             TranscriptSegment(speaker="Bob", text="Réunion normale.", start=0.0),
         ]
 
-        with patch("config.GROQ_API_KEY", None):
-            from clients.safeguard import moderate
+        with patch("config.MISTRAL_API_KEY", None):
+            from clients.moderation import moderate
 
             result = await moderate(transcript)
 
@@ -138,8 +138,8 @@ class TestSafeguardFallback:
         """Le mock retourne flagged=False par défaut."""
         transcript = [TranscriptSegment(speaker="X", text="Bonjour.", start=0.0)]
 
-        with patch("config.GROQ_API_KEY", None):
-            from clients.safeguard import moderate
+        with patch("config.MISTRAL_API_KEY", None):
+            from clients.moderation import moderate
 
             result = await moderate(transcript)
 
@@ -153,21 +153,68 @@ class TestSafeguardFallback:
         fake_resp.status_code = 429
         fake_resp.text = "Too Many Requests"
 
-        with patch("config.GROQ_API_KEY", "fake-key"):
+        with patch("config.MISTRAL_API_KEY", "fake-key"):
             with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
-                from clients import safeguard
+                from clients import moderation
 
-                result = await safeguard.moderate(transcript)
+                result = await moderation.moderate(transcript)
 
         assert result.source == "mock"
         assert isinstance(result.flagged, bool)
 
     async def test_moderate_empty_transcript_with_no_key(self) -> None:
         """Le mock fonctionne même avec un transcript vide."""
-        with patch("config.GROQ_API_KEY", None):
-            from clients.safeguard import moderate
+        with patch("config.MISTRAL_API_KEY", None):
+            from clients.moderation import moderate
 
             result = await moderate([])
 
         assert isinstance(result, ModerateResponse)
         assert result.source == "mock"
+
+    async def test_moderate_parses_flagged_category_from_real_response(self) -> None:
+        """Avec une reponse Mistral Moderation valide, le flag/categorie sont extraits."""
+        transcript = [TranscriptSegment(speaker="A", text="menace explicite", start=0.0)]
+        fake_resp = AsyncMock()
+        fake_resp.status_code = 200
+        fake_resp.json = lambda: {
+            "id": "mod-123",
+            "model": "mistral-moderation-2603",
+            "results": [
+                {
+                    "categories": {"sexual": False, "violence_and_threats": True},
+                    "category_scores": {"sexual": 0.001, "violence_and_threats": 0.87},
+                }
+            ],
+        }
+
+        with patch("config.MISTRAL_API_KEY", "fake-key"):
+            with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
+                from clients.moderation import moderate
+
+                result = await moderate(transcript)
+
+        assert result.source == "real"
+        assert result.flagged is True
+        assert result.category == "violence_and_threats"
+
+    async def test_moderate_parses_not_flagged_from_real_response(self) -> None:
+        """Avec une reponse Mistral Moderation sans categorie a True, flagged=False."""
+        transcript = [TranscriptSegment(speaker="A", text="Bonjour tout le monde", start=0.0)]
+        fake_resp = AsyncMock()
+        fake_resp.status_code = 200
+        fake_resp.json = lambda: {
+            "id": "mod-124",
+            "model": "mistral-moderation-2603",
+            "results": [{"categories": {"sexual": False}, "category_scores": {"sexual": 0.0}}],
+        }
+
+        with patch("config.MISTRAL_API_KEY", "fake-key"):
+            with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp):
+                from clients.moderation import moderate
+
+                result = await moderate(transcript)
+
+        assert result.source == "real"
+        assert result.flagged is False
+        assert result.category is None

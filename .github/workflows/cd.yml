@@ -14,7 +14,6 @@ name: CD (deploiement semi-automatique)
 #     RAILWAY_TOKEN          : token d'authentification Railway CLI
 #     MISTRAL_API_KEY        : cle Mistral (transcription Voxtral)
 #     MOONSHOT_API_KEY       : cle Moonshot AI (generation CR via Kimi K3)
-#     GROQ_API_KEY           : cle Groq (moderation gpt-oss-safeguard-20b)
 #     VEXA_API_KEY           : cle Vexa (bot de reunion visio)
 #     VEXA_BASE_URL          : URL de base de l'API Vexa
 #     JWT_SECRET             : secret de signature JWT pour ai-service
@@ -34,7 +33,6 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
       MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
-      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       VEXA_API_KEY: ${{ secrets.VEXA_API_KEY }}
       VEXA_BASE_URL: ${{ secrets.VEXA_BASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}

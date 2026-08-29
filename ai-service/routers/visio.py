@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 import models
 from clients.meeting_url import resolve_meeting_url
-from clients.safeguard import moderate as run_moderation
+from clients.moderation import moderate as run_moderation
 from clients.vexa import get_transcript, leave_bot
 from crud import get_owned_meeting
 from db import get_db

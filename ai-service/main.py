@@ -50,6 +50,5 @@ async def health() -> HealthResponse:
         providers={
             "mistral": bool(config.MISTRAL_API_KEY),
             "vexa": bool(config.VEXA_API_KEY),
-            "groq": bool(config.GROQ_API_KEY),
         },
     )

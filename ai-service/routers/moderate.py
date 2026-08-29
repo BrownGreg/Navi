@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from clients.safeguard import moderate as run_moderation
+from clients.moderation import moderate as run_moderation
 from schemas import ModerateRequest, ModerateResponse
 
 router = APIRouter()
