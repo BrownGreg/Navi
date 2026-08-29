@@ -1,4 +1,4 @@
-"""Fixtures partagées pour la suite de tests du service FastAPI Scribe.
+"""Fixtures partagées pour la suite de tests du service FastAPI Navi.
 
 Chaque test obtient une DB SQLite en mémoire isolée grâce à ``StaticPool``
 (toutes les connexions de la session de test partagent la même DB en mémoire),
@@ -113,7 +113,7 @@ async def auth_headers(client: AsyncClient) -> dict[str, str]:
         client: AsyncClient de test.
 
     Returns:
-        Dictionnaire ``{"Cookie": "scribe_session=<jwt>"}`` prêt à être passé
+        Dictionnaire ``{"Cookie": "navi_session=<jwt>"}`` prêt à être passé
         en en-tête des requêtes protégées.
     """
     resp = await client.post(

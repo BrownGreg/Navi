@@ -24,12 +24,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AI_SERVICE_DATABASE_URL=sqlite:////data/scribe.db
+      - AI_SERVICE_DATABASE_URL=sqlite:////data/navi.db
     env_file:
       # Cles API + JWT_SECRET - voir ai-service/.env.example.
       - ./ai-service/.env
     volumes:
-      - scribe_ai_data:/data
+      - navi_ai_data:/data
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -39,4 +39,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  scribe_ai_data:
+  navi_ai_data:

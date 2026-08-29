@@ -71,7 +71,7 @@ function VisioLiveInner() {
 
       <div className="hatch" style={{ height: 70, borderRadius: "var(--radius)", marginBottom: 6 }} />
       <p className="muted" style={{ textAlign: "center", marginBottom: 14 }}>
-        Grille video non fonctionnelle — Scribe n&apos;accede jamais a la camera, seul l&apos;audio est capte par le bot
+        Grille video non fonctionnelle — Navi n&apos;accede jamais a la camera, seul l&apos;audio est capte par le bot
       </p>
 
       <div className="label">Transcription en direct</div>

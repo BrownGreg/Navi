@@ -26,7 +26,7 @@ export default async function HomePage() {
   return (
     <div className="page">
       <div className="row" style={{ marginBottom: 14 }}>
-        <div style={{ fontWeight: 500, fontSize: 15 }}>Scribe</div>
+        <div style={{ fontWeight: 500, fontSize: 15 }}>Navi</div>
         <div style={{ display: "flex", gap: 12 }}>
           <Link href="/settings/calendar" style={{ fontSize: 12 }}>Calendriers</Link>
           <Link href="/participant/consent" style={{ fontSize: 12 }}>Vue participant</Link>

@@ -16,7 +16,7 @@ def create_rgpd_request(body: RgpdRequestIn, db: Session = Depends(get_db)) -> m
     """Enregistre une demande RGPD (acces, rectification, effacement).
 
     Endpoint public intentionnellement : les participants a une reunion sans
-    compte Scribe doivent pouvoir exercer leurs droits.
+    compte Navi doivent pouvoir exercer leurs droits.
 
     Args:
         body: Donnees de la demande (email, meeting_id, type).

@@ -12,7 +12,7 @@ import config
 if not config.JWT_SECRET:
     raise RuntimeError("JWT_SECRET manquant dans les variables d'environnement")
 
-SESSION_COOKIE_NAME = "scribe_session"
+SESSION_COOKIE_NAME = "navi_session"
 SESSION_DURATION = timedelta(days=7)
 SESSION_MAX_AGE_SECONDS = int(SESSION_DURATION.total_seconds())
 
