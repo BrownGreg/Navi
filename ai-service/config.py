@@ -32,7 +32,7 @@ VEXA_POLL_INTERVAL_SECONDS = 4
 # OAuth calendrier (auto-join) - Google Calendar et Microsoft Graph. Les
 # redirect URI DOIVENT pointer vers l'origine publique Next.js (proxyee par
 # le rewrite /api/*), jamais vers le domaine propre d'ai-service : le cookie
-# de session scribe_session n'est jamais attache a une redirection directe
+# de session navi_session n'est jamais attache a une redirection directe
 # vers l'origine ai-service (cf. next.config.js).
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
@@ -62,6 +62,6 @@ RGPD_PURGE_INTERVAL_MINUTES = int(os.environ.get("RGPD_PURGE_INTERVAL_MINUTES", 
 # collision avec la valeur "file:./dev.db" (format Prisma, invalide pour
 # SQLAlchemy) laissee dans .env.local par une experimentation TS anterieure.
 JWT_SECRET = os.environ.get("JWT_SECRET")
-AI_SERVICE_DATABASE_URL = os.environ.get("AI_SERVICE_DATABASE_URL", "sqlite:///./scribe.db")
+AI_SERVICE_DATABASE_URL = os.environ.get("AI_SERVICE_DATABASE_URL", "sqlite:///./navi.db")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"

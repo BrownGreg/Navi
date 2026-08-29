@@ -1,4 +1,4 @@
-"""Client de classification IA pour les reunions Scribe.
+"""Client de classification IA pour les reunions Navi.
 
 Utilise l'API Chat Completions de Mistral AI (meme fournisseur/compte que la
 transcription Voxtral et la generation du CR - cf. config.py) pour extraire

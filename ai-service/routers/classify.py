@@ -1,4 +1,4 @@
-"""Router de classification IA des reunions Scribe.
+"""Router de classification IA des reunions Navi.
 
 Expose un endpoint POST /api/classify qui analyse la transcription d'une
 reunion et stocke le resultat de classification (ton, urgence, themes) dans

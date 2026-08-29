@@ -1,6 +1,6 @@
-# Scribe (Navi) — demo fonctionnelle
+# Navi — demo fonctionnelle
 
-Demo du parcours Scribe : frontend **Next.js** (App Router, React 19) + backend **FastAPI** (`ai-service/`, Python 3.12) qui centralise l'authentification, la persistance (SQLite/SQLAlchemy) et toutes les integrations IA. Next.js est un frontend pur : il ne parle a aucun fournisseur IA directement, il proxie `/api/*` vers `ai-service` (voir `next.config.js`).
+Demo du parcours Navi : frontend **Next.js** (App Router, React 19) + backend **FastAPI** (`ai-service/`, Python 3.12) qui centralise l'authentification, la persistance (SQLite/SQLAlchemy) et toutes les integrations IA. Next.js est un frontend pur : il ne parle a aucun fournisseur IA directement, il proxie `/api/*` vers `ai-service` (voir `next.config.js`).
 
 Les deux modes de captation sont fonctionnels de bout en bout avec de vraies API :
 
@@ -56,7 +56,7 @@ Ce fichier est partage par Next.js et par `ai-service` (charge via `python-doten
 |---|---|---|
 | `AI_SERVICE_URL` | URL du service FastAPI appele par Next.js | `http://localhost:8000` par defaut |
 | `JWT_SECRET` | Signature des cookies de session (`openssl rand -base64 32`) | A generer soi-meme |
-| `AI_SERVICE_DATABASE_URL` | Base de donnees d'ai-service | `sqlite:///./scribe.db` par defaut ; URL Postgres en production sans disque persistant |
+| `AI_SERVICE_DATABASE_URL` | Base de donnees d'ai-service | `sqlite:///./navi.db` par defaut ; URL Postgres en production sans disque persistant |
 | `MISTRAL_API_KEY` | Transcription (Voxtral, dictaphone), generation du CR et classification (Chat Completions) | [console.mistral.ai](https://console.mistral.ai) |
 | `VEXA_API_KEY` / `VEXA_BASE_URL` | Bot de reunion visio (Vexa cloud) | [docs.vexa.ai](https://docs.vexa.ai) |
 | `GROQ_API_KEY` | Moderation (gpt-oss-safeguard-20b via Groq) | [console.groq.com](https://console.groq.com) |
@@ -134,7 +134,7 @@ Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tes
 - Persistance SQLite locale — suffisant pour une demo, pas pour un usage multi-utilisateurs concurrent a grande echelle (pas de disque persistant sur certains PaaS gratuits : prevoir une URL Postgres externe en production, cf. `render.yaml`).
 - Etat des reunions visio en cours (transcription en direct) garde en memoire cote `ai-service`, pas persiste : un redemarrage du service pendant une reunion perd la transcription accumulee jusqu'a ce moment (elle est persistee cote base des que "Terminer la reunion" est appele).
 - `ai-service` tourne en un seul worker/process (`uvicorn` sans `--workers`) — suffisant pour une demo, pas dimensionne pour de la charge.
-- Aucune camera n'est utilisee, ni en mode visio ni en mode dictaphone : seul l'audio est traite. La grille video du mode visio reste un placeholder statique (choix assume, Scribe n'accede jamais a la camera).
+- Aucune camera n'est utilisee, ni en mode visio ni en mode dictaphone : seul l'audio est traite. La grille video du mode visio reste un placeholder statique (choix assume, Navi n'accede jamais a la camera).
 - La moderation (gpt-oss-safeguard-20b) est non-bloquante par choix produit : un flag informatif est affiche sur la reunion, mais la generation du CR n'est jamais suspendue.
 
 ## Documentation complementaire

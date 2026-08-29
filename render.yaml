@@ -1,19 +1,19 @@
 services:
   - type: web
-    name: scribe-web
+    name: navi-web
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: free
     envVars:
       - key: AI_SERVICE_URL
-        # URL du service scribe-ai-service une fois deploye sur Render.
-        # Format : https://scribe-ai-service.onrender.com
+        # URL du service navi-ai-service une fois deploye sur Render.
+        # Format : https://navi-ai-service.onrender.com
         # A remplir dans le dashboard Render apres le premier deploy d'ai-service.
         sync: false
 
   - type: web
-    name: scribe-ai-service
+    name: navi-ai-service
     env: docker
     dockerfilePath: ./ai-service/Dockerfile
     dockerContext: ./ai-service
@@ -24,7 +24,7 @@ services:
         sync: false
       - key: AI_SERVICE_DATABASE_URL
         # Pour Render sans disque persistant : utiliser une URL PostgreSQL externe
-        # (ex: Render PostgreSQL, Supabase, Neon). En demo/test : sqlite:///./scribe.db
+        # (ex: Render PostgreSQL, Supabase, Neon). En demo/test : sqlite:///./navi.db
         sync: false
       - key: MISTRAL_API_KEY
         # Transcription Voxtral (dictaphone), generation du CR et classification
@@ -50,9 +50,9 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
-        # Doit pointer vers l'origine publique de scribe-web (le service ci-dessus),
+        # Doit pointer vers l'origine publique de navi-web (le service ci-dessus),
         # pas vers cette URL onrender.com d'ai-service. Ex :
-        # https://scribe-web.onrender.com/api/calendar/google/callback
+        # https://navi-web.onrender.com/api/calendar/google/callback
         sync: false
       - key: MICROSOFT_CLIENT_ID
         # OAuth calendrier auto-join — portal.azure.com
@@ -62,5 +62,5 @@ services:
       - key: MICROSOFT_TENANT_ID
         value: common
       - key: MICROSOFT_REDIRECT_URI
-        # Meme remarque que GOOGLE_REDIRECT_URI : origine scribe-web, pas ai-service.
+        # Meme remarque que GOOGLE_REDIRECT_URI : origine navi-web, pas ai-service.
         sync: false

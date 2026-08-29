@@ -21,7 +21,7 @@ from schemas import HealthResponse
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Scribe AI service", version="0.1.0")
+app = FastAPI(title="Navi AI service", version="0.1.0")
 
 API_PREFIX = "/api"
 

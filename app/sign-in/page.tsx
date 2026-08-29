@@ -37,7 +37,7 @@ function SignInInner() {
   return (
     <div className="page">
       <h1>Connexion</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>Accedez a vos reunions Scribe</p>
+      <p className="secondary-text" style={{ marginBottom: 14 }}>Accedez a vos reunions Navi</p>
 
       <div className="label">Email</div>
       <input

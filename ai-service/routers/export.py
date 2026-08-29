@@ -1,4 +1,4 @@
-"""Router d'export PDF des comptes-rendus Scribe.
+"""Router d'export PDF des comptes-rendus Navi.
 
 Expose un endpoint GET /api/meetings/{meeting_id}/pdf qui genere un PDF
 structure du compte-rendu d'une reunion a la volee via reportlab.
@@ -33,7 +33,7 @@ logger = logging.getLogger("ai-service.export")
 
 router = APIRouter(tags=["export"])
 
-# Palette de couleurs Scribe
+# Palette de couleurs Navi
 _COLOR_PRIMARY = colors.HexColor("#1E40AF")  # bleu fonce
 _COLOR_FLAG = colors.HexColor("#DC2626")  # rouge alerte
 _COLOR_SECTION_BG = colors.HexColor("#EFF6FF")  # bleu tres clair
@@ -59,7 +59,7 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         topMargin=2.5 * cm,
         bottomMargin=2.5 * cm,
         title=f"Compte-rendu — {meeting.title}",
-        author="Scribe",
+        author="Navi",
         subject="Compte-rendu de reunion",
     )
 
@@ -68,7 +68,7 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
 
     # --- Styles personnalises ---
     style_title = ParagraphStyle(
-        "ScribeTitle",
+        "NaviTitle",
         parent=styles["Heading1"],
         fontSize=18,
         textColor=_COLOR_PRIMARY,
@@ -76,14 +76,14 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         fontName="Helvetica-Bold",
     )
     style_meta = ParagraphStyle(
-        "ScribeMeta",
+        "NaviMeta",
         parent=styles["Normal"],
         fontSize=9,
         textColor=colors.HexColor("#6B7280"),
         spaceAfter=2,
     )
     style_section = ParagraphStyle(
-        "ScribeSection",
+        "NaviSection",
         parent=styles["Heading2"],
         fontSize=13,
         textColor=_COLOR_PRIMARY,
@@ -94,21 +94,21 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         backColor=_COLOR_SECTION_BG,
     )
     style_body = ParagraphStyle(
-        "ScribeBody",
+        "NaviBody",
         parent=styles["Normal"],
         fontSize=10,
         leading=14,
         spaceAfter=4,
     )
     style_bullet = ParagraphStyle(
-        "ScribeBullet",
+        "NaviBullet",
         parent=style_body,
         leftIndent=16,
         bulletIndent=6,
         spaceAfter=3,
     )
     style_flag = ParagraphStyle(
-        "ScribeFlag",
+        "NaviFlag",
         parent=styles["Normal"],
         fontSize=10,
         textColor=_COLOR_FLAG,
@@ -119,7 +119,7 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         spaceAfter=10,
     )
     style_footer = ParagraphStyle(
-        "ScribeFooter",
+        "NaviFooter",
         parent=styles["Normal"],
         fontSize=8,
         textColor=colors.HexColor("#9CA3AF"),
@@ -221,7 +221,7 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
 
     # --- Pied de page ---
     story.append(Spacer(1, 20))
-    story.append(Paragraph("Généré par Scribe — confidentiel", style_footer))
+    story.append(Paragraph("Généré par Navi — confidentiel", style_footer))
 
     doc.build(story)
     return buffer.getvalue()
