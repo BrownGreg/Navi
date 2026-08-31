@@ -22,7 +22,7 @@ MISTRAL_MODERATION_URL = "https://api.mistral.ai/v1/moderations"
 # un seul fournisseur/compte a gerer (remplace l'ancienne integration Kimi K3
 # / Moonshot AI, hors UE, et gpt-oss-safeguard-20b via Groq - cf.
 # rapport_technique.md pour l'historique de ces decisions).
-MISTRAL_CHAT_MODEL = os.environ.get("MISTRAL_CHAT_MODEL", "mistral-large-latest")
+MISTRAL_CHAT_MODEL = os.environ.get("MISTRAL_CHAT_MODEL", "mistral-small-latest")
 MISTRAL_MODERATION_MODEL = os.environ.get("MISTRAL_MODERATION_MODEL", "mistral-moderation-2603")
 
 VEXA_POLL_INTERVAL_SECONDS = 4
