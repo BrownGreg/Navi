@@ -4,7 +4,9 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-const TYPES: { value: "access" | "rectification" | "erasure"; label: string }[] = [
+type RgpdType = "access" | "rectification" | "erasure";
+
+const TYPES: { value: RgpdType; label: string }[] = [
   { value: "access", label: "Acces a mes donnees" },
   { value: "rectification", label: "Rectification" },
   { value: "erasure", label: "Suppression de ma voix et de mes propos" }
@@ -15,17 +17,35 @@ function RgpdRequestInner() {
   const meetingId = params.get("meetingId") ?? "";
 
   const [email, setEmail] = useState("");
-  const [type, setType] = useState<"access" | "rectification" | "erasure">("erasure");
+  // Plusieurs demandes peuvent avoir du sens en meme temps (ex: acces a mes
+  // donnees puis suppression) - cases a cocher plutot qu'un choix unique.
+  const [selectedTypes, setSelectedTypes] = useState<Set<RgpdType>>(new Set(["erasure"]));
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
 
+  function toggleType(value: RgpdType) {
+    setSelectedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  }
+
   async function submit() {
     setSending(true);
-    await fetch("/api/rgpd-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, meetingId, type })
-    });
+    // Le backend trace une demande = un type (cf. ai-service/routers/rgpd.py) :
+    // une case cochee = un POST, pour garder chaque demande individuellement
+    // tracee plutot que de redefinir le schema pour accepter un tableau.
+    await Promise.all(
+      Array.from(selectedTypes).map((type) =>
+        fetch("/api/rgpd-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, meetingId, type })
+        })
+      )
+    );
     setSending(false);
     setSent(true);
   }
@@ -57,15 +77,19 @@ function RgpdRequestInner() {
       <div className="label">Reunion concernee</div>
       <div className="card">{meetingId || "Non specifiee"}</div>
 
-      <div className="label">Type de demande</div>
+      <div className="label">Type de demande (plusieurs choix possibles)</div>
       {TYPES.map((t) => (
-        <div key={t.value} className="card selectable" onClick={() => setType(t.value)}>
-          {type === t.value ? "●" : "○"} {t.label}
+        <div key={t.value} className="card selectable" onClick={() => toggleType(t.value)}>
+          {selectedTypes.has(t.value) ? "✓" : "○"} {t.label}
         </div>
       ))}
 
-      <button className="btn btn-primary" disabled={!email || sending} onClick={submit}>
-        {sending ? "Envoi…" : "Envoyer la demande"}
+      <button
+        className="btn btn-primary"
+        disabled={!email || selectedTypes.size === 0 || sending}
+        onClick={submit}
+      >
+        {sending ? "Envoi…" : selectedTypes.size > 1 ? "Envoyer les demandes" : "Envoyer la demande"}
       </button>
     </div>
   );
