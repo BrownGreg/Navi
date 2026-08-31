@@ -1,6 +1,6 @@
-# Navi — demo fonctionnelle
+# Navi
 
-Demo du parcours Navi : frontend **Next.js** (App Router, React 19) + backend **FastAPI** (`ai-service/`, Python 3.12) qui centralise l'authentification, la persistance (SQLite/SQLAlchemy) et toutes les integrations IA. Next.js est un frontend pur : il ne parle a aucun fournisseur IA directement, il proxie `/api/*` vers `ai-service` (voir `next.config.js`).
+Navi : frontend **Next.js** (App Router, React 19) + backend **FastAPI** (`ai-service/`, Python 3.12) qui centralise l'authentification, la persistance (SQLite/SQLAlchemy) et toutes les integrations IA. Next.js est un frontend pur : il ne parle a aucun fournisseur IA directement, il proxie `/api/*` vers `ai-service` (voir `next.config.js`).
 
 Les deux modes de captation sont fonctionnels de bout en bout avec de vraies API :
 
@@ -28,7 +28,7 @@ pip install -r requirements.txt
 cd ..
 ```
 
-## Lancer la demo
+## Lancer l'application
 
 Deux process a lancer en parallele (deux terminaux), depuis la racine du repo :
 
@@ -132,11 +132,11 @@ npm run build                             # build de production
 
 Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tests Python, typecheck frontend, build Docker) a chaque push/PR. Le deploiement se fait via `render.yaml` (Render, voir plus haut).
 
-## Limites connues (demo)
+## Limites connues
 
-- Persistance SQLite locale — suffisant pour une demo, pas pour un usage multi-utilisateurs concurrent a grande echelle (pas de disque persistant sur certains PaaS gratuits : prevoir une URL Postgres externe en production, cf. `render.yaml`).
+- Persistance SQLite locale — suffisant pour un usage a echelle reduite, pas pour du multi-utilisateurs concurrent a grande echelle (pas de disque persistant sur certains PaaS gratuits : prevoir une URL Postgres externe en production, cf. `render.yaml`).
 - Etat des reunions visio en cours (transcription en direct) garde en memoire cote `ai-service`, pas persiste : un redemarrage du service pendant une reunion perd la transcription accumulee jusqu'a ce moment (elle est persistee cote base des que "Terminer la reunion" est appele).
-- `ai-service` tourne en un seul worker/process (`uvicorn` sans `--workers`) — suffisant pour une demo, pas dimensionne pour de la charge.
+- `ai-service` tourne en un seul worker/process (`uvicorn` sans `--workers`) — pas dimensionne pour de la charge en l'etat.
 - Aucune camera n'est utilisee, ni en mode visio ni en mode dictaphone : seul l'audio est traite. La grille video du mode visio reste un placeholder statique (choix assume, Navi n'accede jamais a la camera).
 - La moderation (Mistral Moderation 2) est non-bloquante par choix produit : un flag informatif est affiche sur la reunion, mais la generation du CR n'est jamais suspendue.
 - **Notification reelle des participants (visio)** : l'API Vexa publique verifiee (cf. `ai-service/clients/vexa.py`) ne permet pas d'envoyer un message dans le chat de la reunion au moment ou le bot rejoint. Le bot est nomme explicitement "Navi Notetaker — enregistrement" dans la liste des participants (seul signal reellement visible), et un texte d'invitation suggere avec lien vers `/participant/consent` est propose a l'organisateur sur l'ecran de consentement visio — a coller manuellement, aucun envoi automatique d'e-mail n'est implemente. `/participant/consent` n'est donc atteint que si l'organisateur a effectivement transmis ce lien en amont ; ce n'est pas encore une notification poussee automatiquement a chaque participant.
