@@ -35,6 +35,16 @@ def start_scheduler() -> None:
         id="rgpd_purge",
         replace_existing=True,
     )
+    scheduler.add_job(
+        purge_expired_consent_records,
+        "interval",
+        # Meme cadence de verification que purge_expired_meetings - c'est la
+        # duree de conservation qui differe (CONSENT_RECORD_RETENTION_DAYS),
+        # pas la frequence a laquelle on verifie si elle est depassee.
+        minutes=config.RGPD_PURGE_INTERVAL_MINUTES,
+        id="rgpd_consent_purge",
+        replace_existing=True,
+    )
     scheduler.start()
 
 
@@ -92,6 +102,106 @@ def _purge_expired_meetings(db) -> int:
         meeting.moderation = None
         meeting.classification = None
         meeting.title = "[réunion expirée - durée de conservation dépassée]"
+        purged += 1
+
+    if purged:
+        db.commit()
+    return purged
+
+
+async def purge_expired_consent_records() -> None:
+    """Supprime les preuves de conformite (ConsentRecord, ParticipantNotification)
+    des reunions deja anonymisees, une fois leur propre duree de conservation
+    depassee (CONSENT_RECORD_RETENTION_DAYS / PARTICIPANT_NOTIFICATION_RETENTION_DAYS).
+
+    Volontairement decouplee de purge_expired_meetings : le contenu de la
+    reunion (transcript/cr/...) et la preuve qu'un consentement/une
+    notification a existe pour le produire ne suivent pas le meme cycle de
+    vie - la seconde doit pouvoir survivre a la suppression du premier
+    (accountability, art. 5.2 RGPD). Ne supprime donc jamais une preuve tant
+    que la reunion correspondante n'a pas elle-meme ete anonymisee : l'ordre
+    inverse n'aurait pas de sens (on perdrait la preuve avant meme d'avoir
+    purge ce qu'elle couvrait).
+    """
+    db = SessionLocal()
+    try:
+        purged_consent = _purge_expired_consent_records(db)
+        purged_notifications = _purge_expired_participant_notifications(db)
+        if purged_consent or purged_notifications:
+            logger.info(
+                "[scheduler] rgpd purge: %d preuve(s) de consentement et "
+                "%d notification(s) participant supprimee(s) (retention depassee)",
+                purged_consent,
+                purged_notifications,
+            )
+    finally:
+        db.close()
+
+
+def _purge_expired_consent_records(db) -> int:
+    """Supprime les ConsentRecord expires, uniquement pour des reunions deja
+    anonymisees. Isolee comme `_purge_expired_meetings` pour rester testable.
+
+    Comparaison de dates entierement en Python (comme `_purge_expired_meetings`) :
+    SQLite ne conserve pas le fuseau horaire, comparer `granted_at` (ecrit
+    avec tzinfo=utc mais relu naive) directement en SQL donnerait un resultat
+    faux sans re-tagging explicite.
+    """
+    now = datetime.now(timezone.utc)
+    retention = timedelta(days=config.CONSENT_RECORD_RETENTION_DAYS)
+
+    purged = 0
+    for record in db.query(models.ConsentRecord).all():
+        meeting = db.get(models.Meeting, record.meeting_id)
+        if meeting is None or meeting.transcript is not None:
+            # Jamais de suppression avant que le contenu couvert n'ait
+            # lui-meme ete anonymise.
+            continue
+
+        granted_at = (
+            record.granted_at
+            if record.granted_at.tzinfo
+            else record.granted_at.replace(tzinfo=timezone.utc)
+        )
+        if granted_at + retention > now:
+            continue
+
+        db.delete(record)
+        purged += 1
+
+    if purged:
+        db.commit()
+    return purged
+
+
+def _purge_expired_participant_notifications(db) -> int:
+    """Meme logique que `_purge_expired_consent_records`, appliquee a
+    ParticipantNotification : c'est aussi une preuve de conformite (que les
+    participants ont ete informes - cf. art. 226-1 Code penal sur
+    l'enregistrement a l'insu d'autrui) plutot qu'un contenu de reunion, donc
+    soumise a la meme regle d'ordre (jamais avant anonymisation) - avec sa
+    propre constante de duree (par defaut identique a CONSENT_RECORD_RETENTION_DAYS,
+    gardee separee au cas ou une analyse juridique future justifierait une
+    duree differente pour ce type de preuve).
+    """
+    now = datetime.now(timezone.utc)
+    retention = timedelta(days=config.PARTICIPANT_NOTIFICATION_RETENTION_DAYS)
+
+    purged = 0
+    for notification in db.query(models.ParticipantNotification).all():
+        meeting = db.get(models.Meeting, notification.meeting_id)
+        if meeting is None or meeting.transcript is not None:
+            continue
+
+        sent_at = (
+            notification.sent_at
+            if notification.sent_at.tzinfo
+            else notification.sent_at.replace(tzinfo=timezone.utc)
+        )
+        if sent_at + retention > now:
+            continue
+
+        db.delete(notification)
         purged += 1
 
     if purged:

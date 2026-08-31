@@ -55,6 +55,33 @@ CALENDAR_JOIN_GRACE_SECONDS = int(os.environ.get("CALENDAR_JOIN_GRACE_SECONDS", 
 # defaut (peu de cout a verifier moins souvent que le calendrier).
 RGPD_PURGE_INTERVAL_MINUTES = int(os.environ.get("RGPD_PURGE_INTERVAL_MINUTES", "60"))
 
+# Duree de conservation des preuves de conformite (ConsentRecord,
+# ParticipantNotification) UNE FOIS la reunion qu'elles couvrent deja
+# anonymisee (cf. scheduler.purge_expired_consent_records) - volontairement
+# decouplee et plus longue que retention_days du Meeting : la preuve doit
+# pouvoir survivre a la suppression du contenu qu'elle atteste (accountability,
+# art. 5.2 RGPD), au lieu d'etre conservee indefiniment par simple absence de
+# politique.
+#
+# Valeur par defaut : 1825 jours (5 ans), alignee sur le delai de prescription
+# civile de droit commun (art. 2224 Code civil) - c'est le delai de reference
+# que la CNIL utilise elle-meme pour l'archivage intermediaire a des fins de
+# preuve en cas de litige (cf. "Guide pratique : Les durees de conservation",
+# cnil.fr). Ce n'est PAS une preconisation CNIL chiffree specifique a la preuve
+# de consentement (aucune source fiable trouvee pour un chiffre dedie) : ce
+# choix de 5 ans doit etre valide/ajuste explicitement par le porteur du
+# projet selon son analyse de risque, pas traite comme une norme opposable.
+CONSENT_RECORD_RETENTION_DAYS = int(os.environ.get("CONSENT_RECORD_RETENTION_DAYS", "1825"))
+# Constante separee de CONSENT_RECORD_RETENTION_DAYS (meme valeur par defaut,
+# meme justification ci-dessus) : ConsentRecord et ParticipantNotification
+# couvrent la meme finalite (preuve de conformite RGPD / information des
+# participants) donc pas de raison de diverger aujourd'hui, mais gardees
+# ajustables independamment si une analyse juridique future distingue les
+# deux cas.
+PARTICIPANT_NOTIFICATION_RETENTION_DAYS = int(
+    os.environ.get("PARTICIPANT_NOTIFICATION_RETENTION_DAYS", "1825")
+)
+
 # Auth + persistance : desormais entierement geres ici (ai-service), plus
 # jamais cote Next.js. Nom dedie (pas "DATABASE_URL") pour eviter toute
 # collision avec la valeur "file:./dev.db" (format Prisma, invalide pour
