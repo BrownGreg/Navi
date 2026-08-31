@@ -52,7 +52,9 @@ async def moderate(transcript: list[TranscriptSegment]) -> ModerateResponse:
         categories: dict = result.get("categories", {})
         scores: dict = result.get("category_scores", {})
 
-        flagged_category = next((name for name, is_flagged in categories.items() if is_flagged), None)
+        flagged_category = next(
+            (name for name, is_flagged in categories.items() if is_flagged), None
+        )
 
         return ModerateResponse(
             flagged=bool(flagged_category),
