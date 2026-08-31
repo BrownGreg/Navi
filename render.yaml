@@ -37,7 +37,7 @@ services:
         # et moderation (Mistral Moderation 2) — https://console.mistral.ai
         sync: false
       - key: MISTRAL_CHAT_MODEL
-        value: mistral-large-latest
+        value: mistral-small-latest
       - key: MISTRAL_MODERATION_MODEL
         value: mistral-moderation-2603
       - key: VEXA_API_KEY
