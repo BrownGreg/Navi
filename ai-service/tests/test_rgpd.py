@@ -128,3 +128,82 @@ class TestRgpdRequest:
         assert resp1.status_code == 200
         assert resp2.status_code == 200
         assert resp1.json()["id"] != resp2.json()["id"]
+
+
+class TestListRgpdRequests:
+    """Tests de GET /api/rgpd-requests (vue organisateur)."""
+
+    async def test_requires_auth(self, client: AsyncClient) -> None:
+        resp = await client.get("/api/rgpd-requests")
+        assert resp.status_code == 401
+
+    async def test_organizer_sees_requests_for_own_meeting(
+        self,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+    ) -> None:
+        await client.post(
+            "/api/rgpd-request",
+            json={
+                "email": "participant@example.com",
+                "meetingId": test_meeting.id,
+                "type": "access",
+            },
+        )
+
+        resp = await client.get("/api/rgpd-requests", headers=auth_headers)
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["meetingId"] == test_meeting.id
+        assert data[0]["email"] == "participant@example.com"
+
+    async def test_organizer_does_not_see_other_organizer_requests(
+        self,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+    ) -> None:
+        """Critere de securite cle : pas de fuite entre organisateurs (regression
+        sur l'ancien comportement qui listait toutes les demandes sans filtre)."""
+        await client.post(
+            "/api/rgpd-request",
+            json={
+                "email": "participant@example.com",
+                "meetingId": test_meeting.id,
+                "type": "access",
+            },
+        )
+
+        signup2 = await client.post(
+            "/api/auth/signup",
+            json={"email": "autre-organisateur@example.com", "password": "password123"},
+        )
+        assert signup2.status_code == 200
+        other_cookie = signup2.cookies.get("navi_session")
+        other_headers = {"Cookie": f"navi_session={other_cookie}"}
+
+        resp = await client.get("/api/rgpd-requests", headers=other_headers)
+
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+    async def test_request_with_unmatched_meeting_id_is_invisible(
+        self,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+    ) -> None:
+        """Un meeting_id qui ne correspond a aucune reunion existante (faute
+        de frappe participant, etc.) n'apparait pour personne - toujours
+        stocke en base (verifie dans TestRgpdRequest), juste pas rattachable."""
+        await client.post(
+            "/api/rgpd-request",
+            json={"email": "x@example.com", "meetingId": "meeting-inexistant", "type": "access"},
+        )
+
+        resp = await client.get("/api/rgpd-requests", headers=auth_headers)
+
+        assert resp.status_code == 200
+        assert resp.json() == []
