@@ -37,7 +37,7 @@ function ProcessingInner() {
       <h1>Traitement en cours</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>Cela prend quelques secondes</p>
 
-      <div className="card">✓ Transcription (Whisper / Voxtral)</div>
+      <div className="card">✓ Transcription (Voxtral)</div>
       <div className="card">✓ Diarisation des locuteurs</div>
       <div className="card" style={{ color: crDone ? "inherit" : "var(--text-secondary)" }}>
         {crDone ? "✓" : "⟳"} Generation du compte-rendu
