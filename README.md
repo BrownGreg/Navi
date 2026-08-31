@@ -83,6 +83,8 @@ Les integrations sont ecrites au meilleur effort a partir de leur documentation 
 | Export PDF du CR | Bouton sur `/reunion/[id]` | Oui (genere a la volee par `ai-service`, reportlab) |
 | Exercer mes droits RGPD | `/rgpd?meetingId=...` | Oui (demande tracee en base ; effacement organisateur immediat via l'API, purge automatique a expiration de `retention_days`) |
 
+**Retention des preuves de conformite** : `ConsentRecord` et `ParticipantNotification` ne sont jamais purges en meme temps que le contenu de la reunion (`retention_days`) — ils survivent a son anonymisation, avec leur propre duree (`CONSENT_RECORD_RETENTION_DAYS` / `PARTICIPANT_NOTIFICATION_RETENTION_DAYS`, 5 ans par defaut, alignee sur la prescription civile de droit commun) et ne sont supprimes qu'une fois la reunion correspondante deja anonymisee.
+
 ## Structure du projet
 
 ```
@@ -105,7 +107,7 @@ ai-service/                    FastAPI — backend complet (Python 3.12)
   config.py                      lecture des env vars (partagees avec Next.js via .env.local)
   models.py, schemas.py, db.py   SQLAlchemy (Users, Meetings, CalendarConnection, RgpdRequest) + Pydantic
   security.py, deps.py           JWT cookie httpOnly, bcrypt, dependance get_current_user
-  scheduler.py                   APScheduler : sync calendriers (5 min) + purge RGPD automatique (retention_days)
+  scheduler.py                   APScheduler : sync calendriers (5 min) + purge RGPD automatique (retention_days, puis preuves de consentement/notification separement)
   routers/                       auth, meetings, transcribe, visio, moderate, generate_cr, classify, export, rgpd, calendar
   clients/                       un fournisseur par fichier (voxtral, mistral_cr, classifier, moderation, vexa, google_calendar, microsoft_calendar), fallback mock inclus
   services/                      logique partagee entre routers et scheduler (ex: visio_join.py)
