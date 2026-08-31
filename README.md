@@ -81,7 +81,8 @@ Les integrations sont ecrites au meilleur effort a partir de leur documentation 
 | Notification participant en reunion | `/participant/consent` | Partiel — "Je ne consens pas" enregistre une vraie demande RGPD (POST /rgpd-request) ; aucun canal reel n'y mene encore un vrai participant (voir limites) |
 | Compte-rendu sans compte (lien partage) | `/cr/[shareId]` | Oui |
 | Export PDF du CR | Bouton sur `/reunion/[id]` | Oui (genere a la volee par `ai-service`, reportlab) |
-| Exercer mes droits RGPD | `/rgpd?meetingId=...` | Oui (demande tracee en base ; effacement organisateur immediat via l'API, purge automatique a expiration de `retention_days`) |
+| Exercer mes droits RGPD | `/rgpd?meetingId=...` | Oui (plusieurs types de demande cochables en meme temps — ex. acces puis suppression ; effacement organisateur immediat via l'API, purge automatique a expiration de `retention_days`) |
+| Demandes RGPD recues (vue organisateur) | `/settings/rgpd` | Oui (filtre par reunions possedees par l'utilisateur connecte) |
 
 **Retention des preuves de conformite** : `ConsentRecord` et `ParticipantNotification` ne sont jamais purges en meme temps que le contenu de la reunion (`retention_days`) — ils survivent a son anonymisation, avec leur propre duree (`CONSENT_RECORD_RETENTION_DAYS` / `PARTICIPANT_NOTIFICATION_RETENTION_DAYS`, 5 ans par defaut, alignee sur la prescription civile de droit commun) et ne sont supprimes qu'une fois la reunion correspondante deja anonymisee.
 
@@ -94,9 +95,10 @@ app/                           Next.js (App Router) — frontend pur
   new/                           choix du mode + parcours visio et dictaphone
   reunion/[id]/                  vue CR organisateur (export PDF, classification, moderation)
   cr/[shareId]/                  vue CR participant sans compte
-  rgpd/                          formulaire d'exercice des droits RGPD
+  rgpd/                          formulaire d'exercice des droits RGPD (plusieurs types cochables)
   settings/calendar/             connexion calendrier (auto-join)
-  participant/consent/           notification participant (mockup)
+  settings/rgpd/                 demandes RGPD recues, filtrees par organisateur
+  participant/consent/           notification participant + demande RGPD reelle en cas de refus
 lib/
   server-api.ts                  fetch cote Server Components, relaie le cookie de session vers ai-service
   api-client.ts                  fetch cote navigateur, redirige vers /sign-in sur 401
@@ -105,7 +107,7 @@ next.config.js                 rewrite declaratif /api/* -> AI_SERVICE_URL (aucu
 ai-service/                    FastAPI — backend complet (Python 3.12)
   main.py                        app FastAPI, enregistrement des routers, /health
   config.py                      lecture des env vars (partagees avec Next.js via .env.local)
-  models.py, schemas.py, db.py   SQLAlchemy (Users, Meetings, CalendarConnection, RgpdRequest) + Pydantic
+  models.py, schemas.py, db.py   SQLAlchemy (Users, Meetings, CalendarConnection, ConsentRecord, ParticipantNotification, RgpdRequest) + Pydantic
   security.py, deps.py           JWT cookie httpOnly, bcrypt, dependance get_current_user
   scheduler.py                   APScheduler : sync calendriers (5 min) + purge RGPD automatique (retention_days, puis preuves de consentement/notification separement)
   routers/                       auth, meetings, transcribe, visio, moderate, generate_cr, classify, export, rgpd, calendar
