@@ -155,3 +155,43 @@ async def test_meeting(
     meeting = db_session.get(models.Meeting, meeting_id)
     assert meeting is not None, f"Meeting {meeting_id} introuvable en DB"
     return meeting
+
+
+@pytest.fixture()
+async def consented_meeting(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    test_meeting: models.Meeting,
+    db_session: Session,
+) -> models.Meeting:
+    """Comme ``test_meeting``, avec le consentement organisateur deja accorde.
+
+    A utiliser par les tests qui verifient le comportement APRES consentement
+    (ex: /transcribe, /visio/join reussissent). Les tests qui verifient le
+    rejet SANS consentement doivent utiliser ``test_meeting`` directement.
+
+    Accorde les 4 types (superset des 2 requis par le dictaphone et des 4
+    requis par le visio - cf. schemas.DICTAPHONE_REQUIRED_CONSENT/
+    VISIO_REQUIRED_CONSENT), pour rester utilisable par les deux flux.
+
+    Returns:
+        Instance ``models.Meeting`` avec ses ConsentRecord deja persistes en base.
+    """
+    resp = await client.post(
+        f"/api/meetings/{test_meeting.id}/consent",
+        json={
+            "consentTypes": [
+                "oral_recording",
+                "transcript",
+                "ai_processing",
+                "participant_sharing",
+            ]
+        },
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200, f"Octroi du consentement echoue : {resp.text}"
+
+    db_session.expire_all()
+    meeting = db_session.get(models.Meeting, test_meeting.id)
+    assert meeting is not None
+    return meeting

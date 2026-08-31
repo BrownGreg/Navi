@@ -45,10 +45,11 @@ class TestTranscribeDictaphone:
         mock_moderate: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
-        test_meeting: models.Meeting,
+        consented_meeting: models.Meeting,
         db_session: Session,
     ) -> None:
         """POST /transcribe persiste le transcript et retourne les segments."""
+        test_meeting = consented_meeting
         mock_transcribe.return_value = (_FAKE_SEGMENTS, "mock")
         mock_moderate.return_value = _FAKE_MODERATION
 
@@ -129,10 +130,11 @@ class TestTranscribeDictaphone:
         mock_moderate: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
-        test_meeting: models.Meeting,
+        consented_meeting: models.Meeting,
         db_session: Session,
     ) -> None:
         """La modération est stockée dans meeting.moderation après la transcription."""
+        test_meeting = consented_meeting
         mock_transcribe.return_value = (_FAKE_SEGMENTS, "mock")
         flagged_mod = ModerateResponse(
             flagged=True, category="Injection de prompt", rationale="test", source="mock"
@@ -159,10 +161,11 @@ class TestTranscribeDictaphone:
         mock_moderate: AsyncMock,
         client: AsyncClient,
         auth_headers: dict[str, str],
-        test_meeting: models.Meeting,
+        consented_meeting: models.Meeting,
         db_session: Session,
     ) -> None:
         """Une durée de 0 secondes est arrondie à 1 minute minimum."""
+        test_meeting = consented_meeting
         mock_transcribe.return_value = (_FAKE_SEGMENTS, "mock")
         mock_moderate.return_value = _FAKE_MODERATION
 
@@ -175,3 +178,57 @@ class TestTranscribeDictaphone:
 
         db_session.refresh(test_meeting)
         assert test_meeting.duration_min == 1
+
+    @patch("routers.transcribe.run_moderation", new_callable=AsyncMock)
+    @patch("routers.transcribe.transcribe_audio", new_callable=AsyncMock)
+    async def test_transcribe_without_consent_returns_403(
+        self,
+        mock_transcribe: AsyncMock,
+        mock_moderate: AsyncMock,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+    ) -> None:
+        """Sans ConsentRecord prealable, le backend rejette meme si l'audio est fourni."""
+        mock_transcribe.return_value = (_FAKE_SEGMENTS, "mock")
+        mock_moderate.return_value = _FAKE_MODERATION
+
+        resp = await client.post(
+            "/api/transcribe",
+            data={"meetingId": test_meeting.id, "durationSec": "60"},
+            files={"audio": ("test.webm", io.BytesIO(_DUMMY_AUDIO), "audio/webm")},
+            headers=auth_headers,
+        )
+
+        assert resp.status_code == 403
+        mock_transcribe.assert_not_called()
+
+    @patch("routers.transcribe.run_moderation", new_callable=AsyncMock)
+    @patch("routers.transcribe.transcribe_audio", new_callable=AsyncMock)
+    async def test_transcribe_with_partial_consent_returns_403(
+        self,
+        mock_transcribe: AsyncMock,
+        mock_moderate: AsyncMock,
+        client: AsyncClient,
+        auth_headers: dict[str, str],
+        test_meeting: models.Meeting,
+    ) -> None:
+        """Un seul des deux consentements requis ne suffit pas."""
+        mock_transcribe.return_value = (_FAKE_SEGMENTS, "mock")
+        mock_moderate.return_value = _FAKE_MODERATION
+
+        grant_resp = await client.post(
+            f"/api/meetings/{test_meeting.id}/consent",
+            json={"consentTypes": ["oral_recording"]},
+            headers=auth_headers,
+        )
+        assert grant_resp.status_code == 200
+
+        resp = await client.post(
+            "/api/transcribe",
+            data={"meetingId": test_meeting.id, "durationSec": "60"},
+            files={"audio": ("test.webm", io.BytesIO(_DUMMY_AUDIO), "audio/webm")},
+            headers=auth_headers,
+        )
+
+        assert resp.status_code == 403

@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 import models
 from clients.moderation import moderate as run_moderation
 from clients.voxtral import transcribe_audio
-from crud import get_owned_meeting
+from crud import get_owned_meeting, require_consent
 from db import get_db
 from deps import get_current_user
-from schemas import TranscribeResponse
+from schemas import DICTAPHONE_REQUIRED_CONSENT, TranscribeResponse
 
 router = APIRouter(tags=["transcribe"])
 
@@ -21,6 +21,7 @@ async def transcribe_dictaphone(
     db: Session = Depends(get_db),
 ) -> TranscribeResponse:
     meeting = get_owned_meeting(db, meeting_id, current_user.id)
+    require_consent(db, meeting.id, DICTAPHONE_REQUIRED_CONSENT)
 
     audio_bytes = await audio.read()
     segments, source = await transcribe_audio(audio_bytes, audio.content_type or "audio/webm")

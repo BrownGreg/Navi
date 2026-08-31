@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 
+// Doit etre incrementee des que le texte des cases de consentement
+// ci-dessous change - meme logique que app/new/dictaphone/consent/page.tsx,
+// versionnee separement car ce formulaire affiche un texte different (4
+// cases au lieu de 2).
+const CONSENT_TEXT_VERSION = "2026-08-29-v1";
+
 const PLATFORMS = [
   { value: "google_meet", label: "Google Meet", hint: "code de reunion, ex: abc-defg-hij" },
   { value: "teams", label: "Microsoft Teams", hint: "identifiant ou lien d'invitation" },
@@ -26,8 +32,17 @@ export default function VisioConsentPage() {
   const [manualPlatform, setManualPlatform] = useState<Platform>("google_meet");
   const [manualNativeId, setManualNativeId] = useState("");
 
+  // Consentement organisateur : de vraies cases pilotees par un etat React
+  // (contrairement aux <div> statiques precedentes), verifiees a la fois
+  // cote client (canJoin) et re-verifiees cote serveur via l'endpoint
+  // /consent + crud.require_consent au moment du join reel.
+  const [consentRecording, setConsentRecording] = useState(true);
+  const [consentAiProcessing, setConsentAiProcessing] = useState(true);
+  const [consentSharing, setConsentSharing] = useState(true);
+
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -72,10 +87,32 @@ export default function VisioConsentPage() {
     resolveUrl(url);
   }
 
+  function inviteText() {
+    return (
+      `Cette reunion sera enregistree et transcrite via Navi. ` +
+      `L'audio est traite par IA (resume, classification) puis conserve ${retention} jours. ` +
+      `Pour toute question ou pour exercer vos droits RGPD : ` +
+      `${typeof window !== "undefined" ? window.location.origin : ""}/participant/consent`
+    );
+  }
+
+  async function copyInviteText() {
+    try {
+      await navigator.clipboard.writeText(inviteText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Best-effort : le presse-papiers peut etre indisponible (permissions,
+      // contexte non securise) ; pas de fallback, l'utilisateur peut copier
+      // le texte affiche a la main.
+    }
+  }
+
   async function join() {
     const platform = resolvedPlatform ?? (showManualFallback ? manualPlatform : null);
     const nativeMeetingId = resolvedNativeId ?? (showManualFallback ? manualNativeId.trim() : "");
     if (!platform || !nativeMeetingId) return;
+    if (!consentRecording || !consentAiProcessing || !consentSharing) return;
 
     setError(null);
     setStarting(true);
@@ -86,6 +123,20 @@ export default function VisioConsentPage() {
         body: JSON.stringify({ title, mode: "visio", retentionDays: Number(retention) })
       });
       const meeting = await meetingRes.json();
+
+      // Meme endpoint que le dictaphone : une case cochee "l'enregistrement
+      // et la transcription" accorde les deux types de consentement requis
+      // cote serveur (oral_recording + transcript), les deux autres cases
+      // couvrent des consentements supplementaires (traitement IA, partage).
+      const consentRes = await apiFetch(`/api/meetings/${meeting.id}/consent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consentTypes: ["oral_recording", "transcript", "ai_processing", "participant_sharing"],
+          textVersion: CONSENT_TEXT_VERSION
+        })
+      });
+      if (!consentRes.ok) throw new Error("echec de l'enregistrement du consentement");
 
       const joinRes = await apiFetch("/api/visio/join", {
         method: "POST",
@@ -101,7 +152,11 @@ export default function VisioConsentPage() {
     }
   }
 
-  const canJoin = !!(resolvedPlatform && resolvedNativeId) || !!(showManualFallback && manualNativeId.trim());
+  const canJoin =
+    (!!(resolvedPlatform && resolvedNativeId) || !!(showManualFallback && manualNativeId.trim())) &&
+    consentRecording &&
+    consentAiProcessing &&
+    consentSharing;
 
   return (
     <div className="page">
@@ -168,9 +223,15 @@ export default function VisioConsentPage() {
         </>
       ) : null}
 
-      <div className="card">✓ J&apos;autorise l&apos;enregistrement et la transcription de cette reunion</div>
-      <div className="card">✓ Je consens au traitement IA (resume, classification)</div>
-      <div className="card">✓ J&apos;accepte le partage avec les participants</div>
+      <div className="card selectable" onClick={() => setConsentRecording(!consentRecording)}>
+        {consentRecording ? "✓" : "○"} J&apos;autorise l&apos;enregistrement et la transcription de cette reunion
+      </div>
+      <div className="card selectable" onClick={() => setConsentAiProcessing(!consentAiProcessing)}>
+        {consentAiProcessing ? "✓" : "○"} Je consens au traitement IA (resume, classification)
+      </div>
+      <div className="card selectable" onClick={() => setConsentSharing(!consentSharing)}>
+        {consentSharing ? "✓" : "○"} J&apos;accepte le partage avec les participants
+      </div>
 
       <div className="row" style={{ marginTop: 10, marginBottom: 4 }}>
         <span className="secondary-text">Duree de conservation</span>
@@ -181,6 +242,21 @@ export default function VisioConsentPage() {
         <option value="365">1 an</option>
       </select>
 
+      <div className="card" style={{ marginTop: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>
+          Texte suggere pour l&apos;invitation
+        </div>
+        <div className="secondary-text" style={{ marginBottom: 8 }}>
+          Le bot Vexa (visible dans la liste des participants comme &quot;Navi Notetaker —
+          enregistrement&quot;) ne peut pas envoyer de message dans le chat de la reunion — a coller
+          vous-meme dans l&apos;invitation avant la reunion :
+        </div>
+        <div className="muted" style={{ marginBottom: 8, fontStyle: "italic" }}>{inviteText()}</div>
+        <button type="button" className="btn" onClick={copyInviteText}>
+          {copied ? "Copie ✓" : "Copier le texte"}
+        </button>
+      </div>
+
       {error ? (
         <div className="card" style={{ color: "var(--danger)", marginTop: 12 }}>{error}</div>
       ) : null}
@@ -188,6 +264,10 @@ export default function VisioConsentPage() {
       <button className="btn btn-primary" disabled={!canJoin || starting} onClick={join}>
         {starting ? "Connexion du bot…" : "Rejoindre la reunion"}
       </button>
+
+      <p className="muted" style={{ marginTop: 12 }}>
+        Droits RGPD des participants : <Link href="/rgpd">exercer mes droits</Link>
+      </p>
     </div>
   );
 }

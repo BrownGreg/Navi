@@ -3,6 +3,12 @@ from sqlalchemy.orm import Session
 import models
 from clients.vexa import join_bot
 
+# Nom affiche par defaut du bot dans la liste des participants de la reunion
+# (Meet/Teams/Zoom) - seul signal reellement visible par les participants
+# qu'un enregistrement est en cours, l'API Vexa publique verifiee (cf.
+# clients/vexa.py) n'exposant pas d'envoi de message dans le chat de reunion.
+DEFAULT_BOT_NAME = "Navi Notetaker — enregistrement"
+
 
 async def join_meeting(
     db: Session,
@@ -17,11 +23,27 @@ async def join_meeting(
     declenche par le scheduler calendrier (scheduler.py), pour garantir un
     comportement identique entre les deux origines.
     """
-    joined, source = await join_bot(platform, native_meeting_id, bot_name)
+    effective_bot_name = bot_name or DEFAULT_BOT_NAME
+    joined, source = await join_bot(platform, native_meeting_id, effective_bot_name)
 
     meeting.platform = platform
     meeting.native_meeting_id = native_meeting_id
     meeting.source = source
+
+    # Trace de conformite : uniquement quand un bot reel a effectivement
+    # rejoint (pas en mode mock, ou personne n'est notifie pour de vrai).
+    if joined and source == "real":
+        db.add(
+            models.ParticipantNotification(
+                meeting_id=meeting.id,
+                channel="vexa_bot_display_name",
+                detail=(
+                    f"Bot '{effective_bot_name}' visible dans la liste des participants "
+                    "(pas de message de chat : non supporte par l'API Vexa publique)."
+                ),
+            )
+        )
+
     db.commit()
 
     return joined, source

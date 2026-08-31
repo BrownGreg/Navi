@@ -192,6 +192,43 @@ class UpcomingCalendarEventOut(CamelModel):
     platform: Optional[Platform] = None
 
 
+# --- Consentement ---
+
+ConsentType = Literal["oral_recording", "transcript", "ai_processing", "participant_sharing"]
+
+# Requis different par mode : le formulaire dictaphone n'affiche que 2 cases
+# (oral_recording, transcript), le formulaire visio en affiche 4 (les memes
+# + ai_processing + participant_sharing). Un seul jeu global aurait laisse
+# ai_processing/participant_sharing cochables sans jamais etre verifies cote
+# serveur pour /visio/join - meme defaut que les <div> statiques d'origine
+# qu'on corrige ici, donc chaque flux doit exiger exactement ce qu'il affiche.
+DICTAPHONE_REQUIRED_CONSENT: frozenset[ConsentType] = frozenset({"oral_recording", "transcript"})
+VISIO_REQUIRED_CONSENT: frozenset[ConsentType] = frozenset(
+    {"oral_recording", "transcript", "ai_processing", "participant_sharing"}
+)
+
+# Version du texte de consentement actuellement affiche sur les ecrans
+# dictaphone/visio (app/new/*/consent/page.tsx). A incrementer manuellement
+# ET a la main dans ces deux fichiers des que la formulation change - c'est
+# ce qui rend consent_text_version tracable plutot qu'un simple placeholder :
+# sans ca, un changement de texte ne laisserait aucune trace differente en
+# base entre un consentement donne sous l'ancienne et la nouvelle formulation.
+CURRENT_CONSENT_TEXT_VERSION = "2026-08-29-v1"
+
+
+class ConsentGrantRequest(CamelModel):
+    consent_types: list[ConsentType]
+    text_version: str = CURRENT_CONSENT_TEXT_VERSION
+
+
+class ConsentRecordOut(CamelModel):
+    id: str
+    meeting_id: str
+    consent_type: ConsentType
+    granted_at: datetime
+    consent_text_version: str
+
+
 # --- RGPD ---
 
 RgpdRequestType = Literal["access", "rectification", "erasure"]
