@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 import models
 from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
-from schemas import MeetingCreate, MeetingOut
+from schemas import ConsentGrantRequest, ConsentRecordOut, MeetingCreate, MeetingOut
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
@@ -39,6 +39,40 @@ def create_meeting(
     db.commit()
     db.refresh(meeting)
     return meeting
+
+
+@router.post("/{meeting_id}/consent", response_model=list[ConsentRecordOut])
+def grant_consent(
+    meeting_id: str,
+    body: ConsentGrantRequest,
+    request: Request,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[models.ConsentRecord]:
+    """Enregistre le(s) consentement(s) de l'organisateur pour une reunion.
+
+    Appele par les ecrans de consentement (dictaphone et visio) avant de
+    demarrer un enregistrement. C'est cette table, pas l'etat coche cote
+    front, que le backend verifie ensuite (voir crud.require_consent) avant
+    d'accepter /transcribe ou /visio/join.
+    """
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+
+    records = [
+        models.ConsentRecord(
+            meeting_id=meeting.id,
+            user_id=current_user.id,
+            consent_type=consent_type,
+            consent_text_version=body.text_version,
+            ip_address=request.client.host if request.client else None,
+        )
+        for consent_type in body.consent_types
+    ]
+    db.add_all(records)
+    db.commit()
+    for record in records:
+        db.refresh(record)
+    return records
 
 
 @router.get("/by-share/{share_id}", response_model=MeetingOut)

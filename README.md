@@ -78,7 +78,7 @@ Les integrations sont ecrites au meilleur effort a partir de leur documentation 
 | Dictaphone — consentement → enregistrement → traitement → CR | `/new/dictaphone/consent` | Oui, de bout en bout (Voxtral + Mistral Moderation 2 + Mistral) |
 | Visio — consentement → join Vexa → reunion en direct → traitement → CR | `/new/visio/consent` | Oui, de bout en bout (Vexa + Mistral Moderation 2 + Mistral) |
 | Auto-join calendrier | `/settings/calendar` | Oui (OAuth Google / Microsoft, sync toutes les 5 min) |
-| Notification participant en reunion | `/participant/consent` | Mockup |
+| Notification participant en reunion | `/participant/consent` | Partiel — "Je ne consens pas" enregistre une vraie demande RGPD (POST /rgpd-request) ; aucun canal reel n'y mene encore un vrai participant (voir limites) |
 | Compte-rendu sans compte (lien partage) | `/cr/[shareId]` | Oui |
 | Export PDF du CR | Bouton sur `/reunion/[id]` | Oui (genere a la volee par `ai-service`, reportlab) |
 | Exercer mes droits RGPD | `/rgpd?meetingId=...` | Oui (demande tracee en base ; effacement organisateur immediat via l'API, purge automatique a expiration de `retention_days`) |
@@ -135,6 +135,7 @@ Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tes
 - `ai-service` tourne en un seul worker/process (`uvicorn` sans `--workers`) — suffisant pour une demo, pas dimensionne pour de la charge.
 - Aucune camera n'est utilisee, ni en mode visio ni en mode dictaphone : seul l'audio est traite. La grille video du mode visio reste un placeholder statique (choix assume, Navi n'accede jamais a la camera).
 - La moderation (Mistral Moderation 2) est non-bloquante par choix produit : un flag informatif est affiche sur la reunion, mais la generation du CR n'est jamais suspendue.
+- **Notification reelle des participants (visio)** : l'API Vexa publique verifiee (cf. `ai-service/clients/vexa.py`) ne permet pas d'envoyer un message dans le chat de la reunion au moment ou le bot rejoint. Le bot est nomme explicitement "Navi Notetaker — enregistrement" dans la liste des participants (seul signal reellement visible), et un texte d'invitation suggere avec lien vers `/participant/consent` est propose a l'organisateur sur l'ecran de consentement visio — a coller manuellement, aucun envoi automatique d'e-mail n'est implemente. `/participant/consent` n'est donc atteint que si l'organisateur a effectivement transmis ce lien en amont ; ce n'est pas encore une notification poussee automatiquement a chaque participant.
 
 ## Documentation complementaire
 

@@ -5,23 +5,52 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 
+// Doit etre incrementee des que le texte des cases de consentement
+// ci-dessous change (ex: "2026-08-29-v1" -> "2026-09-15-v2") : c'est ce qui
+// rend consent_text_version tracable en base plutot qu'un placeholder fixe -
+// sans ca, un consentement donne sous l'ancienne formulation serait
+// indiscernable d'un consentement donne sous la nouvelle.
+const CONSENT_TEXT_VERSION = "2026-08-29-v1";
+
 export default function DictaphoneConsentPage() {
   const [title, setTitle] = useState("Reunion sans titre");
   const [retention, setRetention] = useState("30");
   const [consentOral, setConsentOral] = useState(true);
   const [consentTranscript, setConsentTranscript] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function start() {
+    setError(null);
     setStarting(true);
-    const res = await apiFetch("/api/meetings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, mode: "dictaphone", retentionDays: Number(retention) })
-    });
-    const meeting = await res.json();
-    router.push(`/new/dictaphone/record?id=${meeting.id}`);
+    try {
+      const meetingRes = await apiFetch("/api/meetings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, mode: "dictaphone", retentionDays: Number(retention) })
+      });
+      const meeting = await meetingRes.json();
+
+      // Le consentement est ecrit en base cote serveur AVANT de naviguer vers
+      // l'enregistrement : /api/transcribe le revalide de toute facon (voir
+      // ai-service/crud.require_consent), donc un echec ici doit bloquer la
+      // suite plutot que de laisser l'utilisateur enregistrer pour rien.
+      const consentRes = await apiFetch(`/api/meetings/${meeting.id}/consent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consentTypes: ["oral_recording", "transcript"],
+          textVersion: CONSENT_TEXT_VERSION
+        })
+      });
+      if (!consentRes.ok) throw new Error("echec de l'enregistrement du consentement");
+
+      router.push(`/new/dictaphone/record?id=${meeting.id}`);
+    } catch {
+      setError("Impossible d'enregistrer votre consentement. Reessayez.");
+      setStarting(false);
+    }
   }
 
   const canStart = consentOral && consentTranscript && title.trim().length > 0;
@@ -33,7 +62,10 @@ export default function DictaphoneConsentPage() {
       </div>
 
       <h1>Consentement</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>Mode dictaphone</p>
+      <p className="secondary-text" style={{ marginBottom: 14 }}>
+        Mode dictaphone — l&apos;audio capte sera transcrit puis traite par IA (resume, classification)
+        pour generer un compte-rendu, conserve {retention} jours puis supprime automatiquement.
+      </p>
 
       <div className="label">Titre de la reunion</div>
       <input className="input" style={{ marginBottom: 12 }} value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -54,9 +86,17 @@ export default function DictaphoneConsentPage() {
         <option value="365">1 an</option>
       </select>
 
+      {error ? (
+        <div className="card" style={{ color: "var(--danger)", marginTop: 12 }}>{error}</div>
+      ) : null}
+
       <button className="btn btn-primary" disabled={!canStart || starting} onClick={start}>
         {starting ? "Preparation…" : "Demarrer l'enregistrement"}
       </button>
+
+      <p className="muted" style={{ marginTop: 12 }}>
+        Droits RGPD des participants : <Link href="/rgpd">exercer mes droits</Link>
+      </p>
     </div>
   );
 }

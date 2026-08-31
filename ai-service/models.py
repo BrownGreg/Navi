@@ -97,6 +97,38 @@ class CalendarSyncedEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class ConsentRecord(Base):
+    __tablename__ = "consent_records"
+
+    # Table separee de Meeting (plutot que des colonnes booleennes dessus)
+    # pour pouvoir couvrir d'autres types de consentement a l'avenir sans
+    # migration de schema, et pour garder un historique horodate meme si un
+    # consentement est redemande (ex: nouvelle version de texte).
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    meeting_id: Mapped[str] = mapped_column(ForeignKey("meetings.id"), index=True, nullable=False)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    consent_type: Mapped[str] = mapped_column(String, nullable=False)
+    # Genere serveur, jamais transmis par le client : un timestamp fourni par
+    # le navigateur ne fait pas foi (horloge locale falsifiable).
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    consent_text_version: Mapped[str] = mapped_column(String, nullable=False, default="v1")
+    ip_address: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class ParticipantNotification(Base):
+    __tablename__ = "participant_notifications"
+
+    # Preuve de conformite pour le volet "information des participants" :
+    # trace chaque notification reellement emise (peu importe le contenu),
+    # independamment de ConsentRecord qui lui ne couvre que le consentement
+    # de l'organisateur (compte Navi).
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    meeting_id: Mapped[str] = mapped_column(ForeignKey("meetings.id"), index=True, nullable=False)
+    channel: Mapped[str] = mapped_column(String, nullable=False)
+    detail: Mapped[str | None] = mapped_column(String, nullable=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class RgpdRequest(Base):
     __tablename__ = "rgpd_requests"
 
