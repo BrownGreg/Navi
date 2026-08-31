@@ -126,7 +126,7 @@ npx tsc --noEmit                          # verification des types frontend
 npm run build                             # build de production
 ```
 
-Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tests Python, typecheck frontend, build Docker) a chaque push/PR. Le deploiement (`.github/workflows/cd.yml`) est semi-automatique : la structure Railway est en place mais desactivee tant que les secrets ne sont pas configures dans le depot (voir les commentaires du fichier). `render.yaml` fournit une alternative de deploiement sur Render.
+Un pipeline CI (`.github/workflows/ci.yml`) execute ces memes etapes (lint + tests Python, typecheck frontend, build Docker) a chaque push/PR. Le deploiement se fait via `render.yaml` (Render, voir plus haut).
 
 ## Limites connues (demo)
 
