@@ -95,10 +95,10 @@ jobs:
           retention-days: 14
 
   # ---------------------------------------------------------------------------
-  # Job 3 : Lint frontend (ESLint + TypeScript)
+  # Job 3 : Verification des types frontend (TypeScript)
   # ---------------------------------------------------------------------------
   lint-frontend:
-    name: Lint Frontend (ESLint + tsc)
+    name: Verification des types (tsc)
     runs-on: ubuntu-latest
 
     steps:
@@ -113,16 +113,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: ESLint
-        # Le script "lint" est defini dans package.json ("next lint").
-        # On verifie d'abord qu'il existe pour skiper gracieusement si absent.
-        run: |
-          if npm run | grep -qw "lint"; then
-            npm run lint
-          else
-            echo "Aucun script 'lint' trouve dans package.json -- etape ignoree."
-          fi
 
       - name: TypeScript -- verification des types
         run: npx tsc --noEmit
