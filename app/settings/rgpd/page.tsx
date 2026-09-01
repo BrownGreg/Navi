@@ -27,7 +27,7 @@ export default async function RgpdRequestsPage() {
   return (
     <div className="page">
       <div className="top-actions">
-        <Link href="/">← Retour</Link>
+        <Link href="/dashboard">← Retour</Link>
       </div>
 
       <h1>Demandes RGPD reçues</h1>

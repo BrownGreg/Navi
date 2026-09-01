@@ -54,7 +54,7 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
   return (
     <div className="page">
       <div className="top-actions">
-        <Link href="/">← Retour</Link>
+        <Link href="/dashboard">← Retour</Link>
       </div>
 
       <div className="row">

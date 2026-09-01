@@ -38,7 +38,7 @@ export default async function CalendarSettingsPage({
   return (
     <div className="page">
       <div className="top-actions">
-        <Link href="/">← Retour</Link>
+        <Link href="/dashboard">← Retour</Link>
       </div>
 
       <h1>Calendriers</h1>
