@@ -1,36 +1,23 @@
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import Link from "next/link";
 import { isLoggedIn, LandingNav, LandingFooter } from "./landing-shell";
 
-const serif = Fraunces({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-const sans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  variable: "--font-sans",
-  display: "swap",
-});
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-  display: "swap",
-});
+function Icon({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
 
 export default async function LandingPage() {
   const loggedIn = await isLoggedIn();
 
   return (
-    <div className={`landing nv-doc ${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <div className="landing">
       <LandingNav loggedIn={loggedIn} />
 
       <section className="landing-hero">
-        <span className="nv-doc-kicker">Conforme RGPD. IA hébergée en Europe.</span>
+        <span className="landing-eyebrow">Conforme RGPD · IA hébergée en UE</span>
         <h1>Vos réunions, transcrites et résumées automatiquement</h1>
         <p className="lead">
           Navi capte la parole en réunion — au micro pour le présentiel, via un bot qui rejoint votre
@@ -42,16 +29,26 @@ export default async function LandingPage() {
           <Link href="/sign-in" className="landing-btn">Se connecter</Link>
         </div>
 
-        <div className="nv-doc-sheet" aria-hidden="true">
-          <div className="nv-doc-sheet-head">
-            <span className="nv-doc-sheet-title">Réunion budget Q3</span>
-            <span className="nv-doc-sheet-time">12:34</span>
+        <div className="landing-hero-visual" aria-hidden="true">
+          <div className="frame landing-preview">
+            <div className="row" style={{ marginBottom: 4 }}>
+              <span className="pill rec">● En cours — 12:34</span>
+              <span className="pill accent">Visio · Google Meet</span>
+            </div>
+            <div className="landing-preview-waveform">
+              {[14, 22, 12, 28, 18, 30, 16, 24, 12, 26, 15, 20].map((h, i) => (
+                <span key={i} style={{ height: h }} />
+              ))}
+            </div>
+            <div className="landing-preview-transcript">
+              <p><strong>Sarah</strong> — On valide le budget Q3 à 40k€ pour la campagne.</p>
+              <p><strong>Marc</strong> — Ok, je prépare le brief d&apos;ici vendredi.</p>
+            </div>
+            <div className="landing-preview-actions">
+              <span className="pill">✓ Décision</span>
+              <span className="secondary-text">Budget Q3 validé à 40k€</span>
+            </div>
           </div>
-          <div className="nv-doc-transcript">
-            <p><strong>Sarah</strong> <span>— On valide le budget Q3 à 40k€ pour la campagne.</span></p>
-            <p><strong>Marc</strong> <span>— Ok, je prépare le brief d&apos;ici vendredi.</span></p>
-          </div>
-          <span className="nv-doc-stamp">✓ Décision actée</span>
         </div>
       </section>
 
@@ -61,30 +58,40 @@ export default async function LandingPage() {
           C&apos;est la particularité de Navi : deux situations d&apos;usage opposées, la même chaîne de
           traitement derrière.
         </p>
-        <div className="nv-doc-modes">
-          <div className="nv-doc-mode-manual">
-            <div className="nv-doc-mode-mark" />
-            <h3>Dictaphone, réunion en présentiel</h3>
+        <div className="landing-split">
+          <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <rect x="9" y="3" width="6" height="10" rx="3" />
+                <path d="M5 11a7 7 0 0 0 14 0" />
+                <path d="M12 18v3" />
+                <path d="M9 21h6" />
+              </Icon>
+            </div>
+            <h3>Dictaphone — réunion en présentiel</h3>
             <p>
               Navi capte le micro de votre appareil pendant la réunion. Aucune caméra, aucun logiciel à
               installer : vous démarrez, vous parlez, Navi transcrit.
             </p>
           </div>
-          <div className="nv-doc-mode-remote">
-            <span className="nv-doc-mode-remote-meta">meet.google.com/xxx-yyyy-zzz</span>
-            <div>
-              <h3>Visio, réunion à distance</h3>
-              <p>
-                Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est détectée
-                automatiquement et un bot nommé &laquo;&nbsp;Navi Notetaker&nbsp;&raquo; rejoint la réunion
-                pour capter l&apos;audio et transcrire en direct.
-              </p>
+          <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <rect x="2.5" y="6" width="13" height="12" rx="2.5" />
+                <path d="M15.5 10.5 21 7v10l-5.5-3.5" />
+              </Icon>
             </div>
+            <h3>Visio — réunion à distance</h3>
+            <p>
+              Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est détectée
+              automatiquement et un bot nommé &laquo;&nbsp;Navi Notetaker&nbsp;&raquo; rejoint la réunion
+              pour capter l&apos;audio et transcrire en direct.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="landing-section nv-doc-band">
+      <section className="landing-section" style={{ background: "var(--surface-1)" }}>
         <h2 className="landing-section-title">Comment ça marche</h2>
         <div className="landing-steps">
           <div className="landing-step-card">
@@ -119,6 +126,14 @@ export default async function LandingPage() {
       </section>
 
       <section className="landing-section">
+        <div className="landing-icon-badge centered">
+          <Icon>
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18" />
+            <path d="M8 3v4" />
+            <path d="M16 3v4" />
+          </Icon>
+        </div>
         <h2 className="landing-section-title">Ne manquez plus une réunion</h2>
         <p className="landing-section-subtitle">
           Connectez Google Calendar ou Microsoft Outlook : Navi vérifie votre agenda toutes les 5 minutes
@@ -126,7 +141,7 @@ export default async function LandingPage() {
         </p>
       </section>
 
-      <section className="landing-section nv-doc-trust-section">
+      <section className="landing-section" style={{ background: "var(--surface-1)" }}>
         <h2 className="landing-section-title">Conforme RGPD, pas juste en apparence</h2>
         <div className="landing-trust">
           <div>
