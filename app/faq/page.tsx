@@ -1,121 +1,132 @@
 import Link from "next/link";
+import { isLoggedIn, LandingNav, LandingFooter } from "../landing-shell";
 
 function Question({ q, children }: { q: string; children: React.ReactNode }) {
   return (
-    <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-      <div style={{ fontWeight: 500, marginBottom: 6 }}>{q}</div>
+    <details className="landing-faq-item">
+      <summary>{q}</summary>
       <div className="secondary-text">{children}</div>
-    </div>
+    </details>
   );
 }
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const loggedIn = await isLoggedIn();
+
   return (
-    <div className="page">
-      <div className="top-actions">
-        <Link href="/">← Retour</Link>
-      </div>
+    <div className="landing">
+      <LandingNav loggedIn={loggedIn} />
 
-      <h1>FAQ</h1>
-      <p className="secondary-text" style={{ marginBottom: 16 }}>
-        Questions juridiques et techniques. Pour un guide pas-a-pas, voir <Link href="/aide">le guide
-        d&apos;utilisation</Link>.
-      </p>
+      <section className="landing-hero" style={{ paddingBottom: 8 }}>
+        <span className="landing-eyebrow">FAQ</span>
+        <h1 style={{ fontSize: 36 }}>Questions juridiques et techniques</h1>
+        <p className="lead">
+          Pour un guide pas-à-pas, voir <Link href="/aide">le guide d&apos;utilisation</Link>.
+        </p>
+      </section>
 
-      <h2 style={{ fontSize: 15, marginTop: 20, marginBottom: 10 }}>Questions juridiques (RGPD)</h2>
+      <section className="landing-section landing-section-narrow" style={{ paddingTop: 8 }}>
+        <h2 className="landing-faq-group-title">Questions juridiques (RGPD)</h2>
+        <div className="landing-faq-group">
+          <Question q="Sur quelle base légale Navi enregistre-t-il une réunion ?">
+            En contexte professionnel, la base légale est généralement l&apos;intérêt légitime de
+            l&apos;organisateur, pas un consentement actif obligatoire de chaque participant. Ceci dit,
+            enregistrer une personne à son insu reste une infraction indépendante du RGPD (art. 226-1 du
+            Code pénal) : une information préalable réelle des participants est donc toujours nécessaire, et
+            Navi la matérialise (nom explicite du bot en réunion, texte d&apos;invitation suggéré, écran de
+            consentement participant).
+          </Question>
 
-      <Question q="Sur quelle base legale Navi enregistre-t-il une reunion ?">
-        En contexte professionnel, la base legale est generalement l&apos;interet legitime de
-        l&apos;organisateur, pas un consentement actif obligatoire de chaque participant. Ceci dit,
-        enregistrer une personne a son insu reste une infraction independante du RGPD (art. 226-1 du Code
-        penal) : une information prealable reelle des participants est donc toujours necessaire, et Navi la
-        materialise (nom explicite du bot en reunion, texte d&apos;invitation suggere, ecran de
-        consentement participant).
-      </Question>
+          <Question q="Quelles données sont collectées ?">
+            Votre email et mot de passe (haché, jamais stocké en clair) pour le compte ; l&apos;audio capté
+            pendant une réunion (voix, potentiellement une donnée biométrique) ; la transcription qui en
+            résulte, attribuée par intervenant.
+          </Question>
 
-      <Question q="Quelles donnees sont collectees ?">
-        Votre email et mot de passe (hache, jamais stocke en clair) pour le compte ; l&apos;audio capte
-        pendant une reunion (voix, potentiellement une donnee biometrique) ; la transcription qui en
-        resulte, attribuee par intervenant.
-      </Question>
+          <Question q="Qui a accès à mes données ?">
+            L&apos;organisateur de la réunion (titulaire du compte), et les sous-traitants techniques
+            nécessaires au traitement : Mistral AI (transcription, génération du compte-rendu,
+            classification, modération) et Vexa (bot de réunion visio). Voir la question suivante pour leur
+            localisation.
+          </Question>
 
-      <Question q="Qui a acces a mes donnees ?">
-        L&apos;organisateur de la reunion (titulaire du compte), et les sous-traitants techniques
-        necessaires au traitement : Mistral AI (transcription, generation du compte-rendu, classification,
-        moderation) et Vexa (bot de reunion visio). Voir la question suivante pour leur localisation.
-      </Question>
+          <Question q="Où mes données sont-elles traitées ?">
+            Les traitements IA (transcription, résumé, classification, modération) passent tous par Mistral
+            AI, basé dans l&apos;Union européenne — un choix délibérément fait pour limiter les
+            sous-traitants à un seul fournisseur UE. Le bot de réunion visio passe par Vexa, un service tiers
+            indépendant ; reportez-vous à sa propre politique de confidentialité pour sa localisation exacte.
+          </Question>
 
-      <Question q="Ou mes donnees sont-elles traitees ?">
-        Les traitements IA (transcription, resume, classification, moderation) passent tous par Mistral AI,
-        base dans l&apos;Union europeenne — un choix deliberement fait pour limiter les sous-traitants a un
-        seul fournisseur UE. Le bot de reunion visio passe par Vexa, un service tiers independant ; reportez-
-        vous a sa propre politique de confidentialite pour sa localisation exacte.
-      </Question>
+          <Question q="Combien de temps mes données sont-elles conservées ?">
+            Le contenu d&apos;une réunion (transcription, compte-rendu) est conservé pour la durée choisie à
+            la création (30 jours par défaut, modifiable), puis anonymisé automatiquement. Les preuves de
+            consentement et de notification (pas le contenu de la réunion) sont conservées séparément, 5 ans
+            par défaut — une durée d&apos;accountability alignée sur la prescription civile de droit commun,
+            distincte de la conservation du contenu lui-même.
+          </Question>
 
-      <Question q="Combien de temps mes donnees sont-elles conservees ?">
-        Le contenu d&apos;une reunion (transcription, compte-rendu) est conserve pour la duree choisie a la
-        creation (30 jours par defaut, modifiable), puis anonymise automatiquement. Les preuves de
-        consentement et de notification (pas le contenu de la reunion) sont conservees separement, 5 ans par
-        defaut — une duree d&apos;accountability alignee sur la prescription civile de droit commun,
-        distincte de la conservation du contenu lui-meme.
-      </Question>
+          <Question q="Comment supprimer mes données ?">
+            Déposez une demande depuis <Link href="/rgpd">Exercer mes droits RGPD</Link> (accès,
+            rectification ou suppression, plusieurs choix possibles à la fois). En tant qu&apos;organisateur,
+            vous pouvez aussi supprimer immédiatement le contenu d&apos;une de vos réunions depuis sa page de
+            détail. Une demande est traitée sous 30 jours (art. 12 RGPD).
+          </Question>
 
-      <Question q="Comment supprimer mes donnees ?">
-        Deposez une demande depuis <Link href="/rgpd">Exercer mes droits RGPD</Link> (acces, rectification
-        ou suppression, plusieurs choix possibles a la fois). En tant qu&apos;organisateur, vous pouvez aussi
-        supprimer immediatement le contenu d&apos;une de vos reunions depuis sa page de detail. Une demande
-        est traitee sous 30 jours (art. 12 RGPD).
-      </Question>
+          <Question q="En tant que participant, suis-je informé qu'une réunion est enregistrée ?">
+            En visio, le bot rejoint sous le nom &laquo;&nbsp;Navi Notetaker —
+            enregistrement&nbsp;&raquo;, visible dans la liste des participants, et l&apos;organisateur est
+            invité à transmettre un texte d&apos;invitation explicite avant la réunion. Limite connue et
+            assumée : l&apos;API du bot ne permet pas d&apos;envoyer automatiquement un message dans le chat
+            de la réunion — l&apos;information repose donc sur ces deux signaux, pas encore sur une
+            notification poussée automatiquement à chaque participant.
+          </Question>
 
-      <Question q="En tant que participant, suis-je informe qu'une reunion est enregistree ?">
-        En visio, le bot rejoint sous le nom &laquo;&nbsp;Navi Notetaker — enregistrement&nbsp;&raquo;,
-        visible dans la liste des participants, et l&apos;organisateur est invite a transmettre un texte
-        d&apos;invitation explicite avant la reunion. Limite connue et assumee : l&apos;API du bot ne permet
-        pas d&apos;envoyer automatiquement un message dans le chat de la reunion — l&apos;information repose
-        donc sur ces deux signaux, pas encore sur une notification poussee automatiquement a chaque
-        participant.
-      </Question>
+          <Question q="Puis-je refuser d'être enregistré en tant que participant ?">
+            Oui, depuis l&apos;écran de notification participant, &laquo;&nbsp;Je ne consens
+            pas&nbsp;&raquo; enregistre une vraie demande RGPD auprès de l&apos;organisateur, qui doit y
+            répondre sous 30 jours. Ce n&apos;est pas un blocage technique automatique de
+            l&apos;enregistrement en cours — le retrait passe par une demande formelle traitée par
+            l&apos;organisateur, comme décrit ci-dessus.
+          </Question>
+        </div>
 
-      <Question q="Puis-je refuser d'etre enregistre en tant que participant ?">
-        Oui, depuis l&apos;ecran de notification participant, &laquo;&nbsp;Je ne consens pas&nbsp;&raquo;
-        enregistre une vraie demande RGPD aupres de l&apos;organisateur, qui doit y repondre sous 30 jours.
-        Ce n&apos;est pas un blocage technique automatique de l&apos;enregistrement en cours — le retrait
-        passe par une demande formelle traitee par l&apos;organisateur, comme decrit ci-dessus.
-      </Question>
+        <h2 className="landing-faq-group-title" style={{ marginTop: 48 }}>Questions techniques</h2>
+        <div className="landing-faq-group">
+          <Question q="Quels navigateurs sont supportés ?">
+            Un navigateur récent (Chrome, Firefox, Edge, Safari) avec accès au microphone. L&apos;accès micro
+            nécessite une connexion en HTTPS (ou localhost en développement) — c&apos;est une exigence du
+            navigateur, pas de Navi.
+          </Question>
 
-      <h2 style={{ fontSize: 15, marginTop: 24, marginBottom: 10 }}>Questions techniques</h2>
+          <Question q="Navi a-t-il accès à ma caméra ?">
+            Non, jamais, ni en mode visio ni en mode dictaphone : seul l&apos;audio est traité. La grille
+            vidéo du mode visio est un placeholder statique, choix assumé.
+          </Question>
 
-      <Question q="Quels navigateurs sont supportes ?">
-        Un navigateur recent (Chrome, Firefox, Edge, Safari) avec acces au microphone. L&apos;acces micro
-        necessite une connexion en HTTPS (ou localhost en developpement) — c&apos;est une exigence du
-        navigateur, pas de Navi.
-      </Question>
+          <Question q="Quelles plateformes de visioconférence sont supportées ?">
+            Google Meet, Microsoft Teams et Zoom, via un lien de réunion détecté automatiquement.
+          </Question>
 
-      <Question q="Navi a-t-il acces a ma camera ?">
-        Non, jamais, ni en mode visio ni en mode dictaphone : seul l&apos;audio est traite. La grille video
-        du mode visio est un placeholder statique, choix assume.
-      </Question>
+          <Question q="Que se passe-t-il si un fournisseur IA est indisponible ?">
+            Navi ne plante jamais pour cette raison : chaque intégration bascule automatiquement sur un mode
+            simulé si une clé API manque ou si un appel échoue, signalé par un badge &laquo;&nbsp;mode
+            démo&nbsp;&raquo; dans l&apos;interface.
+          </Question>
 
-      <Question q="Quelles plateformes de visioconference sont supportees ?">
-        Google Meet, Microsoft Teams et Zoom, via un lien de reunion detecte automatiquement.
-      </Question>
+          <Question q="Le compte-rendu généré est-il toujours exact ?">
+            Non — il est généré par un modèle de langage (Mistral) et peut contenir des approximations ou des
+            erreurs, en particulier sur des enregistrements longs ou de mauvaise qualité audio. Relisez-le
+            avant de le partager ou de vous appuyer dessus pour une décision importante.
+          </Question>
 
-      <Question q="Que se passe-t-il si un fournisseur IA est indisponible ?">
-        Navi ne plante jamais pour cette raison : chaque integration bascule automatiquement sur un mode
-        simule si une cle API manque ou si un appel echoue, signale par un badge &laquo;&nbsp;mode
-        demo&nbsp;&raquo; dans l&apos;interface.
-      </Question>
+          <Question q="Navi fonctionne-t-il hors connexion ?">
+            Non, une connexion internet est nécessaire de bout en bout (captation en direct, appels aux
+            fournisseurs IA, sauvegarde en base).
+          </Question>
+        </div>
+      </section>
 
-      <Question q="Le compte-rendu genere est-il toujours exact ?">
-        Non — il est genere par un modele de langage (Mistral) et peut contenir des approximations ou des
-        erreurs, en particulier sur des enregistrements longs ou de mauvaise qualite audio. Relisez-le avant
-        de le partager ou de vous appuyer dessus pour une decision importante.
-      </Question>
-
-      <Question q="Navi fonctionne-t-il hors connexion ?">
-        Non, une connexion internet est necessaire de bout en bout (captation en direct, appels aux
-        fournisseurs IA, sauvegarde en base).
-      </Question>
+      <LandingFooter />
     </div>
   );
 }

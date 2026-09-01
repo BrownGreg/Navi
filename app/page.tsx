@@ -94,28 +94,28 @@ export default async function LandingPage() {
       <section className="landing-section" style={{ background: "var(--surface-1)" }}>
         <h2 className="landing-section-title">Comment ça marche</h2>
         <div className="landing-steps">
-          <div>
+          <div className="landing-step-card">
             <div className="landing-step-num">1</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Consentement</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
               Vous confirmez la finalité et la durée de conservation avant chaque enregistrement.
             </p>
           </div>
-          <div>
+          <div className="landing-step-card">
             <div className="landing-step-num">2</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Captation</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
               Micro ou bot de réunion selon le mode choisi, sans accès caméra.
             </p>
           </div>
-          <div>
+          <div className="landing-step-card">
             <div className="landing-step-num">3</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Transcription et modération</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
               Transcription automatique attribuée par intervenant, avec une vérification de modération.
             </p>
           </div>
-          <div>
+          <div className="landing-step-card">
             <div className="landing-step-num">4</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Compte-rendu</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
@@ -143,42 +143,38 @@ export default async function LandingPage() {
 
       <section className="landing-section" style={{ background: "var(--surface-1)" }}>
         <h2 className="landing-section-title">Conforme RGPD, pas juste en apparence</h2>
-        <div className="landing-grid">
-          <div className="landing-feature-card">
-            <div className="landing-icon-badge">
-              <Icon>
-                <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-                <path d="M9 12l2 2 4-4" />
-              </Icon>
-            </div>
-            <h3>Consentement réellement vérifié</h3>
-            <p>Persisté en base et contrôlé côté serveur avant tout traitement — pas juste une case cochée dans l&apos;interface.</p>
+        <div className="landing-trust">
+          <div>
+            <p className="landing-trust-statement">
+              <strong>1 seul sous-traitant IA</strong>, basé dans l&apos;Union européenne.
+            </p>
+            <p className="landing-trust-sub">
+              Un choix délibéré pour limiter la surface de traitement de vos données : pas de cascade de
+              fournisseurs tiers, un pipeline unique, auditable de bout en bout.
+            </p>
           </div>
-          <div className="landing-feature-card">
-            <div className="landing-icon-badge">
-              <Icon>
-                <path d="M4 7h16" />
-                <path d="M9 7V4h6v3" />
-                <path d="M6 7l1 13h10l1-13" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-              </Icon>
-            </div>
-            <h3>Droit à l&apos;effacement effectif</h3>
-            <p>Organisateurs et participants peuvent demander l&apos;accès, la rectification ou la suppression de leurs données à tout moment.</p>
-          </div>
-          <div className="landing-feature-card">
-            <div className="landing-icon-badge">
-              <Icon>
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3.5 2" />
-              </Icon>
-            </div>
-            <h3>Conservation limitée et configurable</h3>
-            <p>Durée choisie par réunion, purge automatique à expiration, un seul sous-traitant IA basé dans l&apos;Union européenne.</p>
-          </div>
+          <ul className="landing-trust-list">
+            <li>
+              <div>
+                <strong>Consentement réellement vérifié</strong>
+                <p>Persisté en base et contrôlé côté serveur avant tout traitement — pas juste une case cochée dans l&apos;interface.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Droit à l&apos;effacement effectif</strong>
+                <p>Organisateurs et participants peuvent demander l&apos;accès, la rectification ou la suppression de leurs données à tout moment.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Conservation limitée et configurable</strong>
+                <p>Durée choisie par réunion, purge automatique à expiration.</p>
+              </div>
+            </li>
+          </ul>
         </div>
-        <p style={{ textAlign: "center", marginTop: 24 }}>
+        <p style={{ textAlign: "center", marginTop: 32 }}>
           <Link href="/faq" className="landing-btn">Voir la FAQ juridique complète</Link>
         </p>
       </section>
