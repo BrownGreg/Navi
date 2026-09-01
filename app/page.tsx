@@ -15,7 +15,10 @@ export default async function LandingPage() {
   return (
     <div className="landing">
       <nav className="landing-nav">
-        <Link href="/" className="landing-logo">Navi</Link>
+        <Link href="/" className="landing-logo">
+          <img src="/icon.png" alt="" width={24} height={24} className="landing-logo-mark" />
+          Navi
+        </Link>
         <div className="landing-nav-links">
           <Link href="/faq">FAQ</Link>
           <Link href="/aide">Aide</Link>
