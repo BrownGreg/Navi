@@ -31,6 +31,7 @@ export default async function LandingPage() {
       </nav>
 
       <section className="landing-hero">
+        <span className="landing-eyebrow">Conforme RGPD · IA hebergee en UE</span>
         <h1>Vos reunions, transcrites et resumees automatiquement</h1>
         <p className="lead">
           Navi capte la parole en reunion — au micro pour le presentiel, via un bot qui rejoint votre
