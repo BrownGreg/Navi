@@ -29,5 +29,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
+# Sans ceci, le serveur standalone Next.js peut n'ecouter qu'en loopback :
+# le process demarre, Render detecte le port ouvert en interne, mais aucune
+# requete externe (edge proxy) ne l'atteint jamais - symptome exact d'un 502
+# permanent malgre un service qui se declare "live". Piege documente par
+# l'exemple Docker officiel de Next.js.
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
