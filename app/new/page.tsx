@@ -16,7 +16,7 @@ export default function NewMeetingPage() {
   return (
     <div className="page">
       <div className="top-actions">
-        <Link href="/">← Retour</Link>
+        <Link href="/dashboard">← Retour</Link>
       </div>
 
       <h1>Nouvelle reunion</h1>
