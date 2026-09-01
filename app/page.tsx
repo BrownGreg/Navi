@@ -30,7 +30,6 @@ export default async function HomePage() {
         <div style={{ display: "flex", gap: 12 }}>
           <Link href="/settings/calendar" style={{ fontSize: 12 }}>Calendriers</Link>
           <Link href="/settings/rgpd" style={{ fontSize: 12 }}>Demandes RGPD</Link>
-          <Link href="/participant/consent" style={{ fontSize: 12 }}>Vue participant</Link>
           <Link href="/aide" style={{ fontSize: 12 }}>Aide</Link>
         </div>
       </div>
