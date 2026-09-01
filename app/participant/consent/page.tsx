@@ -56,7 +56,7 @@ function ParticipantConsentInner() {
       <div className="hatch" style={{ height: 70, borderRadius: "var(--radius)", marginBottom: 12 }} />
 
       <div className="card">
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Kim a active l&apos;enregistrement</div>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Sam a active l&apos;enregistrement</div>
         <div className="secondary-text">
           Cette reunion est transcrite par Navi. Votre voix et vos propos seront traites pour generer un compte-rendu.
         </div>
