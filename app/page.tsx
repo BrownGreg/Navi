@@ -1,12 +1,12 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
+import { isLoggedIn, LandingNav, LandingFooter } from "./landing-shell";
 
-// Verifie juste la presence du cookie de session (pas sa validite - inutile
-// pour une simple adaptation du CTA, /dashboard revalide de toute facon et
-// renvoie vers /sign-in si le cookie est perime).
-async function isLoggedIn(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return Boolean(cookieStore.get("navi_session")?.value);
+function Icon({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
 }
 
 export default async function LandingPage() {
@@ -14,24 +14,7 @@ export default async function LandingPage() {
 
   return (
     <div className="landing">
-      <nav className="landing-nav">
-        <Link href="/" className="landing-logo">
-          <img src="/icon.png" alt="" width={24} height={24} className="landing-logo-mark" />
-          Navi
-        </Link>
-        <div className="landing-nav-links">
-          <Link href="/faq">FAQ</Link>
-          <Link href="/aide">Aide</Link>
-          {loggedIn ? (
-            <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller a mon espace</Link>
-          ) : (
-            <>
-              <Link href="/sign-in">Connexion</Link>
-              <Link href="/sign-up" className="landing-btn landing-btn-primary">Creer un compte</Link>
-            </>
-          )}
-        </div>
-      </nav>
+      <LandingNav loggedIn={loggedIn} />
 
       <section className="landing-hero">
         <span className="landing-eyebrow">Conforme RGPD · IA hebergee en UE</span>
@@ -45,6 +28,28 @@ export default async function LandingPage() {
           <Link href="/sign-up" className="landing-btn landing-btn-primary">Creer un compte gratuitement</Link>
           <Link href="/sign-in" className="landing-btn">Se connecter</Link>
         </div>
+
+        <div className="landing-hero-visual" aria-hidden="true">
+          <div className="frame landing-preview">
+            <div className="row" style={{ marginBottom: 4 }}>
+              <span className="pill rec">● En cours — 12:34</span>
+              <span className="pill accent">Visio · Google Meet</span>
+            </div>
+            <div className="landing-preview-waveform">
+              {[14, 22, 12, 28, 18, 30, 16, 24, 12, 26, 15, 20].map((h, i) => (
+                <span key={i} style={{ height: h }} />
+              ))}
+            </div>
+            <div className="landing-preview-transcript">
+              <p><strong>Sarah</strong> — On valide le budget Q3 a 40k€ pour la campagne.</p>
+              <p><strong>Marc</strong> — Ok, je prepare le brief d&apos;ici vendredi.</p>
+            </div>
+            <div className="landing-preview-actions">
+              <span className="pill">✓ Decision</span>
+              <span className="secondary-text">Budget Q3 valide a 40k€</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="landing-section">
@@ -55,6 +60,14 @@ export default async function LandingPage() {
         </p>
         <div className="landing-split">
           <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <rect x="9" y="3" width="6" height="10" rx="3" />
+                <path d="M5 11a7 7 0 0 0 14 0" />
+                <path d="M12 18v3" />
+                <path d="M9 21h6" />
+              </Icon>
+            </div>
             <h3>Dictaphone — reunion en presentiel</h3>
             <p>
               Navi capte le micro de votre appareil pendant la reunion. Aucune camera, aucun logiciel a
@@ -62,6 +75,12 @@ export default async function LandingPage() {
             </p>
           </div>
           <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <rect x="2.5" y="6" width="13" height="12" rx="2.5" />
+                <path d="M15.5 10.5 21 7v10l-5.5-3.5" />
+              </Icon>
+            </div>
             <h3>Visio — reunion a distance</h3>
             <p>
               Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est detectee
@@ -107,6 +126,14 @@ export default async function LandingPage() {
       </section>
 
       <section className="landing-section">
+        <div className="landing-icon-badge centered">
+          <Icon>
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18" />
+            <path d="M8 3v4" />
+            <path d="M16 3v4" />
+          </Icon>
+        </div>
         <h2 className="landing-section-title">Ne manquez plus une reunion</h2>
         <p className="landing-section-subtitle">
           Connectez Google Calendar ou Microsoft Outlook : Navi verifie votre agenda toutes les 5 minutes
@@ -118,14 +145,35 @@ export default async function LandingPage() {
         <h2 className="landing-section-title">Conforme RGPD, pas juste en apparence</h2>
         <div className="landing-grid">
           <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+                <path d="M9 12l2 2 4-4" />
+              </Icon>
+            </div>
             <h3>Consentement reellement verifie</h3>
             <p>Persiste en base et controle cote serveur avant tout traitement — pas juste une case cochee dans l&apos;interface.</p>
           </div>
           <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <path d="M4 7h16" />
+                <path d="M9 7V4h6v3" />
+                <path d="M6 7l1 13h10l1-13" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </Icon>
+            </div>
             <h3>Droit a l&apos;effacement effectif</h3>
             <p>Organisateurs et participants peuvent demander l&apos;acces, la rectification ou la suppression de leurs donnees a tout moment.</p>
           </div>
           <div className="landing-feature-card">
+            <div className="landing-icon-badge">
+              <Icon>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3.5 2" />
+              </Icon>
+            </div>
             <h3>Conservation limitee et configurable</h3>
             <p>Duree choisie par reunion, purge automatique a expiration, un seul sous-traitant IA base dans l&apos;Union europeenne.</p>
           </div>
@@ -165,12 +213,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="landing-footer">
-        <Link href="/faq">FAQ</Link>
-        <Link href="/aide">Aide</Link>
-        <Link href="/sign-in">Connexion</Link>
-        <Link href="/sign-up">Creer un compte</Link>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
