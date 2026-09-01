@@ -21,11 +21,11 @@ export function LandingNav({ loggedIn }: { loggedIn: boolean }) {
         <Link href="/faq">FAQ</Link>
         <Link href="/aide">Aide</Link>
         {loggedIn ? (
-          <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller a mon espace</Link>
+          <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller à mon espace</Link>
         ) : (
           <>
             <Link href="/sign-in">Connexion</Link>
-            <Link href="/sign-up" className="landing-btn landing-btn-primary">Creer un compte</Link>
+            <Link href="/sign-up" className="landing-btn landing-btn-primary">Créer un compte</Link>
           </>
         )}
       </div>
@@ -40,7 +40,7 @@ export function LandingFooter() {
       <Link href="/faq">FAQ</Link>
       <Link href="/aide">Aide</Link>
       <Link href="/sign-in">Connexion</Link>
-      <Link href="/sign-up">Creer un compte</Link>
+      <Link href="/sign-up">Créer un compte</Link>
     </footer>
   );
 }

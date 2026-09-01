@@ -17,15 +17,15 @@ export default async function LandingPage() {
       <LandingNav loggedIn={loggedIn} />
 
       <section className="landing-hero">
-        <span className="landing-eyebrow">Conforme RGPD · IA hebergee en UE</span>
-        <h1>Vos reunions, transcrites et resumees automatiquement</h1>
+        <span className="landing-eyebrow">Conforme RGPD · IA hébergée en UE</span>
+        <h1>Vos réunions, transcrites et résumées automatiquement</h1>
         <p className="lead">
-          Navi capte la parole en reunion — au micro pour le presentiel, via un bot qui rejoint votre
-          visio a distance — puis transcrit, modere et genere un compte-rendu structure avec decisions et
-          actions. Meme pipeline derriere les deux modes, zero saisie manuelle.
+          Navi capte la parole en réunion — au micro pour le présentiel, via un bot qui rejoint votre
+          visio à distance — puis transcrit, modère et génère un compte-rendu structuré avec décisions et
+          actions. Même pipeline derrière les deux modes, zéro saisie manuelle.
         </p>
         <div className="landing-cta-row">
-          <Link href="/sign-up" className="landing-btn landing-btn-primary">Creer un compte gratuitement</Link>
+          <Link href="/sign-up" className="landing-btn landing-btn-primary">Créer un compte gratuitement</Link>
           <Link href="/sign-in" className="landing-btn">Se connecter</Link>
         </div>
 
@@ -41,22 +41,22 @@ export default async function LandingPage() {
               ))}
             </div>
             <div className="landing-preview-transcript">
-              <p><strong>Sarah</strong> — On valide le budget Q3 a 40k€ pour la campagne.</p>
-              <p><strong>Marc</strong> — Ok, je prepare le brief d&apos;ici vendredi.</p>
+              <p><strong>Sarah</strong> — On valide le budget Q3 à 40k€ pour la campagne.</p>
+              <p><strong>Marc</strong> — Ok, je prépare le brief d&apos;ici vendredi.</p>
             </div>
             <div className="landing-preview-actions">
-              <span className="pill">✓ Decision</span>
-              <span className="secondary-text">Budget Q3 valide a 40k€</span>
+              <span className="pill">✓ Décision</span>
+              <span className="secondary-text">Budget Q3 validé à 40k€</span>
             </div>
           </div>
         </div>
       </section>
 
       <section className="landing-section">
-        <h2 className="landing-section-title">Deux facons de capter, un seul resultat</h2>
+        <h2 className="landing-section-title">Deux façons de capter, un seul résultat</h2>
         <p className="landing-section-subtitle">
-          C&apos;est la particularite de Navi : deux situations d&apos;usage opposees, la meme chaine de
-          traitement derriere.
+          C&apos;est la particularité de Navi : deux situations d&apos;usage opposées, la même chaîne de
+          traitement derrière.
         </p>
         <div className="landing-split">
           <div className="landing-feature-card">
@@ -68,10 +68,10 @@ export default async function LandingPage() {
                 <path d="M9 21h6" />
               </Icon>
             </div>
-            <h3>Dictaphone — reunion en presentiel</h3>
+            <h3>Dictaphone — réunion en présentiel</h3>
             <p>
-              Navi capte le micro de votre appareil pendant la reunion. Aucune camera, aucun logiciel a
-              installer : vous demarrez, vous parlez, Navi transcrit.
+              Navi capte le micro de votre appareil pendant la réunion. Aucune caméra, aucun logiciel à
+              installer : vous démarrez, vous parlez, Navi transcrit.
             </p>
           </div>
           <div className="landing-feature-card">
@@ -81,10 +81,10 @@ export default async function LandingPage() {
                 <path d="M15.5 10.5 21 7v10l-5.5-3.5" />
               </Icon>
             </div>
-            <h3>Visio — reunion a distance</h3>
+            <h3>Visio — réunion à distance</h3>
             <p>
-              Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est detectee
-              automatiquement et un bot nomme &laquo;&nbsp;Navi Notetaker&nbsp;&raquo; rejoint la reunion
+              Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est détectée
+              automatiquement et un bot nommé &laquo;&nbsp;Navi Notetaker&nbsp;&raquo; rejoint la réunion
               pour capter l&apos;audio et transcrire en direct.
             </p>
           </div>
@@ -92,34 +92,34 @@ export default async function LandingPage() {
       </section>
 
       <section className="landing-section" style={{ background: "var(--surface-1)" }}>
-        <h2 className="landing-section-title">Comment ca marche</h2>
+        <h2 className="landing-section-title">Comment ça marche</h2>
         <div className="landing-steps">
           <div>
             <div className="landing-step-num">1</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Consentement</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
-              Vous confirmez la finalite et la duree de conservation avant chaque enregistrement.
+              Vous confirmez la finalité et la durée de conservation avant chaque enregistrement.
             </p>
           </div>
           <div>
             <div className="landing-step-num">2</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Captation</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
-              Micro ou bot de reunion selon le mode choisi, sans acces camera.
+              Micro ou bot de réunion selon le mode choisi, sans accès caméra.
             </p>
           </div>
           <div>
             <div className="landing-step-num">3</div>
-            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Transcription et moderation</h3>
+            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Transcription et modération</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
-              Transcription automatique attribuee par intervenant, avec une verification de moderation.
+              Transcription automatique attribuée par intervenant, avec une vérification de modération.
             </p>
           </div>
           <div>
             <div className="landing-step-num">4</div>
             <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Compte-rendu</h3>
             <p className="secondary-text" style={{ fontSize: 13 }}>
-              Resume, decisions et actions structures, exportables en PDF ou partageables par lien.
+              Résumé, décisions et actions structurées, exportables en PDF ou partageables par lien.
             </p>
           </div>
         </div>
@@ -134,10 +134,10 @@ export default async function LandingPage() {
             <path d="M16 3v4" />
           </Icon>
         </div>
-        <h2 className="landing-section-title">Ne manquez plus une reunion</h2>
+        <h2 className="landing-section-title">Ne manquez plus une réunion</h2>
         <p className="landing-section-subtitle">
-          Connectez Google Calendar ou Microsoft Outlook : Navi verifie votre agenda toutes les 5 minutes
-          et envoie automatiquement le bot a l&apos;heure de la reunion, sans action de votre part.
+          Connectez Google Calendar ou Microsoft Outlook : Navi vérifie votre agenda toutes les 5 minutes
+          et envoie automatiquement le bot à l&apos;heure de la réunion, sans action de votre part.
         </p>
       </section>
 
@@ -151,8 +151,8 @@ export default async function LandingPage() {
                 <path d="M9 12l2 2 4-4" />
               </Icon>
             </div>
-            <h3>Consentement reellement verifie</h3>
-            <p>Persiste en base et controle cote serveur avant tout traitement — pas juste une case cochee dans l&apos;interface.</p>
+            <h3>Consentement réellement vérifié</h3>
+            <p>Persisté en base et contrôlé côté serveur avant tout traitement — pas juste une case cochée dans l&apos;interface.</p>
           </div>
           <div className="landing-feature-card">
             <div className="landing-icon-badge">
@@ -164,8 +164,8 @@ export default async function LandingPage() {
                 <path d="M14 11v6" />
               </Icon>
             </div>
-            <h3>Droit a l&apos;effacement effectif</h3>
-            <p>Organisateurs et participants peuvent demander l&apos;acces, la rectification ou la suppression de leurs donnees a tout moment.</p>
+            <h3>Droit à l&apos;effacement effectif</h3>
+            <p>Organisateurs et participants peuvent demander l&apos;accès, la rectification ou la suppression de leurs données à tout moment.</p>
           </div>
           <div className="landing-feature-card">
             <div className="landing-icon-badge">
@@ -174,28 +174,28 @@ export default async function LandingPage() {
                 <path d="M12 7v5l3.5 2" />
               </Icon>
             </div>
-            <h3>Conservation limitee et configurable</h3>
-            <p>Duree choisie par reunion, purge automatique a expiration, un seul sous-traitant IA base dans l&apos;Union europeenne.</p>
+            <h3>Conservation limitée et configurable</h3>
+            <p>Durée choisie par réunion, purge automatique à expiration, un seul sous-traitant IA basé dans l&apos;Union européenne.</p>
           </div>
         </div>
         <p style={{ textAlign: "center", marginTop: 24 }}>
-          <Link href="/faq" className="landing-btn">Voir la FAQ juridique complete</Link>
+          <Link href="/faq" className="landing-btn">Voir la FAQ juridique complète</Link>
         </p>
       </section>
 
       <section className="landing-section landing-section-narrow">
-        <h2 className="landing-section-title">Questions frequentes</h2>
+        <h2 className="landing-section-title">Questions fréquentes</h2>
         <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-          <div style={{ fontWeight: 500, marginBottom: 6 }}>Navi a-t-il acces a ma camera ?</div>
-          <div className="secondary-text">Non, jamais, ni en visio ni en dictaphone : seul l&apos;audio est traite.</div>
+          <div style={{ fontWeight: 500, marginBottom: 6 }}>Navi a-t-il accès à ma caméra ?</div>
+          <div className="secondary-text">Non, jamais, ni en visio ni en dictaphone : seul l&apos;audio est traité.</div>
         </div>
         <div className="card" style={{ marginBottom: 10, padding: 14 }}>
           <div style={{ fontWeight: 500, marginBottom: 6 }}>Que se passe-t-il si un fournisseur IA est indisponible ?</div>
-          <div className="secondary-text">Navi ne plante jamais pour cette raison : bascule automatique en mode simule, signalee dans l&apos;interface.</div>
+          <div className="secondary-text">Navi ne plante jamais pour cette raison : bascule automatique en mode simulé, signalée dans l&apos;interface.</div>
         </div>
         <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-          <div style={{ fontWeight: 500, marginBottom: 6 }}>Puis-je refuser d&apos;etre enregistre en tant que participant ?</div>
-          <div className="secondary-text">Oui, une vraie demande RGPD est alors enregistree aupres de l&apos;organisateur.</div>
+          <div style={{ fontWeight: 500, marginBottom: 6 }}>Puis-je refuser d&apos;être enregistré en tant que participant ?</div>
+          <div className="secondary-text">Oui, une vraie demande RGPD est alors enregistrée auprès de l&apos;organisateur.</div>
         </div>
         <p style={{ textAlign: "center", marginTop: 16 }}>
           <Link href="/faq">Voir toute la FAQ →</Link>
@@ -203,12 +203,12 @@ export default async function LandingPage() {
       </section>
 
       <section className="landing-hero" style={{ paddingTop: 24 }}>
-        <h1 style={{ fontSize: 28 }}>{loggedIn ? "Retrouvez vos reunions" : "Pret a essayer Navi ?"}</h1>
+        <h1 style={{ fontSize: 28 }}>{loggedIn ? "Retrouvez vos réunions" : "Prêt à essayer Navi ?"}</h1>
         <div className="landing-cta-row">
           {loggedIn ? (
-            <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller a mon espace</Link>
+            <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller à mon espace</Link>
           ) : (
-            <Link href="/sign-up" className="landing-btn landing-btn-primary">Creer un compte gratuitement</Link>
+            <Link href="/sign-up" className="landing-btn landing-btn-primary">Créer un compte gratuitement</Link>
           )}
         </div>
       </section>
