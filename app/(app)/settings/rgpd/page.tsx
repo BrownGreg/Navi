@@ -25,7 +25,7 @@ export default async function RgpdRequestsPage() {
   const requests: RgpdRequestOut[] = res.ok ? await res.json() : [];
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/dashboard">← Retour</Link>
       </div>

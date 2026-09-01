@@ -21,7 +21,7 @@ export default async function SharedCRPage({ params }: { params: Promise<{ share
   const meeting: Meeting = await res.json();
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <p className="muted" style={{ marginBottom: 10 }}>Lien recu par email — sans compte requis</p>
 
       <div className="row" style={{ marginBottom: 8 }}>

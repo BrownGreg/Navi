@@ -52,7 +52,7 @@ function RgpdRequestInner() {
 
   if (sent) {
     return (
-      <div className="page">
+      <div className="page page-narrow">
         <h1>Demande envoyee</h1>
         <p className="secondary-text">Vous recevrez une reponse a {email} sous 30 jours (art. 12 RGPD).</p>
         <Link href="/"><button className="btn">Retour a l&apos;accueil</button></Link>
@@ -61,7 +61,7 @@ function RgpdRequestInner() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <h1>Exercer mes droits RGPD</h1>
       <p className="secondary-text" style={{ marginBottom: 12 }}>Traite sous 30 jours (art. 12 RGPD)</p>
 
@@ -85,7 +85,7 @@ function RgpdRequestInner() {
       ))}
 
       <button
-        className="btn btn-primary"
+        className="btn btn-primary btn-block"
         disabled={!email || selectedTypes.size === 0 || sending}
         onClick={submit}
       >
@@ -97,7 +97,7 @@ function RgpdRequestInner() {
 
 export default function RgpdRequestPage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
       <RgpdRequestInner />
     </Suspense>
   );

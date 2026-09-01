@@ -36,7 +36,7 @@ export default async function CalendarSettingsPage({
   const upcoming: UpcomingCalendarEvent[] = upcomingRes.ok ? await upcomingRes.json() : [];
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/dashboard">← Retour</Link>
       </div>

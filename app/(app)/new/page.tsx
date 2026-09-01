@@ -1,0 +1,61 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function NewMeetingPage() {
+  const [mode, setMode] = useState<"visio" | "dictaphone" | null>(null);
+  const router = useRouter();
+
+  function continueTo() {
+    if (!mode) return;
+    router.push(mode === "visio" ? "/new/visio/consent" : "/new/dictaphone/consent");
+  }
+
+  function cardStyle(active: boolean): React.CSSProperties {
+    return {
+      textAlign: "left",
+      display: "flex",
+      flexDirection: "column",
+      gap: 6,
+      padding: 14,
+      borderRadius: "var(--radius-md)",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      background: "var(--color-neutral-900)",
+      border: `1px solid ${active ? "var(--accent)" : "transparent"}`,
+      color: "inherit",
+    };
+  }
+
+  return (
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+      <div style={{ width: 520, background: "var(--color-bg)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-lg)", padding: 30, display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontFamily: "var(--font-heading)", fontSize: 21, letterSpacing: "-0.015em" }}>Nouvelle reunion</span>
+          <span style={{ fontSize: 13, color: "var(--color-neutral-400)" }}>Comment veux-tu capturer ?</span>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <button onClick={() => setMode("visio")} style={cardStyle(mode === "visio")}>
+            <span style={{ fontSize: 14, color: "var(--color-neutral-100)" }}>Visio</span>
+            <span style={{ fontSize: 12, lineHeight: 1.5, color: "var(--color-neutral-400)" }}>
+              Navi rejoint Meet, Teams ou Zoom et transcrit par locuteur.
+            </span>
+          </button>
+          <button onClick={() => setMode("dictaphone")} style={cardStyle(mode === "dictaphone")}>
+            <span style={{ fontSize: 14, color: "var(--color-neutral-100)" }}>Dictaphone</span>
+            <span style={{ fontSize: 12, lineHeight: 1.5, color: "var(--color-neutral-400)" }}>
+              Le micro de cet ordinateur, pour une reunion en salle.
+            </span>
+          </button>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 9 }}>
+          <button onClick={() => router.push("/dashboard")} className="btn btn-secondary">Annuler</button>
+          <button onClick={continueTo} className="btn btn-primary" disabled={!mode}>Continuer</button>
+        </div>
+      </div>
+    </div>
+  );
+}

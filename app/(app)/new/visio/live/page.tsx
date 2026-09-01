@@ -60,43 +60,40 @@ function VisioLiveInner() {
   const ss = String(seconds % 60).padStart(2, "0");
 
   return (
-    <div className="page">
-      <h1>Reunion en cours</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>Mode visio — bot Vexa connecte</p>
-
-      <div className="row" style={{ marginBottom: 10 }}>
-        <span className="pill rec">● REC {mm}:{ss}</span>
-        {source ? <span className="pill">{source === "real" ? "API reelle" : "mode demo"}</span> : null}
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 34px", borderBottom: "1px solid var(--color-neutral-900)" }}>
+        <span className="pulse" style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", boxShadow: "0 0 12px var(--accent)" }} />
+        <span style={{ fontFamily: "var(--font-heading)", fontSize: 17 }}>Reunion en cours</span>
+        <span style={{ fontSize: 13, color: "var(--color-neutral-400)" }}>{mm}:{ss}</span>
+        {source ? <span className="tag tag-outline" style={{ marginLeft: 8 }}>{source === "real" ? "API reelle" : "mode demo"}</span> : null}
+        <button onClick={endMeeting} disabled={ending} className="btn btn-primary" style={{ marginLeft: "auto", fontSize: 12 }}>
+          {ending ? "Fin de la reunion…" : "Terminer"}
+        </button>
       </div>
 
-      <div className="hatch" style={{ height: 70, borderRadius: "var(--radius)", marginBottom: 6 }} />
-      <p className="muted" style={{ textAlign: "center", marginBottom: 14 }}>
-        Grille video non fonctionnelle — Navi n&apos;accede jamais a la camera, seul l&apos;audio est capte par le bot
-      </p>
-
-      <div className="label">Transcription en direct</div>
-      <div style={{ maxHeight: 260, overflowY: "auto", marginBottom: 14 }}>
+      <div style={{ flex: 1, padding: "22px 34px", display: "flex", flexDirection: "column", gap: 16, overflow: "auto", maxWidth: 760 }}>
+        <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Transcription en direct</span>
         {segments.length === 0 ? (
-          <div className="card muted">En attente des premiers segments…</div>
+          <p className="secondary-text">En attente des premiers segments…</p>
         ) : (
           segments.map((s, i) => (
-            <div key={i} className="card">
-              <span style={{ fontWeight: 500 }}>{s.speaker}</span> — {s.text}
+            <div key={i} style={{ display: "flex", gap: 14 }}>
+              <span style={{ width: 64, fontSize: 12, color: "var(--color-neutral-500)", flexShrink: 0 }}>{s.speaker}</span>
+              <span style={{ flex: 1, fontSize: 14, lineHeight: 1.7, color: "var(--color-neutral-200)" }}>{s.text}</span>
             </div>
           ))
         )}
+        <p className="secondary-text" style={{ marginTop: 8 }}>
+          Aucune camera n&apos;est utilisee : seul l&apos;audio du bot est capte.
+        </p>
       </div>
-
-      <button className="btn btn-primary" disabled={ending} onClick={endMeeting}>
-        {ending ? "Fin de la reunion…" : "Terminer la reunion"}
-      </button>
     </div>
   );
 }
 
 export default function VisioLivePage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div style={{ padding: 34 }}>Chargement…</div>}>
       <VisioLiveInner />
     </Suspense>
   );
