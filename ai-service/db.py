@@ -51,3 +51,11 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _add_missing_columns()
+
+    from seed import seed_demo_meeting
+
+    db = SessionLocal()
+    try:
+        seed_demo_meeting(db)
+    finally:
+        db.close()
