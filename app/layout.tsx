@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Navi — demo",
-  description: "Demo fonctionnelle du parcours Navi (mode dictaphone + mockups visio/participant)"
+  title: "Navi",
+  description: "Assistant de reunion intelligent : captation, transcription et compte-rendu automatique"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
