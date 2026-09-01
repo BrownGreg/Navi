@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function AidePage() {
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/">← Retour</Link>
       </div>

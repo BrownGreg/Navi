@@ -33,7 +33,7 @@ function ProcessingInner() {
   }, [meetingId]);
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <h1>Traitement en cours</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>Cela prend quelques secondes</p>
 
@@ -44,7 +44,7 @@ function ProcessingInner() {
         {source ? <span className="pill" style={{ marginLeft: 8 }}>{source === "real" ? "API reelle" : "mode demo"}</span> : null}
       </div>
 
-      <button className="btn btn-primary" disabled={!crDone} onClick={() => router.push(`/reunion/${meetingId}`)}>
+      <button className="btn btn-primary btn-block" disabled={!crDone} onClick={() => router.push(`/reunion/${meetingId}`)}>
         Voir le compte-rendu
       </button>
     </div>
@@ -53,7 +53,7 @@ function ProcessingInner() {
 
 export default function ProcessingPage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
       <ProcessingInner />
     </Suspense>
   );

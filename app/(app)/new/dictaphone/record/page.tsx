@@ -126,36 +126,33 @@ function RecordInner() {
   const ss = String(seconds % 60).padStart(2, "0");
 
   return (
-    <div className="page">
-      <h1>Reunion en cours</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>Mode dictaphone</p>
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+      <div style={{ width: 460, background: "var(--color-surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 30, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+        {error ? (
+          <p style={{ color: "var(--danger)", fontSize: 13, textAlign: "center" }}>{error}</p>
+        ) : (
+          <>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>Enregistrement · {mm}:{ss}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, height: 52 }}>
+              {[14, 26, 42, 20, 50, 16, 34, 24, 44, 12, 30].map((h, i) => (
+                <span key={i} style={{ width: 3, height: h, borderRadius: 2, background: i >= 2 && i <= 4 ? "var(--accent)" : "var(--color-neutral-700)" }} />
+              ))}
+            </div>
+            <span className="muted">{Math.round(sizeKb)} Ko captes</span>
+          </>
+        )}
 
-      {error ? (
-        <div className="card" style={{ color: "var(--danger)" }}>{error}</div>
-      ) : (
-        <>
-          <div className="row" style={{ marginBottom: 10 }}>
-            <span className="pill rec">● REC {mm}:{ss}</span>
-            <span className="muted">{Math.round(sizeKb)} Ko</span>
-          </div>
-          <div className="hatch" style={{ height: 80, borderRadius: "var(--radius)", marginBottom: 10 }} />
-          <div className="row">
-            <span className="secondary-text">Reseau</span>
-            <span className="pill">Buffer local actif</span>
-          </div>
-        </>
-      )}
-
-      <button className="btn btn-primary" disabled={!recording || finishing} onClick={stopAndProcess}>
-        {finishing ? "Envoi et transcription…" : "Terminer la reunion"}
-      </button>
+        <button className="btn btn-primary" disabled={!recording || finishing} onClick={stopAndProcess}>
+          {finishing ? "Envoi et transcription…" : "Terminer la reunion"}
+        </button>
+      </div>
     </div>
   );
 }
 
 export default function RecordPage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div style={{ padding: 34 }}>Chargement…</div>}>
       <RecordInner />
     </Suspense>
   );

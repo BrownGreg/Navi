@@ -35,7 +35,7 @@ function SignInInner() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <h1>Connexion</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>Accedez a vos reunions Navi</p>
 
@@ -61,7 +61,7 @@ function SignInInner() {
         <p className="secondary-text" style={{ color: "var(--danger)", marginBottom: 10 }}>{error}</p>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!email || !password || loading} onClick={submit}>
+      <button className="btn btn-primary btn-block" disabled={!email || !password || loading} onClick={submit}>
         {loading ? "Connexion…" : "Se connecter"}
       </button>
 
@@ -77,7 +77,7 @@ function SignInInner() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
       <SignInInner />
     </Suspense>
   );

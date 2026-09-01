@@ -56,7 +56,7 @@ export default function DictaphoneConsentPage() {
   const canStart = consentOral && consentTranscript && title.trim().length > 0;
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/new">← Retour</Link>
       </div>
@@ -90,7 +90,7 @@ export default function DictaphoneConsentPage() {
         <div className="card" style={{ color: "var(--danger)", marginTop: 12 }}>{error}</div>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!canStart || starting} onClick={start}>
+      <button className="btn btn-primary btn-block" disabled={!canStart || starting} onClick={start}>
         {starting ? "Preparation…" : "Demarrer l'enregistrement"}
       </button>
 

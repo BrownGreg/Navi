@@ -47,7 +47,7 @@ function ParticipantConsentInner() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/">← Retour</Link>
       </div>
@@ -105,7 +105,7 @@ function ParticipantConsentInner() {
 
 export default function ParticipantConsentPage() {
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
       <ParticipantConsentInner />
     </Suspense>
   );

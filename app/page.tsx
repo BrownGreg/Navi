@@ -30,24 +30,49 @@ export default async function LandingPage() {
         </div>
 
         <div className="landing-hero-visual" aria-hidden="true">
-          <div className="frame landing-preview">
-            <div className="row" style={{ marginBottom: 4 }}>
-              <span className="pill rec">● En cours — 12:34</span>
-              <span className="pill accent">Visio · Google Meet</span>
+          <div className="landing-browser">
+            <div className="landing-browser-bar">
+              <div className="landing-browser-dots"><span /><span /><span /></div>
+              <span className="landing-browser-url">navi.app</span>
             </div>
-            <div className="landing-preview-waveform">
-              {[14, 22, 12, 28, 18, 30, 16, 24, 12, 26, 15, 20].map((h, i) => (
-                <span key={i} style={{ height: h }} />
-              ))}
+            <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="row" style={{ alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontFamily: "var(--font-heading)", fontSize: 19 }}>Point produit — sprint 14</div>
+                  <div className="secondary-text" style={{ marginTop: 4 }}>2 septembre · 32 min · Google Meet</div>
+                </div>
+                <span className="tag tag-accent">Resume</span>
+              </div>
+              <div className="landing-preview-transcript" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+                <p><strong>Camille</strong> — On garde le perimetre, le consentement passe devant l&apos;export CSV.</p>
+                <p><strong>Yanis</strong> — D&apos;accord, je chiffre l&apos;export cette semaine.</p>
+              </div>
+              <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: "12px 14px", display: "flex", gap: 12 }}>
+                <span style={{ width: 2, borderRadius: 2, background: "var(--accent)" }} />
+                <span style={{ fontSize: 13, lineHeight: 1.6, color: "var(--color-neutral-200)" }}>Le consentement passe en deux etapes, avant l&apos;export CSV reporte au sprint 15.</span>
+              </div>
             </div>
-            <div className="landing-preview-transcript">
-              <p><strong>Sarah</strong> — On valide le budget Q3 à 40k€ pour la campagne.</p>
-              <p><strong>Marc</strong> — Ok, je prépare le brief d&apos;ici vendredi.</p>
-            </div>
-            <div className="landing-preview-actions">
-              <span className="pill">✓ Décision</span>
-              <span className="secondary-text">Budget Q3 validé à 40k€</span>
-            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: "var(--color-section)", backgroundImage: "radial-gradient(70% 140% at 15% 0%, var(--color-section-glow), transparent 70%)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 24 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>Automatique</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>compte-rendu genere des la fin de la reunion</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>100 %</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>du traitement IA en Europe</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>30 j</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>de conservation par defaut, puis purge</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>0</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>acces a la camera, jamais</span>
           </div>
         </div>
       </section>

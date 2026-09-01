@@ -159,7 +159,7 @@ export default function VisioConsentPage() {
     consentSharing;
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="top-actions">
         <Link href="/new">← Retour</Link>
       </div>
@@ -252,7 +252,7 @@ export default function VisioConsentPage() {
           vous-meme dans l&apos;invitation avant la reunion :
         </div>
         <div className="muted" style={{ marginBottom: 8, fontStyle: "italic" }}>{inviteText()}</div>
-        <button type="button" className="btn" onClick={copyInviteText}>
+        <button type="button" className="btn btn-block" onClick={copyInviteText}>
           {copied ? "Copie ✓" : "Copier le texte"}
         </button>
       </div>
@@ -261,7 +261,7 @@ export default function VisioConsentPage() {
         <div className="card" style={{ color: "var(--danger)", marginTop: 12 }}>{error}</div>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!canJoin || starting} onClick={join}>
+      <button className="btn btn-primary btn-block" disabled={!canJoin || starting} onClick={join}>
         {starting ? "Connexion du bot…" : "Rejoindre la reunion"}
       </button>
 

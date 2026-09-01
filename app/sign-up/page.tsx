@@ -33,7 +33,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <h1>Creer un compte</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>Requis pour enregistrer et retrouver vos reunions</p>
 
@@ -59,7 +59,7 @@ export default function SignUpPage() {
         <p className="secondary-text" style={{ color: "var(--danger)", marginBottom: 10 }}>{error}</p>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!email || password.length < 8 || loading} onClick={submit}>
+      <button className="btn btn-primary btn-block" disabled={!email || password.length < 8 || loading} onClick={submit}>
         {loading ? "Creation…" : "Creer mon compte"}
       </button>
 
