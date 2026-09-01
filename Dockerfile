@@ -12,6 +12,15 @@ FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# next.config.js lit AI_SERVICE_URL au niveau module : sa valeur est figee
+# dans le build (rewrites() serialise dans routes-manifest.json), pas relue
+# au runtime du conteneur. Render traduit automatiquement les env vars du
+# dashboard en build ARGs Docker, mais seulement si le Dockerfile les
+# declare explicitement - sans ca, le build tournait toujours avec le
+# defaut de secours (http://localhost:8000), quelle que soit la valeur
+# configuree sur le service au runtime.
+ARG AI_SERVICE_URL
+ENV AI_SERVICE_URL=$AI_SERVICE_URL
 RUN npm run build
 
 # 3) Image finale, minimale
