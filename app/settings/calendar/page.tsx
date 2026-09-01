@@ -10,6 +10,13 @@ type CalendarConnection = {
   connectedAt?: string | null;
 };
 
+type UpcomingCalendarEvent = {
+  title: string;
+  provider: "google" | "microsoft";
+  startTime: string;
+  platform?: "google_meet" | "teams" | "zoom" | null;
+};
+
 const PROVIDER_LABELS: Record<CalendarConnection["provider"], string> = {
   google: "Google Calendar",
   microsoft: "Microsoft Outlook",
@@ -21,8 +28,12 @@ export default async function CalendarSettingsPage({
   searchParams: Promise<{ connected?: string; error?: string }>;
 }) {
   const { connected, error } = await searchParams;
-  const res = await fetchAuthed("/calendar/status");
+  const [res, upcomingRes] = await Promise.all([
+    fetchAuthed("/calendar/status"),
+    fetchAuthed("/calendar/upcoming"),
+  ]);
   const connections: CalendarConnection[] = await res.json();
+  const upcoming: UpcomingCalendarEvent[] = upcomingRes.ok ? await upcomingRes.json() : [];
 
   return (
     <div className="page">
@@ -74,6 +85,22 @@ export default async function CalendarSettingsPage({
           </div>
         </div>
       ))}
+
+      <h2 style={{ fontSize: 15, marginTop: 20, marginBottom: 8 }}>Reunions a venir</h2>
+      {upcoming.length === 0 ? (
+        <div className="card">Aucune reunion detectee dans les prochaines 60 minutes.</div>
+      ) : (
+        upcoming.map((e, i) => (
+          <div className="card" key={i} style={{ marginBottom: 8, padding: 12 }}>
+            <div style={{ fontWeight: 500 }}>{e.title}</div>
+            <p className="muted" style={{ marginTop: 2 }}>
+              {new Date(e.startTime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} —{" "}
+              {PROVIDER_LABELS[e.provider]}
+              {e.platform ? ` · ${e.platform}` : ""} — rejointe automatiquement
+            </p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
