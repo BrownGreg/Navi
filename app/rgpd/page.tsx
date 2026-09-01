@@ -54,7 +54,7 @@ function RgpdRequestInner() {
     return (
       <div className="page">
         <h1>Demande envoyee</h1>
-        <p className="secondary-text">Vous recevrez une reponse a {email} sous 30 jours (art. 28 RGPD).</p>
+        <p className="secondary-text">Vous recevrez une reponse a {email} sous 30 jours (art. 12 RGPD).</p>
         <Link href="/"><button className="btn">Retour a l&apos;accueil</button></Link>
       </div>
     );
@@ -63,7 +63,7 @@ function RgpdRequestInner() {
   return (
     <div className="page">
       <h1>Exercer mes droits RGPD</h1>
-      <p className="secondary-text" style={{ marginBottom: 12 }}>Traite sous 30 jours (art. 28 RGPD)</p>
+      <p className="secondary-text" style={{ marginBottom: 12 }}>Traite sous 30 jours (art. 12 RGPD)</p>
 
       <div className="label">Votre email</div>
       <input

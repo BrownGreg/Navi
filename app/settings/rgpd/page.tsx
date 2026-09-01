@@ -33,7 +33,7 @@ export default async function RgpdRequestsPage() {
       <h1>Demandes RGPD reçues</h1>
       <p className="secondary-text" style={{ marginBottom: 14 }}>
         Demandes deposees par des participants concernant vos reunions. A traiter sous 30 jours
-        (art. 28 RGPD) — le contact (par email, a l&apos;adresse indiquee) reste manuel.
+        (art. 12 RGPD) — le contact (par email, a l&apos;adresse indiquee) reste manuel.
       </p>
 
       {requests.length === 0 ? (

@@ -66,6 +66,9 @@ export default function SignUpPage() {
       <p className="muted" style={{ marginTop: 14 }}>
         Deja un compte ? <Link href="/sign-in">Se connecter</Link>
       </p>
+      <p className="muted" style={{ marginTop: 4 }}>
+        <Link href="/aide">Aide</Link> · <Link href="/faq">FAQ</Link>
+      </p>
     </div>
   );
 }

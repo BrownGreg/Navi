@@ -36,7 +36,7 @@ function ParticipantConsentInner() {
       if (!res.ok) throw new Error("echec de la demande");
       setNote(
         "Compris, votre demande a ete enregistree : vous apparaitrez comme 'Intervenant anonyme' " +
-          "dans la transcription et recevrez une reponse sous 30 jours (art. 28 RGPD)."
+          "dans la transcription et recevrez une reponse sous 30 jours (art. 12 RGPD)."
       );
       setShowDeclineForm(false);
     } catch {
@@ -96,6 +96,9 @@ function ParticipantConsentInner() {
       <div style={{ marginTop: 20 }}>
         <Link href="/cr/shr-seed1" className="secondary-text">Voir un exemple de compte-rendu sans compte →</Link>
       </div>
+      <p className="muted" style={{ marginTop: 10 }}>
+        <Link href="/faq">Questions sur vos donnees ?</Link>
+      </p>
     </div>
   );
 }
