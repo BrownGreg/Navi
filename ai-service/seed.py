@@ -66,41 +66,43 @@ _DEMO_CLASSIFICATION = {
     "tone": "neutre",
     "urgency": "normale",
     "themes": ["Lancement produit", "Documentation"],
-    "perSegment": [],
+    "per_segment": [],
 }
 
 
 def seed_demo_meeting(db: Session) -> None:
-    existing = db.query(models.Meeting).filter(models.Meeting.share_id == DEMO_SHARE_ID).first()
-    if existing:
-        return
+    """Cree ou met a jour l'exemple demo (upsert, pas juste create-if-missing) :
+    si le contenu de ce fichier change (ex: correction d'un champ mal
+    forme), la ligne deja en base doit se corriger toute seule au prochain
+    demarrage plutot que de rester figee sur une version buguee - c'est
+    arrive une fois (per_segment mal orthographie), d'ou ce choix."""
+    meeting = db.query(models.Meeting).filter(models.Meeting.share_id == DEMO_SHARE_ID).first()
 
-    user = db.query(models.User).filter(models.User.email == DEMO_USER_EMAIL).first()
-    if not user:
-        # Mot de passe aleatoire jamais communique : ce compte n'existe que
-        # pour satisfaire la FK owner_id, il n'est jamais cense etre utilise
-        # pour se connecter (l'exemple est consulte via le lien public
-        # /cr/shr-seed1, qui ne necessite pas d'authentification).
-        user = models.User(email=DEMO_USER_EMAIL, password_hash=hash_password(uuid.uuid4().hex))
-        db.add(user)
-        db.flush()
+    if meeting is None:
+        user = db.query(models.User).filter(models.User.email == DEMO_USER_EMAIL).first()
+        if not user:
+            # Mot de passe aleatoire jamais communique : ce compte n'existe
+            # que pour satisfaire la FK owner_id, il n'est jamais cense
+            # etre utilise pour se connecter (l'exemple est consulte via le
+            # lien public /cr/shr-seed1, qui ne necessite pas d'auth).
+            user = models.User(email=DEMO_USER_EMAIL, password_hash=hash_password(uuid.uuid4().hex))
+            db.add(user)
+            db.flush()
+        meeting = models.Meeting(owner_id=user.id, share_id=DEMO_SHARE_ID)
+        db.add(meeting)
 
-    meeting = models.Meeting(
-        owner_id=user.id,
-        share_id=DEMO_SHARE_ID,
-        title="Point hebdomadaire - lancement beta",
-        mode="dictaphone",
-        status="ready",
-        source="mock",
-        # Duree de conservation volontairement tres elevee : c'est un exemple
-        # permanent, pas une vraie reunion, il ne doit jamais etre anonymise
-        # par la purge RGPD automatique (scheduler.purge_expired_meetings).
-        retention_days=36500,
-        duration_min=1,
-        transcript=_DEMO_TRANSCRIPT,
-        cr=_DEMO_CR,
-        moderation={"flagged": False, "source": "mock"},
-        classification=_DEMO_CLASSIFICATION,
-    )
-    db.add(meeting)
+    meeting.title = "Point hebdomadaire - lancement beta"
+    meeting.mode = "dictaphone"
+    meeting.status = "ready"
+    meeting.source = "mock"
+    # Duree de conservation volontairement tres elevee : c'est un exemple
+    # permanent, pas une vraie reunion, il ne doit jamais etre anonymise par
+    # la purge RGPD automatique (scheduler.purge_expired_meetings).
+    meeting.retention_days = 36500
+    meeting.duration_min = 1
+    meeting.transcript = _DEMO_TRANSCRIPT
+    meeting.cr = _DEMO_CR
+    meeting.moderation = {"flagged": False, "source": "mock"}
+    meeting.classification = _DEMO_CLASSIFICATION
+
     db.commit()
