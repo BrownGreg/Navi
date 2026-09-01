@@ -68,6 +68,9 @@ function SignInInner() {
       <p className="muted" style={{ marginTop: 14 }}>
         Pas encore de compte ? <Link href="/sign-up">Creer un compte</Link>
       </p>
+      <p className="muted" style={{ marginTop: 4 }}>
+        <Link href="/aide">Aide</Link> · <Link href="/faq">FAQ</Link>
+      </p>
     </div>
   );
 }
