@@ -4,26 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { Meeting } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { localeTag } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 
 type Props = { meetings: Meeting[] };
 type ModeFilter = "all" | "visio" | "dictaphone";
 
-function dayLabel(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  if (sameDay(d, today)) return "Aujourd'hui";
-  if (sameDay(d, yesterday)) return "Hier";
-  return d.toLocaleDateString("fr-FR", { weekday: "long" });
-}
-
 export default function AppSidebar({ meetings }: Props) {
   const pathname = usePathname();
+  const { t, locale } = useI18n();
+  const s = t.app.sidebar;
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [search, setSearch] = useState("");
+
+  function dayLabel(iso: string): string {
+    const d = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const sameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    if (sameDay(d, today)) return s.today;
+    if (sameDay(d, yesterday)) return s.yesterday;
+    return d.toLocaleDateString(localeTag(locale), { weekday: "long" });
+  }
 
   const filtered = useMemo(() => {
     return meetings.filter((m) => {
@@ -41,19 +46,20 @@ export default function AppSidebar({ meetings }: Props) {
       map.get(label)!.push(m);
     }
     return Array.from(map.entries());
-  }, [filtered]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered, locale]);
 
   return (
     <div className="app-sidebar">
       <div className="app-sidebar-top">
-        <Link href="/new" className="btn btn-primary btn-block">+ Nouvelle reunion</Link>
+        <Link href="/new" className="btn btn-primary btn-block">{s.newMeeting}</Link>
         <input
           className="app-search"
           type="search"
-          placeholder="Rechercher…"
+          placeholder={s.search}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Rechercher une reunion"
+          aria-label={s.searchAria}
         />
       </div>
 
@@ -63,25 +69,25 @@ export default function AppSidebar({ meetings }: Props) {
           style={{ border: "none", background: modeFilter === "all" ? undefined : "transparent" }}
           onClick={() => setModeFilter("all")}
         >
-          Tout
+          {s.filterAll}
         </button>
         <button
           className={`tag ${modeFilter === "visio" ? "tag-accent" : "tag-outline"}`}
           onClick={() => setModeFilter("visio")}
         >
-          Visio
+          {s.filterVisio}
         </button>
         <button
           className={`tag ${modeFilter === "dictaphone" ? "tag-accent" : "tag-outline"}`}
           onClick={() => setModeFilter("dictaphone")}
         >
-          Dictaphone
+          {s.filterDictaphone}
         </button>
       </div>
 
       <div className="app-list">
         {groups.length === 0 ? (
-          <div className="app-empty-list">Aucune reunion ne correspond.</div>
+          <div className="app-empty-list">{s.emptyList}</div>
         ) : (
           groups.map(([label, items]) => (
             <div key={label}>
@@ -96,11 +102,11 @@ export default function AppSidebar({ meetings }: Props) {
                       {processing ? (
                         <span className="app-row-live">
                           <span className="app-row-live-dot pulse" />
-                          en cours
+                          {s.live}
                         </span>
                       ) : (
                         <span className="app-row-meta">
-                          {new Date(m.date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(m.date).toLocaleTimeString(localeTag(locale), { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       )}
                     </div>
@@ -109,9 +115,9 @@ export default function AppSidebar({ meetings }: Props) {
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                         <span className={`tag ${m.mode === "visio" ? "tag-accent" : "tag-outline"}`} style={{ fontSize: 10 }}>
-                          {m.mode === "visio" ? "Visio" : "Dictaphone"}
+                          {m.mode === "visio" ? s.filterVisio : s.filterDictaphone}
                         </span>
-                        <span className="app-row-meta">{m.durationMin} min</span>
+                        <span className="app-row-meta">{m.durationMin} {s.minutes}</span>
                       </div>
                     )}
                   </Link>
@@ -120,6 +126,10 @@ export default function AppSidebar({ meetings }: Props) {
             </div>
           ))
         )}
+      </div>
+
+      <div style={{ marginTop: "auto", paddingTop: 10, borderTop: "1px solid var(--color-neutral-900)", display: "flex", justifyContent: "center" }}>
+        <LanguageSwitcher />
       </div>
     </div>
   );

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { Meeting } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 import ClassifyButton from "./ClassifyButton";
 
 type Tab = "resume" | "decisions" | "transcript" | "analyse";
@@ -28,13 +30,15 @@ function urgenceBadgeStyle(urgence: string): React.CSSProperties {
 }
 
 export default function CrView({ meeting, initialTab = "resume" }: { meeting: Meeting; initialTab?: Tab }) {
+  const { t } = useI18n();
+  const c = t.app.crView;
   const hasClassification = !!meeting.classification;
   const showClassifyButton = meeting.status === "ready" && !hasClassification;
   const tabs: { id: Tab; label: string }[] = [
-    { id: "resume", label: "Resume" },
-    { id: "decisions", label: "Decisions" },
-    { id: "transcript", label: "Transcript" },
-    ...(hasClassification ? [{ id: "analyse" as Tab, label: "Analyse" }] : []),
+    { id: "resume", label: c.tabResume },
+    { id: "decisions", label: c.tabDecisions },
+    { id: "transcript", label: c.tabTranscript },
+    ...(hasClassification ? [{ id: "analyse" as Tab, label: c.tabAnalyse }] : []),
   ];
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -42,22 +46,22 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}>
       <div style={{ padding: "0 34px 16px" }}>
         <div style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 999, background: "var(--color-neutral-900)", fontSize: 12, color: "var(--color-neutral-400)" }}>
-          {tabs.map((t) => (
+          {tabs.map((tb) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tb.id}
+              onClick={() => setTab(tb.id)}
               style={{
                 padding: "6px 15px",
                 borderRadius: 999,
                 border: "none",
                 cursor: "pointer",
                 font: "inherit",
-                background: tab === t.id ? "var(--color-surface)" : "transparent",
-                color: tab === t.id ? "var(--color-neutral-100)" : "var(--color-neutral-400)",
-                boxShadow: tab === t.id ? "var(--shadow-sm)" : "none",
+                background: tab === tb.id ? "var(--color-surface)" : "transparent",
+                color: tab === tb.id ? "var(--color-neutral-100)" : "var(--color-neutral-400)",
+                boxShadow: tab === tb.id ? "var(--shadow-sm)" : "none",
               }}
             >
-              {t.label}
+              {tb.label}
             </button>
           ))}
         </div>
@@ -77,7 +81,7 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
                   <span style={{ flex: 1, fontSize: 13.5, lineHeight: 1.6, color: "var(--color-neutral-200)" }}>{d}</span>
                 </div>
               ))}
-              {meeting.cr.decisions.length === 0 && <p className="secondary-text">Aucune decision identifiee.</p>}
+              {meeting.cr.decisions.length === 0 && <p className="secondary-text">{c.noDecisions}</p>}
             </div>
           )}
 
@@ -91,7 +95,7 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
                   </div>
                 ))
               ) : (
-                <p className="secondary-text">Aucune transcription disponible.</p>
+                <p className="secondary-text">{c.noTranscript}</p>
               )}
             </div>
           )}
@@ -100,19 +104,19 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <div>
-                  <span className="muted" style={{ marginRight: 6 }}>Ton global</span>
+                  <span className="muted" style={{ marginRight: 6 }}>{c.tonGlobal}</span>
                   <span style={tonBadgeStyle(meeting.classification.tone)}>{meeting.classification.tone}</span>
                 </div>
                 <div>
-                  <span className="muted" style={{ marginRight: 6 }}>Urgence</span>
+                  <span className="muted" style={{ marginRight: 6 }}>{c.urgence}</span>
                   <span style={urgenceBadgeStyle(meeting.classification.urgency)}>{meeting.classification.urgency}</span>
                 </div>
               </div>
 
               {meeting.classification.themes.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {meeting.classification.themes.map((t, i) => (
-                    <span className="tag tag-outline" key={i}>{t}</span>
+                  {meeting.classification.themes.map((theme, i) => (
+                    <span className="tag tag-outline" key={i}>{theme}</span>
                   ))}
                 </div>
               )}
@@ -121,9 +125,9 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
                 <table className="table" style={{ width: "100%" }}>
                   <thead>
                     <tr>
-                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>Intervenant</td>
-                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>Theme</td>
-                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>Ton</td>
+                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.intervenant}</td>
+                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.theme}</td>
+                      <td style={{ color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.ton}</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -151,7 +155,7 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
           {meeting.cr && meeting.cr.actions.length > 0 && (
             <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: 15, display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Actions</span>
+                <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>{c.actions}</span>
                 <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{meeting.cr.actions.length}</span>
               </div>
               {meeting.cr.actions.map((a, i) => (
@@ -169,14 +173,14 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
 
           {meeting.cr && meeting.cr.themes.length > 0 && (
             <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: 15, display: "flex", flexDirection: "column", gap: 10 }}>
-              <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Themes</span>
+              <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>{c.themes}</span>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {meeting.cr.themes.map((t, i) => (
-                  <span className="tag tag-outline" key={i}>{t}</span>
+                {meeting.cr.themes.map((theme, i) => (
+                  <span className="tag tag-outline" key={i}>{theme}</span>
                 ))}
               </div>
               <span style={{ fontSize: 11, lineHeight: 1.5, color: "var(--color-neutral-500)" }}>
-                Conservation {meeting.retentionDays} j · traitement en Europe
+                {format(c.conservation, { days: meeting.retentionDays })}
               </span>
             </div>
           )}

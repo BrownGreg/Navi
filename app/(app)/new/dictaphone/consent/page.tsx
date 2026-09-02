@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 
 // Doit etre incrementee des que le texte des cases de consentement
 // ci-dessous change (ex: "2026-08-29-v1" -> "2026-09-15-v2") : c'est ce qui
@@ -13,7 +15,9 @@ import { apiFetch } from "@/lib/api-client";
 const CONSENT_TEXT_VERSION = "2026-08-29-v1";
 
 export default function DictaphoneConsentPage() {
-  const [title, setTitle] = useState("Reunion sans titre");
+  const { t, locale } = useI18n();
+  const d = t.app.dictaphoneConsent;
+  const [title, setTitle] = useState(locale === "en" ? "Untitled meeting" : "Reunion sans titre");
   const [retention, setRetention] = useState("30");
   const [consentOral, setConsentOral] = useState(true);
   const [consentTranscript, setConsentTranscript] = useState(true);
@@ -48,7 +52,7 @@ export default function DictaphoneConsentPage() {
 
       router.push(`/new/dictaphone/record?id=${meeting.id}`);
     } catch {
-      setError("Impossible d'enregistrer votre consentement. Reessayez.");
+      setError(d.error);
       setStarting(false);
     }
   }
@@ -58,32 +62,29 @@ export default function DictaphoneConsentPage() {
   return (
     <div className="page page-narrow">
       <div className="top-actions">
-        <Link href="/new">← Retour</Link>
+        <Link href="/new">{d.back}</Link>
       </div>
 
-      <h1>Consentement</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>
-        Mode dictaphone — l&apos;audio capte sera transcrit puis traite par IA (resume, classification)
-        pour generer un compte-rendu, conserve {retention} jours puis supprime automatiquement.
-      </p>
+      <h1>{d.h1}</h1>
+      <p className="secondary-text" style={{ marginBottom: 14 }}>{format(d.sub, { days: retention })}</p>
 
-      <div className="label">Titre de la reunion</div>
+      <div className="label">{d.titleLabel}</div>
       <input className="input" style={{ marginBottom: 12 }} value={title} onChange={(e) => setTitle(e.target.value)} />
 
       <div className="card selectable" onClick={() => setConsentOral(!consentOral)}>
-        {consentOral ? "✓" : "○"} Consentement oral recueilli aupres des participants presents
+        {consentOral ? "✓" : "○"} {d.consentOral}
       </div>
       <div className="card selectable" onClick={() => setConsentTranscript(!consentTranscript)}>
-        {consentTranscript ? "✓" : "○"} J&apos;autorise la transcription de cet enregistrement
+        {consentTranscript ? "✓" : "○"} {d.consentTranscript}
       </div>
 
       <div className="row" style={{ marginTop: 10, marginBottom: 4 }}>
-        <span className="secondary-text">Duree de conservation</span>
+        <span className="secondary-text">{d.retentionLabel}</span>
       </div>
       <select className="input" value={retention} onChange={(e) => setRetention(e.target.value)}>
-        <option value="30">30 jours</option>
-        <option value="90">90 jours</option>
-        <option value="365">1 an</option>
+        <option value="30">{d.retention30}</option>
+        <option value="90">{d.retention90}</option>
+        <option value="365">{d.retention365}</option>
       </select>
 
       {error ? (
@@ -91,11 +92,11 @@ export default function DictaphoneConsentPage() {
       ) : null}
 
       <button className="btn btn-primary btn-block" disabled={!canStart || starting} onClick={start}>
-        {starting ? "Preparation…" : "Demarrer l'enregistrement"}
+        {starting ? d.submitting : d.submit}
       </button>
 
       <p className="muted" style={{ marginTop: 12 }}>
-        Droits RGPD des participants : <Link href="/rgpd">exercer mes droits</Link>
+        {d.rgpdLine} <Link href="/rgpd">{d.rgpdLink}</Link>
       </p>
     </div>
   );

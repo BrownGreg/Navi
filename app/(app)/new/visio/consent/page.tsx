@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 
 // Doit etre incrementee des que le texte des cases de consentement
 // ci-dessous change - meme logique que app/new/dictaphone/consent/page.tsx,
@@ -11,16 +13,19 @@ import { apiFetch } from "@/lib/api-client";
 // cases au lieu de 2).
 const CONSENT_TEXT_VERSION = "2026-08-29-v1";
 
-const PLATFORMS = [
-  { value: "google_meet", label: "Google Meet", hint: "code de reunion, ex: abc-defg-hij" },
-  { value: "teams", label: "Microsoft Teams", hint: "identifiant ou lien d'invitation" },
-  { value: "zoom", label: "Zoom", hint: "identifiant numerique de la reunion" }
-] as const;
-
-type Platform = (typeof PLATFORMS)[number]["value"];
+type Platform = "google_meet" | "teams" | "zoom";
 
 export default function VisioConsentPage() {
-  const [title, setTitle] = useState("Reunion sans titre");
+  const { t, locale } = useI18n();
+  const v = t.app.visioConsent;
+
+  const PLATFORMS: { value: Platform; label: string; hint: string }[] = [
+    { value: "google_meet", label: "Google Meet", hint: "ex: abc-defg-hij" },
+    { value: "teams", label: "Microsoft Teams", hint: locale === "en" ? "meeting ID or invite link" : "identifiant ou lien d'invitation" },
+    { value: "zoom", label: "Zoom", hint: locale === "en" ? "numeric meeting ID" : "identifiant numerique de la reunion" },
+  ];
+
+  const [title, setTitle] = useState(locale === "en" ? "Untitled meeting" : "Reunion sans titre");
   const [retention, setRetention] = useState("30");
 
   const [url, setUrl] = useState("");
@@ -88,12 +93,10 @@ export default function VisioConsentPage() {
   }
 
   function inviteText() {
-    return (
-      `Cette reunion sera enregistree et transcrite via Navi. ` +
-      `L'audio est traite par IA (resume, classification) puis conserve ${retention} jours. ` +
-      `Pour toute question ou pour exercer vos droits RGPD : ` +
-      `${typeof window !== "undefined" ? window.location.origin : ""}/participant/consent`
-    );
+    return format(v.inviteText, {
+      days: retention,
+      url: typeof window !== "undefined" ? `${window.location.origin}/participant/consent` : ""
+    });
   }
 
   async function copyInviteText() {
@@ -147,7 +150,7 @@ export default function VisioConsentPage() {
 
       router.push(`/new/visio/live?id=${meeting.id}`);
     } catch (err) {
-      setError("Impossible de rejoindre la reunion. Verifiez le lien et reessayez.");
+      setError(v.error);
       setStarting(false);
     }
   }
@@ -161,22 +164,20 @@ export default function VisioConsentPage() {
   return (
     <div className="page page-narrow">
       <div className="top-actions">
-        <Link href="/new">← Retour</Link>
+        <Link href="/new">{v.back}</Link>
       </div>
 
-      <h1>Consentement</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>
-        Mode visio — un bot Vexa rejoint la reunion pour transcrire et diariser en direct
-      </p>
+      <h1>{v.h1}</h1>
+      <p className="secondary-text" style={{ marginBottom: 14 }}>{v.sub}</p>
 
-      <div className="label">Titre de la reunion</div>
+      <div className="label">{v.titleLabel}</div>
       <input className="input" style={{ marginBottom: 12 }} value={title} onChange={(e) => setTitle(e.target.value)} />
 
-      <div className="label">Lien de la reunion</div>
+      <div className="label">{v.linkLabel}</div>
       <input
         className="input"
         style={{ marginBottom: 4 }}
-        placeholder="https://meet.google.com/abc-defg-hij"
+        placeholder={v.linkPlaceholder}
         value={url}
         onChange={(e) => onUrlChange(e.target.value)}
         onBlur={onUrlBlurOrPaste}
@@ -184,21 +185,19 @@ export default function VisioConsentPage() {
       />
 
       {resolving ? (
-        <p className="muted" style={{ marginBottom: 12 }}>Detection de la plateforme…</p>
+        <p className="muted" style={{ marginBottom: 12 }}>{v.detecting}</p>
       ) : resolvedPlatform ? (
         <p className="muted" style={{ marginBottom: 12, color: "var(--accent)" }}>
-          {PLATFORMS.find((p) => p.value === resolvedPlatform)?.label ?? resolvedPlatform} detecte ✓
+          {PLATFORMS.find((p) => p.value === resolvedPlatform)?.label ?? resolvedPlatform} {v.detected}
         </p>
       ) : (
-        <p className="muted" style={{ marginBottom: 12 }}>Collez le lien de la reunion Meet, Zoom ou Teams.</p>
+        <p className="muted" style={{ marginBottom: 12 }}>{v.pasteHint}</p>
       )}
 
       {showManualFallback ? (
         <>
-          <p className="muted" style={{ marginBottom: 10 }}>
-            Plateforme non detectee automatiquement — selectionnez-la :
-          </p>
-          <div className="label">Plateforme</div>
+          <p className="muted" style={{ marginBottom: 10 }}>{v.fallbackHint}</p>
+          <div className="label">{v.platformLabel}</div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             {PLATFORMS.map((p) => (
               <div
@@ -212,7 +211,7 @@ export default function VisioConsentPage() {
             ))}
           </div>
 
-          <div className="label">Identifiant de la reunion</div>
+          <div className="label">{v.idLabel}</div>
           <input
             className="input"
             style={{ marginBottom: 12 }}
@@ -224,36 +223,30 @@ export default function VisioConsentPage() {
       ) : null}
 
       <div className="card selectable" onClick={() => setConsentRecording(!consentRecording)}>
-        {consentRecording ? "✓" : "○"} J&apos;autorise l&apos;enregistrement et la transcription de cette reunion
+        {consentRecording ? "✓" : "○"} {v.consentRecording}
       </div>
       <div className="card selectable" onClick={() => setConsentAiProcessing(!consentAiProcessing)}>
-        {consentAiProcessing ? "✓" : "○"} Je consens au traitement IA (resume, classification)
+        {consentAiProcessing ? "✓" : "○"} {v.consentAi}
       </div>
       <div className="card selectable" onClick={() => setConsentSharing(!consentSharing)}>
-        {consentSharing ? "✓" : "○"} J&apos;accepte le partage avec les participants
+        {consentSharing ? "✓" : "○"} {v.consentSharing}
       </div>
 
       <div className="row" style={{ marginTop: 10, marginBottom: 4 }}>
-        <span className="secondary-text">Duree de conservation</span>
+        <span className="secondary-text">{v.retentionLabel}</span>
       </div>
       <select className="input" value={retention} onChange={(e) => setRetention(e.target.value)}>
-        <option value="30">30 jours</option>
-        <option value="90">90 jours</option>
-        <option value="365">1 an</option>
+        <option value="30">{v.retention30}</option>
+        <option value="90">{v.retention90}</option>
+        <option value="365">{v.retention365}</option>
       </select>
 
       <div className="card" style={{ marginTop: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>
-          Texte suggere pour l&apos;invitation
-        </div>
-        <div className="secondary-text" style={{ marginBottom: 8 }}>
-          Le bot Vexa (visible dans la liste des participants comme &quot;Navi Notetaker —
-          enregistrement&quot;) ne peut pas envoyer de message dans le chat de la reunion — a coller
-          vous-meme dans l&apos;invitation avant la reunion :
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>{v.inviteTitle}</div>
+        <div className="secondary-text" style={{ marginBottom: 8 }}>{v.inviteBody}</div>
         <div className="muted" style={{ marginBottom: 8, fontStyle: "italic" }}>{inviteText()}</div>
         <button type="button" className="btn btn-block" onClick={copyInviteText}>
-          {copied ? "Copie ✓" : "Copier le texte"}
+          {copied ? v.copied : v.copy}
         </button>
       </div>
 
@@ -262,11 +255,11 @@ export default function VisioConsentPage() {
       ) : null}
 
       <button className="btn btn-primary btn-block" disabled={!canJoin || starting} onClick={join}>
-        {starting ? "Connexion du bot…" : "Rejoindre la reunion"}
+        {starting ? v.submitting : v.submit}
       </button>
 
       <p className="muted" style={{ marginTop: 12 }}>
-        Droits RGPD des participants : <Link href="/rgpd">exercer mes droits</Link>
+        {v.rgpdLine} <Link href="/rgpd">{v.rgpdLink}</Link>
       </p>
     </div>
   );

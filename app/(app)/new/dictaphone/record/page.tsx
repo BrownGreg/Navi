@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 
 const AUDIO_MIME_CANDIDATES = [
   "audio/webm;codecs=opus",
@@ -26,6 +28,8 @@ function RecordInner() {
   const params = useSearchParams();
   const router = useRouter();
   const meetingId = params.get("id") ?? "";
+  const { t } = useI18n();
+  const r = t.app.record;
 
   const [seconds, setSeconds] = useState(0);
   const [sizeKb, setSizeKb] = useState(0);
@@ -75,9 +79,7 @@ function RecordInner() {
         timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
       } catch (err) {
         if (!cancelled) {
-          setError(
-            "Acces au microphone refuse ou indisponible. Autorisez le micro dans votre navigateur puis rechargez la page."
-          );
+          setError(r.micError);
         }
       }
     }
@@ -148,23 +150,23 @@ function RecordInner() {
         ) : (
           <>
             <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>
-              {paused ? "En pause" : "Enregistrement"} · {mm}:{ss}
+              {paused ? r.paused : r.recording} · {mm}:{ss}
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 4, height: 52 }}>
               {[14, 26, 42, 20, 50, 16, 34, 24, 44, 12, 30].map((h, i) => (
                 <span key={i} style={{ width: 3, height: h, borderRadius: 2, background: !paused && i >= 2 && i <= 4 ? "var(--accent)" : "var(--color-neutral-700)" }} />
               ))}
             </div>
-            <span className="muted">{Math.round(sizeKb)} Ko captes</span>
+            <span className="muted">{format(r.captured, { kb: Math.round(sizeKb) })}</span>
           </>
         )}
 
         <div style={{ display: "flex", gap: 10 }}>
           <button className="btn btn-secondary" disabled={!recording || finishing} onClick={togglePause}>
-            {paused ? "Reprendre" : "Pause"}
+            {paused ? r.resume : r.pause}
           </button>
           <button className="btn btn-primary" disabled={!recording || finishing} onClick={stopAndProcess}>
-            {finishing ? "Envoi et transcription…" : "Terminer"}
+            {finishing ? r.sending : r.finish}
           </button>
         </div>
       </div>
@@ -173,8 +175,9 @@ function RecordInner() {
 }
 
 export default function RecordPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div style={{ padding: 34 }}>Chargement…</div>}>
+    <Suspense fallback={<div style={{ padding: 34 }}>{t.common.loading}</div>}>
       <RecordInner />
     </Suspense>
   );

@@ -3,10 +3,14 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 
 function ParticipantConsentInner() {
   const params = useSearchParams();
   const meetingId = params.get("meetingId") ?? "";
+  const { t } = useI18n();
+  const p = t.participantConsent;
 
   const [note, setNote] = useState<string | null>(null);
   const [showDeclineForm, setShowDeclineForm] = useState(false);
@@ -18,7 +22,7 @@ function ParticipantConsentInner() {
     // professionnel), pas un consentement actif obligatoire par participant.
     // Ce clic ne declenche donc aucun appel API - seule l'information
     // prealable (cet ecran + le bot visible en reunion) doit etre reelle.
-    setNote("Merci, votre voix sera attribuee nominativement dans la transcription.");
+    setNote(p.acceptedNote);
   }
 
   async function decline() {
@@ -34,13 +38,10 @@ function ParticipantConsentInner() {
         body: JSON.stringify({ email: email.trim(), meetingId, type: "erasure" })
       });
       if (!res.ok) throw new Error("echec de la demande");
-      setNote(
-        "Compris, votre demande a ete enregistree : vous apparaitrez comme 'Intervenant anonyme' " +
-          "dans la transcription et recevrez une reponse sous 30 jours (art. 12 RGPD)."
-      );
+      setNote(p.declinedNote);
       setShowDeclineForm(false);
     } catch {
-      setNote("Erreur lors de l'enregistrement de votre demande. Reessayez.");
+      setNote(p.errorNote);
     } finally {
       setSending(false);
     }
@@ -49,42 +50,38 @@ function ParticipantConsentInner() {
   return (
     <div className="page page-narrow">
       <div className="top-actions">
-        <Link href="/">← Retour</Link>
+        <Link href="/">{p.back}</Link>
       </div>
 
-      <p className="muted" style={{ marginBottom: 10 }}>Notification a l&apos;arrivee en reunion</p>
+      <p className="muted" style={{ marginBottom: 10 }}>{p.notifNotice}</p>
       <div className="hatch" style={{ height: 70, borderRadius: "var(--radius)", marginBottom: 12 }} />
 
       <div className="card">
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Sam a active l&apos;enregistrement</div>
-        <div className="secondary-text">
-          Cette reunion est transcrite par Navi. Votre voix et vos propos seront traites pour generer un compte-rendu.
-        </div>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>{format(p.activatedBy, { name: "Sam" })}</div>
+        <div className="secondary-text">{p.transcribedNotice}</div>
       </div>
 
       {!note ? (
         <>
           <button className="btn btn-primary" onClick={accept}>
-            J&apos;accepte
+            {p.accept}
           </button>
           <button className="btn" onClick={decline} disabled={sending}>
-            {sending ? "Envoi…" : "Je ne consens pas"}
+            {sending ? p.sending : p.decline}
           </button>
 
           {showDeclineForm ? (
             <div className="card" style={{ marginTop: 10 }}>
-              <div className="secondary-text" style={{ marginBottom: 6 }}>
-                Un email est necessaire pour tracer et suivre votre demande.
-              </div>
+              <div className="secondary-text" style={{ marginBottom: 6 }}>{p.declineEmailNotice}</div>
               <input
                 className="input"
                 style={{ marginBottom: 8 }}
-                placeholder="prenom.nom@exemple.com"
+                placeholder={p.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <button className="btn btn-primary" onClick={decline} disabled={sending || !email.trim()}>
-                {sending ? "Envoi…" : "Confirmer"}
+                {sending ? p.sending : p.confirm}
               </button>
             </div>
           ) : null}
@@ -94,18 +91,19 @@ function ParticipantConsentInner() {
       {note ? <p className="muted" style={{ marginTop: 10 }}>{note}</p> : null}
 
       <div style={{ marginTop: 20 }}>
-        <Link href="/cr/shr-seed1" className="secondary-text">Voir un exemple de compte-rendu sans compte →</Link>
+        <Link href="/cr/shr-seed1" className="secondary-text">{p.exampleLink}</Link>
       </div>
       <p className="muted" style={{ marginTop: 10 }}>
-        <Link href="/faq">Questions sur vos donnees ?</Link>
+        <Link href="/faq">{p.faqLink}</Link>
       </p>
     </div>
   );
 }
 
 export default function ParticipantConsentPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">{t.common.loading}</div>}>
       <ParticipantConsentInner />
     </Suspense>
   );
