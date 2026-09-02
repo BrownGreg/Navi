@@ -95,11 +95,12 @@ const en: typeof fr = {
     },
     conformite: {
       kicker: "Compliance",
-      h2: "A single AI processor, based in Europe.",
-      body: "Only one company to assess in your data processing register. Proof of consent is kept separately, and erasing a meeting is immediate whenever you request it.",
+      h2: "Never dependent on a single AI provider — and never outside Europe.",
+      body: "Report generation and its analysis automatically switch to a second European provider if the first is unavailable. Two processors at most, both in the EU: your data never leaves Europe, whichever one is used.",
       link: "Read the GDPR page →",
       table: {
         transcription: ["Transcription and summary", "Mistral (EU)"],
+        secours: ["Backup processor", "Scaleway (EU) — report and classification"],
         conservation: ["Content retention", "30 days, adjustable"],
         preuve: ["Proof of consent", "kept for 5 years"],
         droits: ["GDPR rights", "built-in request form"],
@@ -193,7 +194,7 @@ const en: typeof fr = {
       },
       location: {
         q: "Where is my data processed?",
-        a: "AI processing (transcription, summary, classification, moderation) all goes through Mistral AI, based in the European Union — a deliberate choice to limit processors to a single EU provider. The video meeting bot goes through Vexa, an independent third-party service; refer to its own privacy policy for its exact location.",
+        a: "AI processing (transcription, summary, classification, moderation) mainly goes through Mistral AI, based in the European Union. For report generation and classification, a second European provider (Scaleway, France) automatically takes over if Mistral is temporarily unavailable — never a processor outside the EU, never more than two in total. The video meeting bot goes through Vexa, an independent third-party service; refer to its own privacy policy for its exact location.",
       },
       retention: {
         q: "How long is my data kept?",

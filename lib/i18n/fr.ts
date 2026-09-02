@@ -94,11 +94,12 @@ const fr = {
     },
     conformite: {
       kicker: "Conformité",
-      h2: "Un seul sous-traitant IA, en Europe.",
-      body: "Une seule société à évaluer dans votre registre de traitement. Les preuves de consentement sont conservées à part, et l'effacement d'une réunion est immédiat quand vous le demandez.",
+      h2: "Aucune dépendance à un seul fournisseur IA — et jamais hors Europe.",
+      body: "La génération du compte-rendu et son analyse basculent automatiquement vers un second fournisseur européen si le premier est indisponible. Deux sous-traitants maximum, tous deux en UE : vos données ne quittent jamais l'Europe, quel que soit celui sollicité.",
       link: "Lire la page RGPD →",
       table: {
         transcription: ["Transcription et résumé", "Mistral (UE)"],
+        secours: ["Sous-traitant de secours", "Scaleway (UE) — compte-rendu et classification"],
         conservation: ["Conservation du contenu", "30 jours, réglable"],
         preuve: ["Preuve de consentement", "conservée 5 ans"],
         droits: ["Droits RGPD", "formulaire intégré"],
@@ -192,7 +193,7 @@ const fr = {
       },
       location: {
         q: "Où mes données sont-elles traitées ?",
-        a: "Les traitements IA (transcription, résumé, classification, modération) passent tous par Mistral AI, basé dans l'Union européenne — un choix délibérément fait pour limiter les sous-traitants à un seul fournisseur UE. Le bot de réunion visio passe par Vexa, un service tiers indépendant ; reportez-vous à sa propre politique de confidentialité pour sa localisation exacte.",
+        a: "Les traitements IA (transcription, résumé, classification, modération) passent principalement par Mistral AI, basé dans l'Union européenne. Pour la génération du compte-rendu et la classification, un second fournisseur européen (Scaleway, France) prend automatiquement le relais si Mistral est temporairement indisponible — jamais de sous-traitant hors UE, jamais plus de deux au total. Le bot de réunion visio passe par Vexa, un service tiers indépendant ; reportez-vous à sa propre politique de confidentialité pour sa localisation exacte.",
       },
       retention: {
         q: "Combien de temps mes données sont-elles conservées ?",
