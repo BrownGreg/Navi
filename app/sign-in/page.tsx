@@ -3,11 +3,14 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 function SignInInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const redirectTo = params.get("redirectTo") || "/";
+  const redirectTo = params.get("redirectTo") || "/dashboard";
+  const { t } = useI18n();
+  const s = t.signIn;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +29,7 @@ function SignInInner() {
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);
-      setError(typeof body?.detail === "string" ? body.detail : "identifiants invalides");
+      setError(typeof body?.detail === "string" ? body.detail : s.errorFallback);
       return;
     }
 
@@ -35,11 +38,11 @@ function SignInInner() {
   }
 
   return (
-    <div className="page">
-      <h1>Connexion</h1>
-      <p className="secondary-text" style={{ marginBottom: 14 }}>Accedez a vos reunions Navi</p>
+    <div className="page page-narrow">
+      <h1>{s.h1}</h1>
+      <p className="secondary-text" style={{ marginBottom: 14 }}>{s.sub}</p>
 
-      <div className="label">Email</div>
+      <div className="label">{s.emailLabel}</div>
       <input
         className="input"
         style={{ marginBottom: 10 }}
@@ -48,7 +51,7 @@ function SignInInner() {
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <div className="label">Mot de passe</div>
+      <div className="label">{s.passwordLabel}</div>
       <input
         className="input"
         style={{ marginBottom: 10 }}
@@ -61,23 +64,24 @@ function SignInInner() {
         <p className="secondary-text" style={{ color: "var(--danger)", marginBottom: 10 }}>{error}</p>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!email || !password || loading} onClick={submit}>
-        {loading ? "Connexion…" : "Se connecter"}
+      <button className="btn btn-primary btn-block" disabled={!email || !password || loading} onClick={submit}>
+        {loading ? s.submitting : s.submit}
       </button>
 
       <p className="muted" style={{ marginTop: 14 }}>
-        Pas encore de compte ? <Link href="/sign-up">Creer un compte</Link>
+        {s.noAccount} <Link href="/sign-up">{s.createAccount}</Link>
       </p>
       <p className="muted" style={{ marginTop: 4 }}>
-        <Link href="/aide">Aide</Link> · <Link href="/faq">FAQ</Link>
+        <Link href="/aide">{s.aide}</Link> · <Link href="/faq">{s.faq}</Link>
       </p>
     </div>
   );
 }
 
 export default function SignInPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div className="page">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">{t.common.loading}</div>}>
       <SignInInner />
     </Suspense>
   );
