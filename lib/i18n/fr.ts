@@ -23,6 +23,12 @@ const fr = {
     ctaPrimary: "Créer un compte",
     ctaGhost: "Voir un compte rendu",
     compatible: "Compatible",
+    timeline: [
+      { time: "14:00", title: "La réunion commence", body: "Navi rejoint le lien, ou écoute la salle. Son nom est visible de tous." },
+      { time: "en direct", title: "Décisions et actions se remplissent", body: "Transcription par locuteur, sans caméra, jamais." },
+      { time: "+3 min", title: "Le compte rendu est là", body: "Relu, partagé en un lien, exporté en PDF." },
+      { time: "+30 j", title: "Tout est effacé", body: "Automatiquement, à la date que vous fixez." },
+    ],
     preview: {
       today: "Aujourd'hui",
       yesterday: "Hier",
