@@ -33,36 +33,29 @@ export default async function LandingPage() {
       </header>
 
       <section style={{ maxWidth: 1240, margin: "0 auto", padding: "88px 56px 48px" }}>
-        <div className="landing-grid2" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 460px", gap: 48, alignItems: "center" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ width: 22, height: 1, background: "var(--color-accent)" }} />
-              <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>{l.eyebrow}</span>
-            </div>
-            <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 56, lineHeight: 1.06, letterSpacing: "-0.025em", margin: 0 }}>
-              {l.h1}
-            </h1>
-            <p style={{ margin: 0, maxWidth: 470, fontSize: 16, lineHeight: 1.6, color: "var(--color-neutral-300)" }}>
-              {l.lead}
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 4 }}>
-              <Link href={loggedIn ? "/dashboard" : "/sign-up"} className="btn btn-primary">
-                {loggedIn ? t.nav.allerEspace : l.ctaPrimary}
-              </Link>
-              <a href="#produit" className="btn btn-ghost">{l.ctaGhost}</a>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
-              <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>{l.compatible}</span>
-              <span className="tag tag-outline">Google Meet</span>
-              <span className="tag tag-outline">Teams</span>
-              <span className="tag tag-outline">Zoom</span>
-            </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 720 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 22, height: 1, background: "var(--color-accent)" }} />
+            <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>{l.eyebrow}</span>
           </div>
-          <img
-            src={locale === "en" ? "/enGemini_Generated_Image_xnn7nhxnn7nhxnn7.jpeg" : "/frGemini_Generated_Image_v08chov08chov08c.jpeg"}
-            alt=""
-            style={{ width: "100%", borderRadius: "var(--radius-lg)" }}
-          />
+          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 56, lineHeight: 1.06, letterSpacing: "-0.025em", margin: 0 }}>
+            {l.h1}
+          </h1>
+          <p style={{ margin: 0, maxWidth: 470, fontSize: 16, lineHeight: 1.6, color: "var(--color-neutral-300)" }}>
+            {l.lead}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 4 }}>
+            <Link href={loggedIn ? "/dashboard" : "/sign-up"} className="btn btn-primary">
+              {loggedIn ? t.nav.allerEspace : l.ctaPrimary}
+            </Link>
+            <a href="#produit" className="btn btn-ghost">{l.ctaGhost}</a>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>{l.compatible}</span>
+            <span className="tag tag-outline">Google Meet</span>
+            <span className="tag tag-outline">Teams</span>
+            <span className="tag tag-outline">Zoom</span>
+          </div>
         </div>
       </section>
 
