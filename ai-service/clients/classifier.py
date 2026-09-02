@@ -2,9 +2,11 @@
 
 Utilise l'API Chat Completions de Mistral AI (meme fournisseur/compte que la
 transcription Voxtral et la generation du CR - cf. config.py) pour extraire
-le ton global, le niveau d'urgence et les themes d'une transcription.
-Bascule sur un mock si la cle MISTRAL_API_KEY est absente ou si l'appel
-echoue. Remplace l'ancienne integration Kimi K3 (Moonshot AI, hors UE).
+le ton global, le niveau d'urgence et les themes d'une transcription. Si
+Mistral echoue, retente via Scaleway (clients/scaleway.py, sous-traitant de
+secours UE) avant de basculer sur un mock - uniquement si SCALEWAY_API_KEY
+est configuree, sinon comportement strictement inchange. Remplace l'ancienne
+integration Kimi K3 (Moonshot AI, hors UE).
 """
 
 import asyncio
@@ -14,6 +16,7 @@ import logging
 import httpx
 
 import config
+from clients import scaleway
 from schemas import ClassificationResult, SegmentClassification, TranscriptSegment
 
 logger = logging.getLogger("ai-service.classifier")
@@ -115,50 +118,58 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
     Returns:
         Tuple (ClassificationResult, source) ou source vaut "real" ou "mock".
     """
-    if not config.MISTRAL_API_KEY:
-        logger.info("[classifier] MISTRAL_API_KEY absente, retour mock")
-        return _MOCK_RESULT, "mock"
-
-    try:
-        transcript_text = "\n".join(
-            f"[Segment {i + 1}] {s.speaker}: {s.text}" for i, s in enumerate(transcript)
-        )
-
-        res = await _post_with_retry(
+    transcript_text = "\n".join(
+        f"[Segment {i + 1}] {s.speaker}: {s.text}" for i, s in enumerate(transcript)
+    )
+    payload = {
+        "model": config.MISTRAL_CHAT_MODEL,
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
             {
-                "model": config.MISTRAL_CHAT_MODEL,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {
-                        "role": "user",
-                        "content": f"Voici la transcription a analyser:\n\n{transcript_text}",
-                    },
-                ],
-            }
-        )
+                "role": "user",
+                "content": f"Voici la transcription a analyser:\n\n{transcript_text}",
+            },
+        ],
+    }
 
-        body = res.json()
-        content = body.get("choices", [{}])[0].get("message", {}).get("content")
-        if not content:
-            raise RuntimeError("empty response from Mistral chat")
+    if config.MISTRAL_API_KEY:
+        try:
+            res = await _post_with_retry(payload)
+            return _parse_classification(res), "real"
+        except Exception as err:  # noqa: BLE001 - filet de securite volontaire
+            logger.error("[classifier] Mistral indisponible, tentative sous-traitant de secours: %s", err)
+    else:
+        logger.info("[classifier] MISTRAL_API_KEY absente")
 
-        parsed = json.loads(content)
-        result = ClassificationResult(
-            tone=parsed.get("tone", "neutre"),
-            urgency=parsed.get("urgency", "normale"),
-            themes=parsed.get("themes", [])[:5],
-            per_segment=[
-                SegmentClassification(
-                    speaker=seg.get("speaker", ""),
-                    theme=seg.get("theme", ""),
-                    tone=seg.get("tone", "neutre"),
-                )
-                for seg in parsed.get("per_segment", [])
-            ],
-        )
-        return result, "real"
+    if config.SCALEWAY_API_KEY:
+        try:
+            res = await scaleway.post_chat_with_retry(payload)
+            return _parse_classification(res), "real"
+        except Exception as err:  # noqa: BLE001 - filet de securite volontaire
+            logger.error("[classifier] sous-traitant de secours egalement en echec: %s", err)
 
-    except Exception as err:  # noqa: BLE001 - filet de securite volontaire
-        logger.error("[classifier] fallback to mock: %s", err)
-        return _MOCK_RESULT, "mock"
+    logger.info("[classifier] retour mock")
+    return _MOCK_RESULT, "mock"
+
+
+def _parse_classification(res: httpx.Response) -> ClassificationResult:
+    body = res.json()
+    content = body.get("choices", [{}])[0].get("message", {}).get("content")
+    if not content:
+        raise RuntimeError("empty response from chat API")
+
+    parsed = json.loads(content)
+    return ClassificationResult(
+        tone=parsed.get("tone", "neutre"),
+        urgency=parsed.get("urgency", "normale"),
+        themes=parsed.get("themes", [])[:5],
+        per_segment=[
+            SegmentClassification(
+                speaker=seg.get("speaker", ""),
+                theme=seg.get("theme", ""),
+                tone=seg.get("tone", "neutre"),
+            )
+            for seg in parsed.get("per_segment", [])
+        ],
+    )
