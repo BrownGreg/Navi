@@ -36,7 +36,7 @@ async def transcribe_audio(
     try:
         files = {"file": ("recording.webm", audio_bytes, mime_type or "audio/webm")}
         data = {
-            "model": "voxtral-mini-latest",
+            "model": "voxtral-mini-transcribe-realtime-2602",
             "diarize": "true",
             "timestamp_granularities": "segment",
         }
