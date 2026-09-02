@@ -1,55 +1,186 @@
 import Link from "next/link";
-import { isLoggedIn, LandingNav, LandingFooter } from "./landing-shell";
-
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  );
-}
+import { isLoggedIn } from "./landing-shell";
 
 export default async function LandingPage() {
   const loggedIn = await isLoggedIn();
 
   return (
-    <div className="landing">
-      <LandingNav loggedIn={loggedIn} />
+    <div style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 56px", maxWidth: 1240, margin: "0 auto" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--color-accent)", boxShadow: "0 0 12px var(--color-accent)" }} />
+          <span style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 15, letterSpacing: "0.01em", color: "var(--color-text)" }}>Navi</span>
+        </Link>
+        <nav style={{ display: "flex", alignItems: "center", gap: 28, fontSize: 13, color: "var(--color-neutral-400)" }}>
+          <a href="#produit" style={{ color: "var(--color-neutral-400)" }}>Produit</a>
+          <a href="#conformite" style={{ color: "var(--color-neutral-400)" }}>Conformité</a>
+          <a href="#questions" style={{ color: "var(--color-neutral-400)" }}>Questions</a>
+          {loggedIn ? (
+            <Link href="/dashboard" className="btn btn-primary" style={{ fontSize: 13 }}>Aller à mon espace</Link>
+          ) : (
+            <>
+              <Link href="/sign-in" style={{ color: "var(--color-neutral-400)" }}>Se connecter</Link>
+              <Link href="/sign-up" className="btn btn-primary" style={{ fontSize: 13 }}>Créer un compte</Link>
+            </>
+          )}
+        </nav>
+      </header>
 
-      <section className="landing-hero">
-        <span className="landing-eyebrow">Conforme RGPD · IA hébergée en UE</span>
-        <h1>Vos réunions, transcrites et résumées automatiquement</h1>
-        <p className="lead">
-          Navi capte la parole en réunion — au micro pour le présentiel, via un bot qui rejoint votre
-          visio à distance — puis transcrit, modère et génère un compte-rendu structuré avec décisions et
-          actions. Même pipeline derrière les deux modes, zéro saisie manuelle.
-        </p>
-        <div className="landing-cta-row">
-          <Link href="/sign-up" className="landing-btn landing-btn-primary">Créer un compte gratuitement</Link>
-          <Link href="/sign-in" className="landing-btn">Se connecter</Link>
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "88px 56px 48px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 720 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 22, height: 1, background: "var(--color-accent)" }} />
+            <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>Comptes rendus de réunion</span>
+          </div>
+          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 56, lineHeight: 1.06, letterSpacing: "-0.025em", margin: 0 }}>
+            Le compte rendu est prêt avant que vous quittiez la réunion.
+          </h1>
+          <p style={{ margin: 0, maxWidth: 470, fontSize: 16, lineHeight: 1.6, color: "var(--color-neutral-300)" }}>
+            Navi rejoint votre visio ou écoute la salle, puis rend un résumé, les décisions et les actions
+            attribuées. Le tout traité en Europe, effacé à la date que vous fixez.
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 4 }}>
+            <Link href={loggedIn ? "/dashboard" : "/sign-up"} className="btn btn-primary">
+              {loggedIn ? "Aller à mon espace" : "Créer un compte"}
+            </Link>
+            <a href="#produit" className="btn btn-ghost">Voir un compte rendu</a>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>Compatible</span>
+            <span className="tag tag-outline">Google Meet</span>
+            <span className="tag tag-outline">Teams</span>
+            <span className="tag tag-outline">Zoom</span>
+          </div>
         </div>
+      </section>
 
-        <div className="landing-hero-visual" aria-hidden="true">
-          <div className="landing-browser">
-            <div className="landing-browser-bar">
-              <div className="landing-browser-dots"><span /><span /><span /></div>
-              <span className="landing-browser-url">navi.app</span>
+      <section aria-hidden="true" style={{ maxWidth: 1240, margin: "0 auto", padding: "0 56px 80px", position: "relative" }}>
+        <div style={{ position: "absolute", inset: "-30px 30px auto", height: 220, background: "radial-gradient(50% 80% at 50% 0%, var(--color-accent-900), transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "relative", background: "var(--color-surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-md)", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 16px", borderBottom: "1px solid var(--color-neutral-800)", background: "var(--color-neutral-900)" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--color-neutral-700)" }} />
+              <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--color-neutral-700)" }} />
+              <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--color-neutral-700)" }} />
             </div>
-            <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
-              <div className="row" style={{ alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontSize: 19 }}>Point produit — sprint 14</div>
-                  <div className="secondary-text" style={{ marginTop: 4 }}>2 septembre · 32 min · Google Meet</div>
+            <span style={{ margin: "0 auto", padding: "4px 14px", borderRadius: 999, background: "var(--color-bg)", fontSize: 11, color: "var(--color-neutral-500)" }}>navi.app</span>
+            <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-accent-800)", color: "var(--color-accent-200)", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>CM</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "290px minmax(0, 1fr)" }}>
+            <div style={{ background: "var(--color-bg)", borderRight: "1px solid var(--color-neutral-900)", padding: "16px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                <span className="btn btn-primary btn-block">＋ Nouvelle réunion</span>
+                <div style={{ height: 32, borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 10px", fontSize: 12, color: "var(--color-neutral-600)" }}>
+                  <span>Rechercher</span>
+                  <span style={{ fontSize: 10, padding: "1px 5px", borderRadius: "var(--radius-sm)", background: "var(--color-bg)" }}>⌘K</span>
                 </div>
-                <span className="tag tag-accent">Resume</span>
               </div>
-              <div className="landing-preview-transcript" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
-                <p><strong>Camille</strong> — On garde le perimetre, le consentement passe devant l&apos;export CSV.</p>
-                <p><strong>Yanis</strong> — D&apos;accord, je chiffre l&apos;export cette semaine.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ padding: "6px 8px", fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Aujourd&apos;hui</span>
+                <div style={{ padding: "11px 12px", borderRadius: "var(--radius-md)", background: "var(--color-surface)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--color-neutral-100)" }}>Point produit — sprint 14</span>
+                    <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>14:00</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span className="tag tag-accent" style={{ fontSize: 10 }}>Visio</span>
+                    <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>32 min · 5 pers.</span>
+                  </div>
+                </div>
+                <div style={{ padding: "11px 12px", borderRadius: "var(--radius-md)", display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--color-neutral-300)" }}>Entretien candidat</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--color-accent-300)" }}>
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--color-accent)", boxShadow: "0 0 8px var(--color-accent)" }} />
+                      en cours
+                    </span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: "var(--color-neutral-900)", overflow: "hidden" }}>
+                    <span style={{ display: "block", width: "62%", height: 3, background: "var(--color-accent)" }} />
+                  </div>
+                </div>
+                <span style={{ padding: "10px 8px 6px", fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Hier</span>
+                <div style={{ padding: "11px 12px", borderRadius: "var(--radius-md)", display: "flex", flexDirection: "column", gap: 5 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--color-neutral-300)" }}>Comité éditorial</span>
+                    <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>16:15</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>Visio · 51 min</span>
+                </div>
+                <div style={{ padding: "11px 12px", borderRadius: "var(--radius-md)", display: "flex", flexDirection: "column", gap: 5 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--color-neutral-300)" }}>Suivi client Atlas</span>
+                    <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>11:00</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>Dictaphone · 38 min</span>
+                </div>
               </div>
-              <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: "12px 14px", display: "flex", gap: 12 }}>
-                <span style={{ width: 2, borderRadius: 2, background: "var(--accent)" }} />
-                <span style={{ fontSize: 13, lineHeight: 1.6, color: "var(--color-neutral-200)" }}>Le consentement passe en deux etapes, avant l&apos;export CSV reporte au sprint 15.</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, padding: "22px 28px 14px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <span style={{ fontFamily: "var(--font-heading)", fontSize: 21, letterSpacing: "-0.018em" }}>Point produit — sprint 14</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex" }}>
+                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-accent-800)", color: "var(--color-accent-200)", fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2px var(--color-surface)" }}>CM</span>
+                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-neutral-800)", color: "var(--color-neutral-300)", fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2px var(--color-surface)", marginLeft: -6 }}>YB</span>
+                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-neutral-800)", color: "var(--color-neutral-300)", fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2px var(--color-surface)", marginLeft: -6 }}>+3</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>2 septembre · 32 min</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span className="btn btn-secondary" style={{ fontSize: 12 }}>PDF</span>
+                  <span className="btn btn-primary" style={{ fontSize: 12 }}>Partager</span>
+                </div>
+              </div>
+              <div style={{ padding: "0 28px 14px" }}>
+                <div style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 999, background: "var(--color-neutral-900)", fontSize: 12, color: "var(--color-neutral-400)" }}>
+                  <span style={{ padding: "5px 14px", borderRadius: 999, background: "var(--color-surface)", color: "var(--color-neutral-100)", boxShadow: "var(--shadow-sm)" }}>Résumé</span>
+                  <span style={{ padding: "5px 14px", borderRadius: 999 }}>Décisions</span>
+                  <span style={{ padding: "5px 14px", borderRadius: 999 }}>Transcript</span>
+                </div>
+              </div>
+              <div style={{ padding: "4px 28px 26px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 224px", gap: 26 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                  <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.75, color: "var(--color-neutral-200)" }}>
+                    L&apos;équipe garde le périmètre du sprint et fait passer la refonte du parcours de
+                    consentement devant l&apos;export CSV, reporté au sprint 15. Le texte d&apos;invitation
+                    sera rédigé avant la prochaine revue.
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Décisions</span>
+                    <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: "12px 14px", display: "flex", gap: 12 }}>
+                      <span style={{ width: 2, borderRadius: 2, background: "var(--color-accent)" }} />
+                      <span style={{ flex: 1, fontSize: 13, lineHeight: 1.6, color: "var(--color-neutral-200)" }}>Le consentement passe en deux étapes, avec un message à copier dans l&apos;invitation.</span>
+                    </div>
+                    <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: "12px 14px", display: "flex", gap: 12 }}>
+                      <span style={{ width: 2, borderRadius: 2, background: "var(--color-accent)" }} />
+                      <span style={{ flex: 1, fontSize: 13, lineHeight: 1.6, color: "var(--color-neutral-200)" }}>Export CSV reporté au sprint 15.</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)", padding: 14, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-600)" }}>Actions</span>
+                      <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>0/2</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+                      <span style={{ width: 14, height: 14, border: "1px solid var(--color-neutral-600)", borderRadius: "var(--radius-sm)", marginTop: 1, flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45, color: "var(--color-neutral-200)" }}>Texte de consentement<br /><span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>Camille · 12 sept.</span></span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+                      <span style={{ width: 14, height: 14, border: "1px solid var(--color-neutral-600)", borderRadius: "var(--radius-sm)", marginTop: 1, flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45, color: "var(--color-neutral-200)" }}>Chiffrer l&apos;export CSV<br /><span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>Yanis</span></span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <span className="tag tag-outline">roadmap</span>
+                    <span className="tag tag-outline">RGPD</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>Conservation 30 j · Europe</span>
+                </div>
               </div>
             </div>
           </div>
@@ -57,184 +188,164 @@ export default async function LandingPage() {
       </section>
 
       <section style={{ background: "var(--color-section)", backgroundImage: "radial-gradient(70% 140% at 15% 0%, var(--color-section-glow), transparent 70%)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 24 }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "40px 56px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>Automatique</span>
-            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>compte-rendu genere des la fin de la reunion</span>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 30, fontWeight: 500, letterSpacing: "-0.02em" }}>3 min</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>du raccrochage au compte rendu</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>100 %</span>
-            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>du traitement IA en Europe</span>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 30, fontWeight: 500, letterSpacing: "-0.02em" }}>100 %</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>du traitement en Europe</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>30 j</span>
-            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>de conservation par defaut, puis purge</span>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 30, fontWeight: 500, letterSpacing: "-0.02em" }}>30 j</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>de conservation par défaut, puis purge</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>0</span>
-            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>acces a la camera, jamais</span>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 30, fontWeight: 500, letterSpacing: "-0.02em" }}>0</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>accès à la caméra, jamais</span>
           </div>
         </div>
       </section>
 
-      <section className="landing-section">
-        <h2 className="landing-section-title">Deux façons de capter, un seul résultat</h2>
-        <p className="landing-section-subtitle">
-          C&apos;est la particularité de Navi : deux situations d&apos;usage opposées, la même chaîne de
-          traitement derrière.
-        </p>
-        <div className="landing-split">
-          <div className="landing-feature-card">
-            <div className="landing-icon-badge">
-              <Icon>
-                <rect x="9" y="3" width="6" height="10" rx="3" />
-                <path d="M5 11a7 7 0 0 0 14 0" />
-                <path d="M12 18v3" />
-                <path d="M9 21h6" />
-              </Icon>
+      <section id="produit" style={{ maxWidth: 1240, margin: "0 auto", padding: "88px 56px", display: "flex", flexDirection: "column", gap: 72 }}>
+        <div className="landing-grid2" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 460px", gap: 64, alignItems: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>Visio</span>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 30, lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>Un participant de plus, qui prend des notes</h2>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: "var(--color-neutral-300)", maxWidth: 420 }}>
+              Collez le lien Meet, Teams ou Zoom — ou laissez Navi lire votre agenda et rejoindre seul. Le
+              bot apparaît sous le nom « Navi Notetaker — enregistrement » : personne n&apos;est enregistré
+              à son insu.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "baseline" }}><span style={{ color: "var(--color-accent)" }}>—</span><span style={{ fontSize: 14, color: "var(--color-neutral-200)" }}>Transcription par locuteur, en direct</span></div>
+              <div style={{ display: "flex", gap: 10, alignItems: "baseline" }}><span style={{ color: "var(--color-accent)" }}>—</span><span style={{ fontSize: 14, color: "var(--color-neutral-200)" }}>Auto-join depuis Google Calendar et Outlook</span></div>
             </div>
-            <h3>Dictaphone — réunion en présentiel</h3>
-            <p>
-              Navi capte le micro de votre appareil pendant la réunion. Aucune caméra, aucun logiciel à
-              installer : vous démarrez, vous parlez, Navi transcrit.
-            </p>
           </div>
-          <div className="landing-feature-card">
-            <div className="landing-icon-badge">
-              <Icon>
-                <rect x="2.5" y="6" width="13" height="12" rx="2.5" />
-                <path d="M15.5 10.5 21 7v10l-5.5-3.5" />
-              </Icon>
+          <div style={{ background: "var(--color-surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--color-accent)", boxShadow: "0 0 10px var(--color-accent)" }} />
+              <span style={{ fontSize: 12, color: "var(--color-neutral-300)" }}>En cours · 12:04</span>
+              <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--color-neutral-500)" }}>4 participants notifiés</span>
             </div>
-            <h3>Visio — réunion à distance</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", gap: 14 }}><span style={{ width: 58, fontSize: 12, color: "var(--color-neutral-500)" }}>Camille</span><span style={{ flex: 1, fontSize: 13, lineHeight: 1.55, color: "var(--color-neutral-200)" }}>On garde le périmètre tel quel, mais le consentement passe devant.</span></div>
+              <div style={{ display: "flex", gap: 14 }}><span style={{ width: 58, fontSize: 12, color: "var(--color-neutral-500)" }}>Yanis</span><span style={{ flex: 1, fontSize: 13, lineHeight: 1.55, color: "var(--color-neutral-200)" }}>D&apos;accord — je chiffre l&apos;export cette semaine.</span></div>
+              <div style={{ display: "flex", gap: 14 }}><span style={{ width: 58, fontSize: 12, color: "var(--color-neutral-500)" }}>Camille</span><span style={{ flex: 1, fontSize: 13, lineHeight: 1.55, color: "var(--color-neutral-600)" }}>Alors on décale l&apos;export au sprint…</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rule" />
+
+        <div className="landing-grid2" style={{ display: "grid", gridTemplateColumns: "460px minmax(0, 1fr)", gap: 64, alignItems: "center" }}>
+          <div style={{ background: "var(--color-surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 30, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>Enregistrement · 12:04</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, height: 52 }}>
+              {[14, 26, 42, 20, 50, 16, 34, 24, 44, 12, 30].map((h, i) => (
+                <span key={i} style={{ width: 3, height: h, borderRadius: 2, background: i >= 2 && i <= 4 ? "var(--color-accent)" : "var(--color-neutral-700)" }} />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <span className="btn btn-secondary">Pause</span>
+              <span className="btn btn-primary">Terminer</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>Dictaphone</span>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 30, lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>En salle, un seul bouton</h2>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: "var(--color-neutral-300)", maxWidth: 420 }}>
+              Le micro de l&apos;ordinateur suffit. Rien à installer, aucune caméra sollicitée, et la même
+              chaîne de traitement qu&apos;en visio : transcription, modération, compte rendu.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="conformite" style={{ background: "var(--color-neutral-900)" }}>
+        <div className="landing-grid2" style={{ maxWidth: 1240, margin: "0 auto", padding: "80px 56px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 480px", gap: 64, alignItems: "start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <span style={{ fontSize: 12, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--color-accent-300)" }}>Conformité</span>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 32, lineHeight: 1.15, letterSpacing: "-0.02em", margin: 0, maxWidth: 340 }}>Un seul sous-traitant IA, en Europe.</h2>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: "var(--color-neutral-300)", maxWidth: 420 }}>
+              Une seule société à évaluer dans votre registre de traitement. Les preuves de consentement
+              sont conservées à part, et l&apos;effacement d&apos;une réunion est immédiat quand vous le
+              demandez.
+            </p>
+            <Link href="/rgpd" style={{ fontSize: 14 }}>Lire la page RGPD →</Link>
+          </div>
+          <table className="table" style={{ width: "100%" }}>
+            <tbody>
+              <tr><td>Transcription et résumé</td><td style={{ textAlign: "right", color: "var(--color-neutral-400)" }}>Mistral (UE)</td></tr>
+              <tr><td>Conservation du contenu</td><td style={{ textAlign: "right", color: "var(--color-neutral-400)" }}>30 jours, réglable</td></tr>
+              <tr><td>Preuve de consentement</td><td style={{ textAlign: "right", color: "var(--color-neutral-400)" }}>conservée 5 ans</td></tr>
+              <tr><td>Droits RGPD</td><td style={{ textAlign: "right", color: "var(--color-neutral-400)" }}>formulaire intégré</td></tr>
+              <tr><td>Caméra</td><td style={{ textAlign: "right", color: "var(--color-neutral-400)" }}>jamais utilisée</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="questions" style={{ maxWidth: 1240, margin: "0 auto", padding: "80px 56px", display: "grid", gridTemplateColumns: "280px minmax(0, 1fr)", gap: 64 }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 28, lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>Les questions qu&apos;on nous pose</h2>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "18px 0", borderTop: "1px solid var(--color-neutral-800)", display: "flex", flexDirection: "column", gap: 8 }}>
+            <span style={{ fontSize: 16, color: "var(--color-neutral-100)" }}>Les participants sont-ils prévenus ?</span>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--color-neutral-400)", maxWidth: 560 }}>
+              Le bot porte un nom explicite dans la liste des participants, et l&apos;organisateur reçoit un
+              texte d&apos;invitation à coller, avec un lien où chacun peut refuser.
+            </p>
+          </div>
+          <details className="landing-faq-row">
+            <summary>Combien de temps gardez-vous l&apos;audio ?</summary>
             <p>
-              Collez le lien Google Meet, Microsoft Teams ou Zoom : la plateforme est détectée
-              automatiquement et un bot nommé &laquo;&nbsp;Navi Notetaker&nbsp;&raquo; rejoint la réunion
-              pour capter l&apos;audio et transcrire en direct.
+              Par défaut 30 jours, réglable jusqu&apos;à 1 an au moment de la création de la réunion. La
+              suppression peut aussi être demandée à tout moment, par l&apos;organisateur ou un participant.
             </p>
-          </div>
+          </details>
+          <details className="landing-faq-row">
+            <summary>Peut-on lire un compte rendu sans compte ?</summary>
+            <p>
+              Oui, via le lien de partage envoyé aux participants — accessible sans création de compte.
+            </p>
+          </details>
+          <details className="landing-faq-row landing-faq-row-last">
+            <summary>Ça marche avec Teams et Zoom ?</summary>
+            <p>
+              Oui, Google Meet, Microsoft Teams et Zoom sont pris en charge : la plateforme est détectée
+              automatiquement à partir du lien collé.
+            </p>
+          </details>
         </div>
       </section>
 
-      <section className="landing-section" style={{ background: "var(--surface-1)" }}>
-        <h2 className="landing-section-title">Comment ça marche</h2>
-        <div className="landing-steps">
-          <div className="landing-step-card">
-            <div className="landing-step-num">1</div>
-            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Consentement</h3>
-            <p className="secondary-text" style={{ fontSize: 13 }}>
-              Vous confirmez la finalité et la durée de conservation avant chaque enregistrement.
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "0 56px 96px" }}>
+        <div style={{ background: "var(--color-surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 56, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40, backgroundImage: "radial-gradient(50% 120% at 85% 50%, var(--color-accent-900), transparent 70%)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: 32, lineHeight: 1.15, letterSpacing: "-0.02em", margin: 0, maxWidth: 420 }}>
+              {loggedIn ? "Retrouvez vos réunions" : "Le prochain compte rendu s'écrit tout seul."}
+            </h2>
+            <p style={{ margin: 0, fontSize: 14, color: "var(--color-neutral-400)" }}>
+              {loggedIn ? "Votre historique et vos comptes rendus vous attendent." : "Gratuit pour commencer, sans carte bancaire."}
             </p>
           </div>
-          <div className="landing-step-card">
-            <div className="landing-step-num">2</div>
-            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Captation</h3>
-            <p className="secondary-text" style={{ fontSize: 13 }}>
-              Micro ou bot de réunion selon le mode choisi, sans accès caméra.
-            </p>
-          </div>
-          <div className="landing-step-card">
-            <div className="landing-step-num">3</div>
-            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Transcription et modération</h3>
-            <p className="secondary-text" style={{ fontSize: 13 }}>
-              Transcription automatique attribuée par intervenant, avec une vérification de modération.
-            </p>
-          </div>
-          <div className="landing-step-card">
-            <div className="landing-step-num">4</div>
-            <h3 style={{ fontSize: 14, margin: "0 0 6px", fontWeight: 500 }}>Compte-rendu</h3>
-            <p className="secondary-text" style={{ fontSize: 13 }}>
-              Résumé, décisions et actions structurées, exportables en PDF ou partageables par lien.
-            </p>
-          </div>
+          <Link href={loggedIn ? "/dashboard" : "/sign-up"} className="btn btn-primary">
+            {loggedIn ? "Aller à mon espace" : "Créer un compte"}
+          </Link>
         </div>
       </section>
 
-      <section className="landing-section">
-        <div className="landing-icon-badge centered">
-          <Icon>
-            <rect x="3" y="5" width="18" height="16" rx="2" />
-            <path d="M3 10h18" />
-            <path d="M8 3v4" />
-            <path d="M16 3v4" />
-          </Icon>
-        </div>
-        <h2 className="landing-section-title">Ne manquez plus une réunion</h2>
-        <p className="landing-section-subtitle">
-          Connectez Google Calendar ou Microsoft Outlook : Navi vérifie votre agenda toutes les 5 minutes
-          et envoie automatiquement le bot à l&apos;heure de la réunion, sans action de votre part.
-        </p>
-      </section>
-
-      <section className="landing-section" style={{ background: "var(--surface-1)" }}>
-        <h2 className="landing-section-title">Conforme RGPD, pas juste en apparence</h2>
-        <div className="landing-trust">
-          <div>
-            <p className="landing-trust-statement">
-              <strong>1 seul sous-traitant IA</strong>, basé dans l&apos;Union européenne.
-            </p>
-            <p className="landing-trust-sub">
-              Un choix délibéré pour limiter la surface de traitement de vos données : pas de cascade de
-              fournisseurs tiers, un pipeline unique, auditable de bout en bout.
-            </p>
+      <footer style={{ borderTop: "1px solid var(--color-neutral-800)" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "24px 56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>Navi</span>
+          <div style={{ display: "flex", gap: 20, fontSize: 12 }}>
+            <Link href="/aide" style={{ color: "var(--color-neutral-500)" }}>Aide</Link>
+            <a href="#questions" style={{ color: "var(--color-neutral-500)" }}>FAQ</a>
+            <a href="#conformite" style={{ color: "var(--color-neutral-500)" }}>RGPD</a>
           </div>
-          <ul className="landing-trust-list">
-            <li>
-              <div>
-                <strong>Consentement réellement vérifié</strong>
-                <p>Persisté en base et contrôlé côté serveur avant tout traitement — pas juste une case cochée dans l&apos;interface.</p>
-              </div>
-            </li>
-            <li>
-              <div>
-                <strong>Droit à l&apos;effacement effectif</strong>
-                <p>Organisateurs et participants peuvent demander l&apos;accès, la rectification ou la suppression de leurs données à tout moment.</p>
-              </div>
-            </li>
-            <li>
-              <div>
-                <strong>Conservation limitée et configurable</strong>
-                <p>Durée choisie par réunion, purge automatique à expiration.</p>
-              </div>
-            </li>
-          </ul>
         </div>
-        <p style={{ textAlign: "center", marginTop: 32 }}>
-          <Link href="/faq" className="landing-btn">Voir la FAQ juridique complète</Link>
-        </p>
-      </section>
-
-      <section className="landing-section landing-section-narrow">
-        <h2 className="landing-section-title">Questions fréquentes</h2>
-        <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-          <div style={{ fontWeight: 500, marginBottom: 6 }}>Navi a-t-il accès à ma caméra ?</div>
-          <div className="secondary-text">Non, jamais, ni en visio ni en dictaphone : seul l&apos;audio est traité.</div>
-        </div>
-        <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-          <div style={{ fontWeight: 500, marginBottom: 6 }}>Que se passe-t-il si un fournisseur IA est indisponible ?</div>
-          <div className="secondary-text">Navi ne plante jamais pour cette raison : bascule automatique en mode simulé, signalée dans l&apos;interface.</div>
-        </div>
-        <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-          <div style={{ fontWeight: 500, marginBottom: 6 }}>Puis-je refuser d&apos;être enregistré en tant que participant ?</div>
-          <div className="secondary-text">Oui, une vraie demande RGPD est alors enregistrée auprès de l&apos;organisateur.</div>
-        </div>
-        <p style={{ textAlign: "center", marginTop: 16 }}>
-          <Link href="/faq">Voir toute la FAQ →</Link>
-        </p>
-      </section>
-
-      <section className="landing-hero" style={{ paddingTop: 24 }}>
-        <h1 style={{ fontSize: 28 }}>{loggedIn ? "Retrouvez vos réunions" : "Prêt à essayer Navi ?"}</h1>
-        <div className="landing-cta-row">
-          {loggedIn ? (
-            <Link href="/dashboard" className="landing-btn landing-btn-primary">Aller à mon espace</Link>
-          ) : (
-            <Link href="/sign-up" className="landing-btn landing-btn-primary">Créer un compte gratuitement</Link>
-          )}
-        </div>
-      </section>
-
-      <LandingFooter />
+      </footer>
     </div>
   );
 }

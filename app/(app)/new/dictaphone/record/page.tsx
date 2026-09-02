@@ -30,6 +30,7 @@ function RecordInner() {
   const [seconds, setSeconds] = useState(0);
   const [sizeKb, setSizeKb] = useState(0);
   const [recording, setRecording] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
 
@@ -90,6 +91,20 @@ function RecordInner() {
     };
   }, []);
 
+  function togglePause() {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
+    if (recorder.state === "recording") {
+      recorder.pause();
+      if (timerRef.current) clearInterval(timerRef.current);
+      setPaused(true);
+    } else if (recorder.state === "paused") {
+      recorder.resume();
+      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      setPaused(false);
+    }
+  }
+
   async function stopAndProcess() {
     const recorder = mediaRecorderRef.current;
     if (!recorder) return;
@@ -132,19 +147,26 @@ function RecordInner() {
           <p style={{ color: "var(--danger)", fontSize: 13, textAlign: "center" }}>{error}</p>
         ) : (
           <>
-            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>Enregistrement · {mm}:{ss}</span>
+            <span style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>
+              {paused ? "En pause" : "Enregistrement"} · {mm}:{ss}
+            </span>
             <div style={{ display: "flex", alignItems: "center", gap: 4, height: 52 }}>
               {[14, 26, 42, 20, 50, 16, 34, 24, 44, 12, 30].map((h, i) => (
-                <span key={i} style={{ width: 3, height: h, borderRadius: 2, background: i >= 2 && i <= 4 ? "var(--accent)" : "var(--color-neutral-700)" }} />
+                <span key={i} style={{ width: 3, height: h, borderRadius: 2, background: !paused && i >= 2 && i <= 4 ? "var(--accent)" : "var(--color-neutral-700)" }} />
               ))}
             </div>
             <span className="muted">{Math.round(sizeKb)} Ko captes</span>
           </>
         )}
 
-        <button className="btn btn-primary" disabled={!recording || finishing} onClick={stopAndProcess}>
-          {finishing ? "Envoi et transcription…" : "Terminer la reunion"}
-        </button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button className="btn btn-secondary" disabled={!recording || finishing} onClick={togglePause}>
+            {paused ? "Reprendre" : "Pause"}
+          </button>
+          <button className="btn btn-primary" disabled={!recording || finishing} onClick={stopAndProcess}>
+            {finishing ? "Envoi et transcription…" : "Terminer"}
+          </button>
+        </div>
       </div>
     </div>
   );

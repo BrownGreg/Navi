@@ -51,6 +51,16 @@ export default function NewMeetingPage() {
           </button>
         </div>
 
+        {mode === "visio" ? (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, borderTop: "1px solid var(--color-neutral-800)", paddingTop: 16 }}>
+            <span style={{ width: 15, height: 15, borderRadius: "var(--radius-sm)", border: "1px solid var(--color-accent)", marginTop: 1, flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-neutral-400)" }}>
+              Je previens les participants. Le bot apparait sous le nom « Navi Notetaker — enregistrement » et
+              un lien de consentement est fourni a coller dans l&apos;invitation.
+            </span>
+          </div>
+        ) : null}
+
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 9 }}>
           <button onClick={() => router.push("/dashboard")} className="btn btn-secondary">Annuler</button>
           <button onClick={continueTo} className="btn btn-primary" disabled={!mode}>Continuer</button>
