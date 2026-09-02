@@ -153,7 +153,7 @@ const fr = {
     pro: {
       badge: "Populaire",
       name: "Pro",
-      amount: "12€",
+      amount: "29,99€",
       period: "/mois",
       desc: "Pour un usage régulier, seul ou en petite équipe.",
       features: ["Réunions illimitées", "Dictaphone + visio (bot Meet, Teams, Zoom)", "Calendrier connecté, bot automatique", "Export PDF et partage par lien", "Conservation configurable"],
@@ -425,6 +425,7 @@ const fr = {
       copy: "Copier le texte",
       copied: "Copie ✓",
       error: "Impossible de rejoindre la reunion. Verifiez le lien et reessayez.",
+      quotaError: "Plafond d'usage mensuel atteint pour votre formule. Contactez-nous pour la formule Équipe si vous avez besoin d'un volume supérieur.",
       submit: "Rejoindre la reunion",
       submitting: "Connexion du bot…",
       rgpdLine: "Droits RGPD des participants :",
@@ -461,6 +462,8 @@ const fr = {
     },
     record: {
       micError: "Acces au microphone refuse ou indisponible. Autorisez le micro dans votre navigateur puis rechargez la page.",
+      quotaError: "Plafond d'usage mensuel atteint pour votre formule. Contactez-nous pour la formule Équipe si vous avez besoin d'un volume supérieur.",
+      sendError: "Échec de l'envoi de l'enregistrement. Vérifiez votre connexion et réessayez.",
       recording: "Enregistrement",
       paused: "En pause",
       captured: "{kb} Ko captes",

@@ -135,7 +135,12 @@ function RecordInner() {
     form.append("audio", blob, `recording.${extensionForMimeType(mimeType)}`);
     form.append("durationSec", String(seconds));
 
-    await apiFetch("/api/transcribe", { method: "POST", body: form });
+    const res = await apiFetch("/api/transcribe", { method: "POST", body: form });
+    if (!res.ok) {
+      setFinishing(false);
+      setError(res.status === 402 ? r.quotaError : r.sendError);
+      return;
+    }
     router.push(`/new/dictaphone/processing?id=${meetingId}`);
   }
 

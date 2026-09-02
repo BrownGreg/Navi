@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 import models
 from clients.vexa import join_bot
+from crud import require_within_quota
 
 # Nom affiche par defaut du bot dans la liste des participants de la reunion
 # (Meet/Teams/Zoom) - seul signal reellement visible par les participants
@@ -21,8 +22,18 @@ async def join_meeting(
 
     Partagee par le join manuel (routers/visio.py) et le join automatique
     declenche par le scheduler calendrier (scheduler.py), pour garantir un
-    comportement identique entre les deux origines.
+    comportement identique entre les deux origines - y compris le controle de
+    plafond d'usage ci-dessous : le placer ici plutot que dans chaque appelant
+    garantit qu'aucun des deux chemins ne peut demarrer un bot (donc engager
+    du cout Vexa) une fois le plafond mensuel deja atteint.
+
+    Leve HTTPException(402) si le plafond est deja atteint - propage tel
+    quel via /visio/join (routers/visio.py), et capturee par le
+    ``except Exception`` generique du scheduler (marque l'evenement "failed"
+    sans bloquer les autres joins, cf. scheduler.py).
     """
+    require_within_quota(db, meeting.owner_id, "visio")
+
     effective_bot_name = bot_name or DEFAULT_BOT_NAME
     joined, source = await join_bot(platform, native_meeting_id, effective_bot_name)
 

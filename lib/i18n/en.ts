@@ -154,7 +154,7 @@ const en: typeof fr = {
     pro: {
       badge: "Popular",
       name: "Pro",
-      amount: "€12",
+      amount: "€29.99",
       period: "/month",
       desc: "For regular use, solo or in a small team.",
       features: ["Unlimited meetings", "Dictaphone + video (Meet, Teams, Zoom bot)", "Connected calendar, automatic bot", "PDF export and link sharing", "Configurable retention"],
@@ -426,6 +426,7 @@ const en: typeof fr = {
       copy: "Copy the text",
       copied: "Copied ✓",
       error: "Could not join the meeting. Check the link and try again.",
+      quotaError: "Monthly usage cap reached for your plan. Contact us about the Team plan if you need higher volume.",
       submit: "Join the meeting",
       submitting: "Connecting the bot…",
       rgpdLine: "Participants' GDPR rights:",
@@ -462,6 +463,8 @@ const en: typeof fr = {
     },
     record: {
       micError: "Microphone access denied or unavailable. Allow the microphone in your browser then reload the page.",
+      quotaError: "Monthly usage cap reached for your plan. Contact us about the Team plan if you need higher volume.",
+      sendError: "Failed to upload the recording. Check your connection and try again.",
       recording: "Recording",
       paused: "Paused",
       captured: "{kb} KB captured",
