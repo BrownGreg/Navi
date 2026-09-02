@@ -4,8 +4,15 @@ import { fetchAuthed } from "@/lib/server-api";
 import type { Meeting } from "@/lib/types";
 import CrView from "./CrView";
 
-export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MeetingPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { id } = await params;
+  const { tab } = await searchParams;
   const res = await fetchAuthed(`/meetings/${id}`);
   if (res.status === 404) return notFound();
   const meeting: Meeting = await res.json();
@@ -32,7 +39,12 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
           ) : (
             <button className="btn btn-secondary" disabled style={{ fontSize: 12 }}>PDF</button>
           )}
-          <Link href={`/cr/${meeting.shareId}`} className="btn btn-secondary" style={{ fontSize: 12 }}>Vue participant</Link>
+          {hasCR ? (
+            <Link href={`/reunion/${meeting.id}?tab=transcript`} className="btn btn-secondary" style={{ fontSize: 12 }}>Transcript</Link>
+          ) : (
+            <button className="btn btn-secondary" disabled style={{ fontSize: 12 }}>Transcript</button>
+          )}
+          <Link href={`/cr/${meeting.shareId}`} className="btn btn-primary" style={{ fontSize: 12 }}>Partager</Link>
         </div>
       </div>
 
@@ -41,7 +53,7 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
           <div className="card">Traitement en cours pour cette reunion.</div>
         </div>
       ) : (
-        <CrView meeting={meeting} />
+        <CrView meeting={meeting} initialTab={tab === "transcript" ? "transcript" : "resume"} />
       )}
     </div>
   );

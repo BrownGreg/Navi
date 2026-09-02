@@ -1,47 +1,75 @@
 /* ==========================================================================
-   Design system "Nocturne" — theme sombre unique (plus de variante claire).
-   Les noms de variables historiques (--surface-*, --text-*, --accent, etc.)
-   sont conserves pour que tout le CSS existant (.btn, .card, .landing-*...)
-   herite du nouveau theme sans reecriture regle par regle. Les nouveaux
-   alias --color-* couvrent le vocabulaire de la maquette (rail, coquille
-   d'app, tableau de conformite) pour les nouveaux composants.
+   Design system "Nocturne" — tokens et classes de base repris tels quels de
+   la reference (Navi App.html / Navi Landing.html, export design-tool,
+   round 7 : accent blurple #9184d9). Les alias historiques (--surface-*,
+   --text-*, --accent, etc.) restent definis en pointant vers les nouveaux
+   tokens --color-*, pour que les classes utilitaires "app" (.page, .card
+   .selectable, .pill, .label...) qui ne sont pas couvertes par les deux
+   maquettes continuent de fonctionner sans reecriture.
    ========================================================================== */
 :root {
-  --color-bg: #0B0D10;
-  --color-surface: #14161B;
-  --color-section: #0E1013;
-  --color-text: #EAEBF1;
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-2: #a7a1db;
+  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
 
-  --color-neutral-100: #EAEBF1;
-  --color-neutral-200: #CBCED9;
-  --color-neutral-300: #AEB2C0;
-  --color-neutral-400: #969BAB;
-  --color-neutral-500: #83899C;
-  --color-neutral-600: #787E91;
-  --color-neutral-700: #4A4F5E;
-  --color-neutral-800: #2C303B;
-  --color-neutral-900: #1B1E26;
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
 
-  --color-accent: #5B78F6;
-  --color-accent-200: #B7C3FC;
-  --color-accent-300: #93A5FA;
-  --color-accent-800: #1E2B6B;
-  --color-accent-900: #141D4A;
-  --color-section-glow: rgba(91, 120, 246, 0.28);
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
 
-  --font-body: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-heading: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --color-accent-2-100: #f5f4ff;
+  --color-accent-2-200: #e7e5fe;
+  --color-accent-2-300: #d2cefd;
+  --color-accent-2-400: #b5afe8;
+  --color-accent-2-500: #9690c9;
+  --color-accent-2-600: #7972a9;
+  --color-accent-2-700: #5c5783;
+  --color-accent-2-800: #423e5d;
+  --color-accent-2-900: #2b293a;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 18px;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 12px 32px -8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4), 0 32px 64px -16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --color-section: #262a60;
+  --color-section-glow: #353b80;
+  --color-section-ghost: #4c5397;
 
-  /* Alias retro-compatibles utilises par les classes existantes (.card, .btn,
-     .landing-*, etc.) : les faire pointer ici suffit a les basculer sur
-     Nocturne sans toucher a chaque regle. */
+  --font-heading: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
+
+  /* Alias retro-compatibles pour les classes "app" hors perimetre des deux
+     maquettes (.frame, .pill, .label, .card.selectable...). */
   --surface-2: var(--color-surface);
   --surface-1: var(--color-neutral-900);
   --surface-0: var(--color-bg);
@@ -52,152 +80,230 @@
   --text-muted: var(--color-neutral-600);
   --accent: var(--color-accent);
   --accent-bg: var(--color-accent-800);
-  --danger: #F2555A;
+  --danger: #f2555a;
   --radius: var(--radius-md);
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
+  margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
-  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
 }
 
-a { color: var(--accent); }
-
-.page {
-  margin: 0 auto;
-  padding: 24px 16px 48px;
-  min-height: 100vh;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--space-2);
 }
-.page-narrow { max-width: 420px; }
+h1 { font-size: 18px; }
+h2 { font-size: 15px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+img { display: block; max-width: 100%; }
+figure { margin: 0; }
+figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
 
-.frame {
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  border-radius: 20px;
-  padding: 16px;
+/* — rules — */
+.hr {
+  height: 1px; border: 0; margin: var(--space-4) 0;
+  background: linear-gradient(to right,
+    transparent, var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px), transparent);
+}
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-neutral-800) 48px, var(--color-neutral-800) calc(100% - 48px), transparent);
 }
 
-.row {
+/* Page d'accueil (app/page.tsx) : la grille produit alterne visio/dictaphone
+   sur deux colonnes larges, repliee en une seule sous 1080px. */
+@media (max-width: 1080px) {
+  .landing-grid2 { grid-template-columns: minmax(0, 1fr) !important; }
+}
+.landing-faq-row {
+  padding: 18px 0;
+  border-top: 1px solid var(--color-neutral-800);
+  display: block;
+}
+.landing-faq-row-last { border-bottom: 1px solid var(--color-neutral-800); }
+.landing-faq-row summary {
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--color-neutral-100);
+  list-style: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+.landing-faq-row summary::-webkit-details-marker { display: none; }
+.landing-faq-row summary::after { content: "+"; font-size: 16px; color: var(--color-neutral-500); flex-shrink: 0; }
+.landing-faq-row[open] summary::after { content: "\2212"; }
+.landing-faq-row p {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-neutral-400);
+  max-width: 560px;
 }
 
-.card {
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  background: var(--surface-2);
-}
-
-.card.selectable { cursor: pointer; }
-.card.selected { border-width: 2px; border-color: var(--text-primary); }
-
-.pill, .tag {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  color: var(--text-secondary);
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.pill.rec { color: var(--danger); border-color: var(--danger); }
-.pill.accent, .tag-accent { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
-.tag-outline { color: var(--text-secondary); border-color: var(--border-strong); background: transparent; }
-
-/* Boutons : contours plats par defaut, jamais d'aplat colore hormis au survol.
-   .btn seul = auto-largeur (contenu) ; .btn-block = pleine largeur (formulaires
-   mobile-first de l'ancien .page). */
+/* — buttons — */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: 10px 16px;
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 14px; line-height: 1.2; color: var(--color-text);
+  background: transparent; border: 1px solid transparent;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border-radius: var(--radius-md);
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
+.btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.btn-primary:active { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
+.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; margin-top: var(--space-2); }
+
+/* — forms — */
+.field > label {
+  display: block; font-size: 12px; margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
+  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+textarea.input { min-height: 90px; resize: vertical; }
+.radio { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.radio input, .seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.radio .dot-input { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 1.5px solid var(--color-divider); }
+.radio:hover .dot-input { border-color: var(--color-accent); }
+.radio input:checked + .dot-input { border-color: var(--color-accent); background: var(--color-accent); box-shadow: inset 0 0 0 4px var(--color-bg); }
+.radio input:focus-visible + .dot-input { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.seg { display: inline-flex; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
+.seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt:has(input:checked) { color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* — cards — */
+.card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface);
+}
+.card-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
+.card-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 17px; line-height: 1.2; }
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
+.card-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: color-mix(in srgb, var(--color-text) 50%, transparent); }
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+/* Extension app (hors perimetre des deux maquettes) : etat selectionnable
+   pour les cases de consentement / choix de plateforme, en coherence avec le
+   systeme d'elevation par ombre plutot que par bordure. */
+.card.selectable { cursor: pointer; }
+.card.selected { box-shadow: 0 0 0 1.5px var(--color-accent); }
+
+/* — tags — */
+.tag { display: inline-flex; align-items: center; font-size: 11px; letter-spacing: 0.02em; padding: 3px 10px; border-radius: calc(var(--radius-md) * 0.75); }
+.tag-accent { background: var(--color-accent-800); color: var(--color-accent-100); }
+.tag-accent-2 { background: var(--color-accent-2-800); color: var(--color-accent-2-100); }
+.tag-neutral { background: var(--color-neutral-800); color: var(--color-neutral-100); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+.pill { font-size: 11px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-secondary); display: inline-block; white-space: nowrap; }
+.pill.rec { color: var(--danger); border-color: var(--danger); }
+.pill.accent { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+
+/* — navigation — */
+.nav { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: none; }
+.nav-brand { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 18px; margin-right: auto; }
+.nav a { color: inherit; text-decoration: none; font-size: 14px; }
+.nav a:hover, .nav a[aria-current='page'] { color: var(--color-accent); }
+
+/* — tables — */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 60%, transparent); padding: var(--space-2); border-bottom: 1px solid transparent; }
+.table td { padding: var(--space-2); border-bottom: 1px solid transparent; }
+.table thead tr {
+  background: linear-gradient(to right, transparent, var(--color-divider) 48px, var(--color-divider) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+.table tbody tr {
+  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px, color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+.table tbody tr:hover {
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-text) 4%, transparent), color-mix(in srgb, var(--color-text) 4%, transparent)) no-repeat 0 0 / 100% 100%,
+    linear-gradient(to right, transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px, color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
 }
 
-.btn:hover { background: var(--surface-1); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-block { display: flex; width: 100%; }
+/* — dialog — */
+.dialog-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent); }
+.dialog { width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-lg); }
+.dialog-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 20px; }
+.dialog-body { font-size: 14px; opacity: 0.85; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
-/* Primaire = contour accent, jamais un aplat violet/colore plein. */
-.btn-primary {
-  background: transparent;
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.btn-primary:hover { background: var(--color-accent-900); }
+.pulse { animation: navi-pulse 2.4s ease-in-out infinite; }
+@keyframes navi-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; opacity: 1; } }
 
-.btn-secondary { background: var(--surface-2); color: var(--text-primary); border-color: var(--border-strong); }
+/* ==========================================================================
+   Pages utilitaires etroites (hors perimetre des deux maquettes : formulaires
+   de compte, aide, FAQ, RGPD...) — layout mobile-first en colonne centree.
+   ========================================================================== */
+.page { margin: 0 auto; padding: 24px 16px 48px; min-height: 100vh; }
+.page-narrow { max-width: 420px; }
 
-.btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
-.btn-ghost:hover { background: var(--surface-1); color: var(--text-primary); }
+.frame { background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 16px; }
+.row { display: flex; align-items: center; justify-content: space-between; }
 
-.btn-row { display: flex; gap: 8px; }
-.btn-row .btn { margin-top: 0; }
-
-.input, textarea.input, select.input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  font-size: 14px;
-  background: var(--surface-2);
-  color: var(--text-primary);
-  font-family: inherit;
-}
-
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 12px; color: var(--text-muted); }
-
-.table { border-collapse: collapse; }
-.table td { padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-primary); }
-.table tr:first-child td { border-top: none; }
-
-.label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
+.label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
 .muted { color: var(--text-muted); font-size: 12px; }
 .secondary-text { color: var(--text-secondary); font-size: 13px; }
 
-h1 { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
-h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
-
-.hatch {
-  background: repeating-linear-gradient(45deg, var(--surface-1), var(--surface-1) 7px, var(--border) 7px, var(--border) 8px);
-}
-
+.hatch { background: repeating-linear-gradient(45deg, var(--surface-1), var(--surface-1) 7px, var(--border) 7px, var(--border) 8px); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong); display: inline-block; }
 .dot.active { background: var(--text-primary); }
 
 .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .top-actions a { font-size: 13px; text-decoration: none; color: var(--text-secondary); }
 
-/* --- Landing page : pleine largeur, contrairement au conteneur .page (420px) du reste de l'app ---
-   Palette neutre froide + cards avec ombre plutot que bordure seule, dans l'esprit Cal.com
-   (cf. https://getdesign.md/cal/design-md), scopee a .landing pour ne pas affecter le reste de l'app. */
-
+/* ==========================================================================
+   Classes "landing-*" : encore utilisees par /pricing et /faq (hors
+   perimetre de la maquette Navi Landing.html, qui ne couvre que la page
+   d'accueil /). La page d'accueil elle-meme (app/page.tsx) reproduit
+   desormais la maquette en styles inline et ne s'appuie plus sur ces
+   classes. Repeintes automatiquement via les alias --accent/--text-*
+   redefinis plus haut.
+   ========================================================================== */
 .landing {
   --landing-border: rgba(255, 255, 255, 0.1);
   --landing-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.45);
@@ -272,38 +378,6 @@ h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
 .landing-hero p.lead { font-size: 17px; color: var(--text-secondary); max-width: 560px; margin: 0 auto 30px; line-height: 1.55; }
 
 .landing-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-
-/* Aperçu produit du hero : chrome de navigateur + coquille d'app miniature,
-   plutot qu'une simple card de demo isolee. */
-.landing-hero-visual { max-width: 900px; margin: 48px auto 0; text-align: left; position: relative; }
-.landing-hero-visual::before {
-  content: "";
-  position: absolute;
-  inset: -30px 30px auto;
-  height: 220px;
-  background: radial-gradient(50% 80% at 50% 0%, var(--color-accent-900), transparent 70%);
-  pointer-events: none;
-}
-.landing-browser {
-  position: relative;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-.landing-browser-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 16px;
-  border-bottom: 1px solid var(--color-neutral-800);
-  background: var(--color-neutral-900);
-}
-.landing-browser-dots { display: flex; gap: 6px; }
-.landing-browser-dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--color-neutral-700); }
-.landing-browser-url { margin: 0 auto; padding: 4px 14px; border-radius: 999px; background: var(--color-bg); font-size: 11px; color: var(--color-neutral-500); }
-.landing-preview-transcript p { font-size: 13px; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.5; text-align: left; }
-.landing-preview-transcript strong { color: var(--text-primary); }
 
 .landing-btn {
   display: inline-flex;
@@ -552,10 +626,6 @@ h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
 .landing-faq-item[open] summary::after { content: "\2212"; }
 .landing-faq-item .secondary-text { margin-top: 12px; line-height: 1.6; }
 
-.pulse { animation: navi-pulse 2.4s ease-in-out infinite; }
-@keyframes navi-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .pulse { animation: none; opacity: 1; } }
-
 /* ==========================================================================
    Coquille de l'app authentifiee : rail + liste persistante + zone
    principale. Groupe de routes (app) — n'ajoute aucun segment d'URL, donc
@@ -566,7 +636,7 @@ h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
 
 .app-rail {
   width: 60px;
-  border-right: 1px solid var(--color-neutral-800);
+  border-right: 1px solid var(--color-neutral-900);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -578,7 +648,7 @@ h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
 .app-rail-icon {
   width: 26px; height: 26px; border-radius: var(--radius-md);
   display: flex; align-items: center; justify-content: center;
-  color: var(--color-neutral-500); text-decoration: none;
+  color: var(--color-neutral-600); text-decoration: none;
 }
 .app-rail-icon:hover, .app-rail-icon.active { background: var(--color-neutral-900); color: var(--color-neutral-200); }
 .app-rail-avatar {
@@ -590,7 +660,7 @@ h2 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
 
 .app-sidebar {
   width: 300px;
-  border-right: 1px solid var(--color-neutral-800);
+  border-right: 1px solid var(--color-neutral-900);
   display: flex; flex-direction: column;
   padding: 18px 12px; gap: 14px;
   background: var(--color-bg);

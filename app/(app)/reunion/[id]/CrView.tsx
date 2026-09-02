@@ -27,7 +27,7 @@ function urgenceBadgeStyle(urgence: string): React.CSSProperties {
   return { display: "inline-block", fontSize: 12, padding: "3px 10px", borderRadius: 999, border: `1px solid ${s.border}`, color: s.color, background: s.background };
 }
 
-export default function CrView({ meeting }: { meeting: Meeting }) {
+export default function CrView({ meeting, initialTab = "resume" }: { meeting: Meeting; initialTab?: Tab }) {
   const hasClassification = !!meeting.classification;
   const showClassifyButton = meeting.status === "ready" && !hasClassification;
   const tabs: { id: Tab; label: string }[] = [
@@ -36,7 +36,7 @@ export default function CrView({ meeting }: { meeting: Meeting }) {
     { id: "transcript", label: "Transcript" },
     ...(hasClassification ? [{ id: "analyse" as Tab, label: "Analyse" }] : []),
   ];
-  const [tab, setTab] = useState<Tab>("resume");
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}>
