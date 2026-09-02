@@ -65,3 +65,10 @@ services:
       - key: MICROSOFT_REDIRECT_URI
         # Meme remarque que GOOGLE_REDIRECT_URI : origine navi-web, pas ai-service.
         sync: false
+      - key: SCALEWAY_API_KEY
+        # Sous-traitant de secours (CR + classification uniquement) si
+        # Mistral echoue — optionnel, https://console.scaleway.com
+        sync: false
+      - key: SENTRY_DSN
+        # Monitoring optionnel — creer un projet Python/FastAPI sur sentry.io
+        sync: false
