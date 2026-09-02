@@ -113,3 +113,11 @@ JWT_SECRET = os.environ.get("JWT_SECRET")
 AI_SERVICE_DATABASE_URL = os.environ.get("AI_SERVICE_DATABASE_URL", "sqlite:///./navi.db")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
+
+# Monitoring (Sentry) - optionnel, vide par defaut. Cf. main.py : quand
+# renseignee, capture automatiquement toute exception non geree ET tout
+# logger.error(...) existant (bascules mock/secours de clients/voxtral.py,
+# mistral_cr.py, classifier.py, moderation.py, scaleway.py, scheduler.py)
+# via l'integration logging de sentry-sdk - aucun changement necessaire sur
+# ces call sites deja en place. Sans cle, aucun comportement different.
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
