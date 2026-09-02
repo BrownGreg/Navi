@@ -15,6 +15,11 @@ const CONSENT_TEXT_VERSION = "2026-08-29-v1";
 
 type Platform = "google_meet" | "teams" | "zoom";
 
+// Distingue le rejet HTTP 402 (plafond d'usage mensuel, cf.
+// ai-service/crud.require_within_quota) des autres echecs de join, pour
+// afficher un message actionnable plutot que l'erreur generique "echec du join".
+class QuotaExceededError extends Error {}
+
 export default function VisioConsentPage() {
   const { t, locale } = useI18n();
   const v = t.app.visioConsent;
@@ -146,11 +151,12 @@ export default function VisioConsentPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ meetingId: meeting.id, platform, nativeMeetingId })
       });
+      if (joinRes.status === 402) throw new QuotaExceededError();
       if (!joinRes.ok) throw new Error("echec du join");
 
       router.push(`/new/visio/live?id=${meeting.id}`);
     } catch (err) {
-      setError(v.error);
+      setError(err instanceof QuotaExceededError ? v.quotaError : v.error);
       setStarting(false);
     }
   }

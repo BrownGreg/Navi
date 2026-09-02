@@ -121,3 +121,25 @@ IS_PRODUCTION = ENVIRONMENT == "production"
 # via l'integration logging de sentry-sdk - aucun changement necessaire sur
 # ces call sites deja en place. Sans cle, aucun comportement different.
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
+
+# Plafond d'usage mensuel (cf. rapport_technique.md §4 et §8) - couts unitaires
+# reels des sous-traitants factures a l'usage (pas des prix factures au
+# client, uniquement compares a MONTHLY_USAGE_CAP_USD ci-dessous pour estimer
+# le cout d'un compte). Reprennent les couts verifies au §2 du rapport - ne
+# pas les faire diverger sans mettre a jour le rapport en meme temps.
+VOXTRAL_COST_PER_MINUTE_USD = float(os.environ.get("VOXTRAL_COST_PER_MINUTE_USD", "0.006"))
+VEXA_COST_PER_HOUR_USD = float(os.environ.get("VEXA_COST_PER_HOUR_USD", "0.50"))
+
+# Plafond de cout mensuel reel par compte, formule Pro (29,99 EUR/mois,
+# "reunions illimitees") - protege contre le scenario worst case documente au
+# rapport §8 (39h/semaine, cout reel ~$74/mois pour ~$32 factures) sans
+# penaliser un usage professionnel normal, y compris "haute utilisation"
+# (2h/jour ouvre, cout reel $18.42/mois - reste sous ce plafond).
+#
+# Valeur : ~65 % du prix Pro en $ (taux indicatif ~1.08, cf. rapport §8), au
+# milieu de la fourchette 60-70 % recommandee par le rapport pour preserver
+# une marge reelle meme a pleine utilisation. Plafond en cout cumule (donc en
+# duree ponderee par mode : dictaphone et visio n'ont pas le meme cout/heure),
+# pas en nombre de reunions - une minorite de reunions tres longues
+# echapperait a un plafond par nombre. Voir crud.require_within_quota.
+MONTHLY_USAGE_CAP_USD = float(os.environ.get("MONTHLY_USAGE_CAP_USD", "21.0"))
