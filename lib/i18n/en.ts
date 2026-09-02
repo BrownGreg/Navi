@@ -24,6 +24,12 @@ const en: typeof fr = {
     ctaPrimary: "Create an account",
     ctaGhost: "See a sample report",
     compatible: "Compatible with",
+    timeline: [
+      { time: "2:00 PM", title: "The meeting starts", body: "Navi joins the link, or listens in the room. Its name is visible to everyone." },
+      { time: "live", title: "Decisions and actions fill in", body: "Speaker-by-speaker transcription, no camera, ever." },
+      { time: "+3 min", title: "The report is ready", body: "Reviewed, shared via a link, exported to PDF." },
+      { time: "+30 d", title: "Everything is erased", body: "Automatically, on the date you set." },
+    ],
     preview: {
       today: "Today",
       yesterday: "Yesterday",
