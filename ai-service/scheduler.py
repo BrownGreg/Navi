@@ -12,7 +12,13 @@ from services.visio_join import join_meeting
 
 logger = logging.getLogger("ai-service.scheduler")
 
-_PROVIDER_CLIENTS = {"google": google_calendar, "microsoft": microsoft_calendar}
+# Meme condition que routers/calendar.py : Microsoft mis de cote tant que
+# MICROSOFT_CLIENT_ID/SECRET ne sont pas configures (aucune connexion
+# Microsoft ne peut exister en base dans ce cas, cf. calendar.py, mais garde
+# les deux dicts coherents plutot que de s'appuyer sur cette garantie implicite).
+_PROVIDER_CLIENTS = {"google": google_calendar}
+if config.MICROSOFT_CLIENT_ID and config.MICROSOFT_CLIENT_SECRET:
+    _PROVIDER_CLIENTS["microsoft"] = microsoft_calendar
 
 scheduler = AsyncIOScheduler()
 

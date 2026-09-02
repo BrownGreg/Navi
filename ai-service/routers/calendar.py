@@ -14,7 +14,16 @@ from security import create_oauth_state, verify_oauth_state
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
-_PROVIDER_CLIENTS = {"google": google_calendar, "microsoft": microsoft_calendar}
+# Microsoft mis de cote temporairement (identifiants Azure/Entra pas encore
+# crees) : expose uniquement si MICROSOFT_CLIENT_ID/SECRET sont configures,
+# pour ne pas montrer un bouton "Connecter" casse sur le deploiement live.
+# /status ne renverra alors que Google, et le frontend (qui affiche une carte
+# par entree renvoyee) masque Microsoft sans aucun changement cote UI. Suffit
+# de renseigner les deux variables sur Render pour le faire reapparaitre,
+# sans nouveau deploiement de code - voir suggestion d'amelioration associee.
+_PROVIDER_CLIENTS = {"google": google_calendar}
+if config.MICROSOFT_CLIENT_ID and config.MICROSOFT_CLIENT_SECRET:
+    _PROVIDER_CLIENTS["microsoft"] = microsoft_calendar
 
 # Origine publique du frontend Next.js, pour les redirections post-callback
 # (l'utilisateur doit revenir sur une page servie derriere le rewrite /api/*,
