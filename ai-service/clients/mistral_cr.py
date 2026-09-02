@@ -5,6 +5,7 @@ import logging
 import httpx
 
 import config
+from clients import scaleway
 from mock import mock_generate_cr
 from schemas import CRAction, MeetingCR, TranscriptSegment
 
@@ -12,8 +13,10 @@ logger = logging.getLogger("ai-service.mistral_cr")
 
 # Generation du compte-rendu via l'API Chat Completions de Mistral AI (meme
 # fournisseur/compte que la transcription Voxtral - cf. config.py). Remplace
-# l'ancienne integration Kimi K3 (Moonshot AI, hors UE). Bascule automatique
-# sur le mock si la cle est absente ou si l'appel echoue.
+# l'ancienne integration Kimi K3 (Moonshot AI, hors UE). Si Mistral echoue,
+# retente via Scaleway (clients/scaleway.py, sous-traitant de secours UE)
+# avant de basculer sur le mock - uniquement si SCALEWAY_API_KEY est
+# configuree, sinon comportement strictement inchange.
 
 SYSTEM_PROMPT = (
     "Tu structures des comptes-rendus de reunion en francais. Reponds uniquement "
@@ -76,37 +79,44 @@ async def _post_with_retry(payload: dict) -> httpx.Response:
     raise last_err  # pragma: no cover - inatteignable, la boucle retourne ou leve avant
 
 
+def _parse_cr(res: httpx.Response) -> MeetingCR:
+    body = res.json()
+    content = body.get("choices", [{}])[0].get("message", {}).get("content")
+    if not content:
+        raise RuntimeError("empty response from chat API")
+
+    parsed = json.loads(content)
+    return MeetingCR(
+        resume=parsed.get("resume", ""),
+        decisions=parsed.get("decisions", []),
+        actions=[CRAction(**a) for a in parsed.get("actions", [])],
+        themes=parsed.get("themes", []),
+    )
+
+
 async def generate_cr(transcript: list[TranscriptSegment]) -> tuple[MeetingCR, str]:
-    if not config.MISTRAL_API_KEY:
-        return await mock_generate_cr(transcript), "mock"
+    transcript_text = "\n".join(f"{s.speaker}: {s.text}" for s in transcript)
+    payload = {
+        "model": config.MISTRAL_CHAT_MODEL,
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"Voici la transcription:\n\n{transcript_text}"},
+        ],
+    }
 
-    try:
-        transcript_text = "\n".join(f"{s.speaker}: {s.text}" for s in transcript)
+    if config.MISTRAL_API_KEY:
+        try:
+            res = await _post_with_retry(payload)
+            return _parse_cr(res), "real"
+        except Exception as err:  # noqa: BLE001 - filet de securite volontaire
+            logger.error("[mistral_cr] Mistral indisponible, tentative sous-traitant de secours: %s", err)
 
-        res = await _post_with_retry(
-            {
-                "model": config.MISTRAL_CHAT_MODEL,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Voici la transcription:\n\n{transcript_text}"},
-                ],
-            }
-        )
+    if config.SCALEWAY_API_KEY:
+        try:
+            res = await scaleway.post_chat_with_retry(payload)
+            return _parse_cr(res), "real"
+        except Exception as err:  # noqa: BLE001 - filet de securite volontaire
+            logger.error("[mistral_cr] sous-traitant de secours egalement en echec: %s", err)
 
-        body = res.json()
-        content = body.get("choices", [{}])[0].get("message", {}).get("content")
-        if not content:
-            raise RuntimeError("empty response from Mistral chat")
-
-        parsed = json.loads(content)
-        cr = MeetingCR(
-            resume=parsed.get("resume", ""),
-            decisions=parsed.get("decisions", []),
-            actions=[CRAction(**a) for a in parsed.get("actions", [])],
-            themes=parsed.get("themes", []),
-        )
-        return cr, "real"
-    except Exception as err:  # noqa: BLE001 - filet de securite volontaire
-        logger.error("[mistral_cr] fallback to mock: %s", err)
-        return await mock_generate_cr(transcript), "mock"
+    return await mock_generate_cr(transcript), "mock"

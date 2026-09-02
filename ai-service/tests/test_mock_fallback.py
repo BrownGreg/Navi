@@ -116,6 +116,124 @@ class TestMistralCrFallback:
         assert isinstance(cr, MeetingCR)
 
 
+class TestScalewayFallback:
+    """Verifie le sous-traitant de secours Scaleway (clients/scaleway.py) :
+    quand Mistral echoue mais que SCALEWAY_API_KEY est configuree,
+    generate_cr et classify doivent retenter via Scaleway avant le mock."""
+
+    @staticmethod
+    def _side_effect(scaleway_content: str):
+        scaleway_resp = AsyncMock()
+        scaleway_resp.status_code = 200
+        scaleway_resp.json = lambda: {"choices": [{"message": {"content": scaleway_content}}]}
+
+        mistral_resp = AsyncMock()
+        mistral_resp.status_code = 500
+        mistral_resp.text = "Internal Server Error"
+
+        def side_effect(url, **kwargs):
+            if url == "https://api.scaleway.ai/v1/chat/completions":
+                return scaleway_resp
+            return mistral_resp
+
+        return side_effect
+
+    async def test_generate_cr_falls_back_to_scaleway_when_mistral_fails(self) -> None:
+        transcript = [TranscriptSegment(speaker="A", text="Bonjour", start=0)]
+        content = '{"resume": "Resume via Scaleway", "decisions": [], "actions": [], "themes": []}'
+
+        with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
+            with patch("config.SCALEWAY_API_KEY", "fake-scaleway-key"):
+                with patch(
+                    "httpx.AsyncClient.post",
+                    new_callable=AsyncMock,
+                    side_effect=self._side_effect(content),
+                ):
+                    from clients import mistral_cr
+
+                    cr, source = await mistral_cr.generate_cr(transcript)
+
+        assert source == "real"
+        assert cr.resume == "Resume via Scaleway"
+
+    async def test_generate_cr_falls_back_to_mock_when_mistral_and_scaleway_fail(self) -> None:
+        transcript = [TranscriptSegment(speaker="A", text="Bonjour", start=0)]
+        fake_resp = AsyncMock()
+        fake_resp.status_code = 500
+        fake_resp.text = "Internal Server Error"
+
+        with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
+            with patch("config.SCALEWAY_API_KEY", "fake-scaleway-key"):
+                with patch(
+                    "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp
+                ):
+                    from clients import mistral_cr
+
+                    cr, source = await mistral_cr.generate_cr(transcript)
+
+        assert source == "mock"
+        assert isinstance(cr, MeetingCR)
+
+    async def test_generate_cr_skips_scaleway_when_key_absent(self) -> None:
+        """Sans SCALEWAY_API_KEY, comportement strictement identique a avant :
+        Mistral echoue -> mock direct, Scaleway jamais appele."""
+        transcript = [TranscriptSegment(speaker="A", text="Bonjour", start=0)]
+        fake_resp = AsyncMock()
+        fake_resp.status_code = 500
+        fake_resp.text = "Internal Server Error"
+
+        with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
+            with patch("config.SCALEWAY_API_KEY", None):
+                with patch(
+                    "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp
+                ) as mocked_post:
+                    from clients import mistral_cr
+
+                    cr, source = await mistral_cr.generate_cr(transcript)
+
+        assert source == "mock"
+        # Un seul hote appele (Mistral, avec ses retries) : jamais Scaleway.
+        for call in mocked_post.call_args_list:
+            assert call.args[0] != "https://api.scaleway.ai/v1/chat/completions"
+
+    async def test_classify_falls_back_to_scaleway_when_mistral_fails(self) -> None:
+        transcript = [TranscriptSegment(speaker="A", text="On valide le budget.", start=0)]
+        content = '{"tone": "positif", "urgency": "faible", "themes": ["budget"], "per_segment": []}'
+
+        with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
+            with patch("config.SCALEWAY_API_KEY", "fake-scaleway-key"):
+                with patch(
+                    "httpx.AsyncClient.post",
+                    new_callable=AsyncMock,
+                    side_effect=self._side_effect(content),
+                ):
+                    from clients import classifier
+
+                    result, source = await classifier.classify(transcript)
+
+        assert source == "real"
+        assert result.tone == "positif"
+        assert result.themes == ["budget"]
+
+    async def test_classify_falls_back_to_mock_when_mistral_and_scaleway_fail(self) -> None:
+        transcript = [TranscriptSegment(speaker="A", text="On valide le budget.", start=0)]
+        fake_resp = AsyncMock()
+        fake_resp.status_code = 500
+        fake_resp.text = "Internal Server Error"
+
+        with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
+            with patch("config.SCALEWAY_API_KEY", "fake-scaleway-key"):
+                with patch(
+                    "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_resp
+                ):
+                    from clients import classifier
+
+                    result, source = await classifier.classify(transcript)
+
+        assert source == "mock"
+        assert result.tone == "neutre"
+
+
 class TestModerationFallback:
     """Vérifie le fallback mock de clients.moderation.moderate."""
 

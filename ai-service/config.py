@@ -25,6 +25,29 @@ MISTRAL_MODERATION_URL = "https://api.mistral.ai/v1/moderations"
 MISTRAL_CHAT_MODEL = os.environ.get("MISTRAL_CHAT_MODEL", "mistral-small-latest")
 MISTRAL_MODERATION_MODEL = os.environ.get("MISTRAL_MODERATION_MODEL", "mistral-moderation-2603")
 
+# Sous-traitant de secours (Scaleway, France/UE - cf. clients/scaleway.py) pour
+# la generation du CR et la classification uniquement : si l'appel Mistral
+# echoue, ces deux clients retentent via Scaleway avant de basculer sur le
+# mock. Choisi pour rester sur un nombre volontairement limite de
+# sous-traitants, tous en UE (cf. argument de conformite de la landing page) -
+# pas de troisieme fournisseur hors UE. N'est jamais sollicite si
+# SCALEWAY_API_KEY est absente : comportement strictement identique a avant
+# dans ce cas (voir .env.example). La transcription (Voxtral, dictaphone)
+# n'a volontairement pas ce fallback ici : voir le commentaire en tete de
+# clients/voxtral.py pour le choix (auto-hebergement plutot qu'un deuxieme
+# sous-traitant tiers) et son etat non fonctionnel actuel.
+SCALEWAY_API_KEY = os.environ.get("SCALEWAY_API_KEY")
+SCALEWAY_CHAT_URL = "https://api.scaleway.ai/v1/chat/completions"
+SCALEWAY_CHAT_MODEL = os.environ.get("SCALEWAY_CHAT_MODEL", "mistral-small-3.2-24b-instruct-2506")
+
+# Fallback transcription (voir clients/voxtral.py) : PAS un sous-traitant
+# tiers mais une instance auto-hebergee de Voxtral-Mini-3B-2507 (open-weights,
+# Apache 2.0), servie via vLLM (compatible OpenAI /v1/audio/transcriptions).
+# Vide par defaut = chemin non exerce, non teste en conditions reelles (pas
+# d'infra GPU provisionnee pour ce projet) : conception documentee plutot que
+# fonctionnalite active. Voir le commentaire en tete de clients/voxtral.py.
+SELF_HOSTED_VOXTRAL_URL = os.environ.get("SELF_HOSTED_VOXTRAL_URL", "")
+
 VEXA_POLL_INTERVAL_SECONDS = 4
 
 # OAuth calendrier (auto-join) - Google Calendar et Microsoft Graph. Les
