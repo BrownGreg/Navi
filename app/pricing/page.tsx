@@ -1,68 +1,45 @@
 import Link from "next/link";
 import { isLoggedIn, LandingNav, LandingFooter } from "../landing-shell";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 export default async function PricingPage() {
-  const loggedIn = await isLoggedIn();
+  const [loggedIn, locale] = await Promise.all([isLoggedIn(), getLocale()]);
+  const t = getDictionary(locale);
+  const p = t.pricing;
+  const tiers = [
+    { name: p.free.name, badge: null as string | null, amount: p.free.amount, period: p.free.period, desc: p.free.desc, features: p.free.features as readonly string[], cta: p.free.cta, primary: false },
+    { name: p.pro.name, badge: p.pro.badge as string | null, amount: p.pro.amount, period: p.pro.period, desc: p.pro.desc, features: p.pro.features as readonly string[], cta: p.pro.cta, primary: true },
+    { name: p.team.name, badge: null as string | null, amount: p.team.amount, period: p.team.period, desc: p.team.desc, features: p.team.features as readonly string[], cta: p.team.cta, primary: false },
+  ];
 
   return (
     <div className="landing">
       <LandingNav loggedIn={loggedIn} />
 
       <section className="landing-hero" style={{ paddingBottom: 8 }}>
-        <span className="landing-eyebrow">Tarifs</span>
-        <h1 style={{ fontSize: 36 }}>Un tarif simple, sans surprise</h1>
-        <p className="lead">
-          Commencez gratuitement, passez à Pro quand vos réunions s&apos;enchaînent.
-        </p>
+        <span className="landing-eyebrow">{p.eyebrow}</span>
+        <h1 style={{ fontSize: 36 }}>{p.h1}</h1>
+        <p className="lead">{p.lead}</p>
       </section>
 
       <section className="landing-section landing-section-narrow" style={{ paddingTop: 8, maxWidth: 900 }}>
         <div className="landing-pricing-grid">
-          <div className="landing-price-card">
-            <div className="landing-price-name">Gratuit</div>
-            <div className="landing-price-amount">0€<span>/mois</span></div>
-            <p className="landing-price-desc">Pour découvrir Navi sur vos premières réunions.</p>
-            <ul className="landing-price-features">
-              <li>5 réunions par mois</li>
-              <li>Mode dictaphone uniquement</li>
-              <li>Compte-rendu généré automatiquement</li>
-              <li>Conservation 30 jours</li>
-            </ul>
-            <Link href="/sign-up" className="landing-btn">Commencer gratuitement</Link>
-          </div>
-
-          <div className="landing-price-card featured">
-            <span className="landing-price-badge">Populaire</span>
-            <div className="landing-price-name">Pro</div>
-            <div className="landing-price-amount">12€<span>/mois</span></div>
-            <p className="landing-price-desc">Pour un usage régulier, seul ou en petite équipe.</p>
-            <ul className="landing-price-features">
-              <li>Réunions illimitées</li>
-              <li>Dictaphone + visio (bot Meet, Teams, Zoom)</li>
-              <li>Calendrier connecté, bot automatique</li>
-              <li>Export PDF et partage par lien</li>
-              <li>Conservation configurable</li>
-            </ul>
-            <Link href="/sign-up" className="landing-btn landing-btn-primary">Essayer Pro</Link>
-          </div>
-
-          <div className="landing-price-card">
-            <div className="landing-price-name">Équipe</div>
-            <div className="landing-price-amount">Sur devis</div>
-            <p className="landing-price-desc">Pour plusieurs organisateurs et une gouvernance RGPD centralisée.</p>
-            <ul className="landing-price-features">
-              <li>Tout Pro, plusieurs utilisateurs</li>
-              <li>Suivi centralisé des demandes RGPD</li>
-              <li>Durée de conservation par défaut imposée</li>
-              <li>Support prioritaire</li>
-            </ul>
-            <Link href="/sign-up" className="landing-btn">Nous contacter</Link>
-          </div>
+          {tiers.map((tier) => (
+            <div className={`landing-price-card ${tier.primary ? "featured" : ""}`} key={tier.name}>
+              {tier.badge ? <span className="landing-price-badge">{tier.badge}</span> : null}
+              <div className="landing-price-name">{tier.name}</div>
+              <div className="landing-price-amount">{tier.amount}<span>{tier.period}</span></div>
+              <p className="landing-price-desc">{tier.desc}</p>
+              <ul className="landing-price-features">
+                {tier.features.map((f) => <li key={f}>{f}</li>)}
+              </ul>
+              <Link href="/sign-up" className={`landing-btn ${tier.primary ? "landing-btn-primary" : ""}`}>{tier.cta}</Link>
+            </div>
+          ))}
         </div>
 
         <p className="secondary-text" style={{ textAlign: "center", marginTop: 32 }}>
-          Tarifs indicatifs présentés dans le cadre d&apos;un projet de certification RNCP — aucun paiement
-          réel n&apos;est traité pour le moment.
+          {p.disclaimer}
         </p>
       </section>
 

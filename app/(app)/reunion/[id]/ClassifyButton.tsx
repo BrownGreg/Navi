@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Props = {
   meetingId: string;
@@ -11,6 +12,8 @@ export default function ClassifyButton({ meetingId }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { t } = useI18n();
+  const c = t.app.classify;
 
   async function handleClassify() {
     setLoading(true);
@@ -22,13 +25,13 @@ export default function ClassifyButton({ meetingId }: Props) {
         body: JSON.stringify({ meetingId }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Erreur inconnue" }));
-        setError(data.error ?? "Erreur lors de la classification");
+        const data = await res.json().catch(() => ({ error: c.errorUnknown }));
+        setError(data.error ?? c.errorClassify);
         return;
       }
       router.refresh();
     } catch {
-      setError("Impossible de joindre le serveur");
+      setError(c.errorServer);
     } finally {
       setLoading(false);
     }
@@ -37,7 +40,7 @@ export default function ClassifyButton({ meetingId }: Props) {
   return (
     <div>
       <button className="btn" onClick={handleClassify} disabled={loading}>
-        {loading ? "Classification en cours..." : "Classer la reunion"}
+        {loading ? c.loading : c.button}
       </button>
       {error && (
         <p className="muted" style={{ color: "var(--danger)", marginTop: 4 }}>

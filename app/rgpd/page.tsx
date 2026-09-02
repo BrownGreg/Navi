@@ -3,18 +3,22 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+import { format } from "@/lib/i18n";
 
 type RgpdType = "access" | "rectification" | "erasure";
-
-const TYPES: { value: RgpdType; label: string }[] = [
-  { value: "access", label: "Acces a mes donnees" },
-  { value: "rectification", label: "Rectification" },
-  { value: "erasure", label: "Suppression de ma voix et de mes propos" }
-];
 
 function RgpdRequestInner() {
   const params = useSearchParams();
   const meetingId = params.get("meetingId") ?? "";
+  const { t } = useI18n();
+  const r = t.rgpdRequest;
+
+  const TYPES: { value: RgpdType; label: string }[] = [
+    { value: "access", label: r.types.access },
+    { value: "rectification", label: r.types.rectification },
+    { value: "erasure", label: r.types.erasure },
+  ];
 
   const [email, setEmail] = useState("");
   // Plusieurs demandes peuvent avoir du sens en meme temps (ex: acces a mes
@@ -53,34 +57,34 @@ function RgpdRequestInner() {
   if (sent) {
     return (
       <div className="page page-narrow">
-        <h1>Demande envoyee</h1>
-        <p className="secondary-text">Vous recevrez une reponse a {email} sous 30 jours (art. 12 RGPD).</p>
-        <Link href="/"><button className="btn">Retour a l&apos;accueil</button></Link>
+        <h1>{r.sentH1}</h1>
+        <p className="secondary-text">{format(r.sentBody, { email })}</p>
+        <Link href="/"><button className="btn">{r.backHome}</button></Link>
       </div>
     );
   }
 
   return (
     <div className="page page-narrow">
-      <h1>Exercer mes droits RGPD</h1>
-      <p className="secondary-text" style={{ marginBottom: 12 }}>Traite sous 30 jours (art. 12 RGPD)</p>
+      <h1>{r.h1}</h1>
+      <p className="secondary-text" style={{ marginBottom: 12 }}>{r.sub}</p>
 
-      <div className="label">Votre email</div>
+      <div className="label">{r.emailLabel}</div>
       <input
         className="input"
         style={{ marginBottom: 10 }}
-        placeholder="prenom.nom@exemple.com"
+        placeholder={r.emailPlaceholder}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <div className="label">Reunion concernee</div>
-      <div className="card">{meetingId || "Non specifiee"}</div>
+      <div className="label">{r.meetingLabel}</div>
+      <div className="card">{meetingId || r.notSpecified}</div>
 
-      <div className="label">Type de demande (plusieurs choix possibles)</div>
-      {TYPES.map((t) => (
-        <div key={t.value} className="card selectable" onClick={() => toggleType(t.value)}>
-          {selectedTypes.has(t.value) ? "✓" : "○"} {t.label}
+      <div className="label">{r.typeLabel}</div>
+      {TYPES.map((tp) => (
+        <div key={tp.value} className="card selectable" onClick={() => toggleType(tp.value)}>
+          {selectedTypes.has(tp.value) ? "✓" : "○"} {tp.label}
         </div>
       ))}
 
@@ -89,15 +93,16 @@ function RgpdRequestInner() {
         disabled={!email || selectedTypes.size === 0 || sending}
         onClick={submit}
       >
-        {sending ? "Envoi…" : selectedTypes.size > 1 ? "Envoyer les demandes" : "Envoyer la demande"}
+        {sending ? r.sending : selectedTypes.size > 1 ? r.submitMany : r.submitOne}
       </button>
     </div>
   );
 }
 
 export default function RgpdRequestPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div className="page page-narrow">Chargement…</div>}>
+    <Suspense fallback={<div className="page page-narrow">{t.common.loading}</div>}>
       <RgpdRequestInner />
     </Suspense>
   );
