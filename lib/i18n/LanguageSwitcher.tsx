@@ -22,24 +22,24 @@ export function LanguageSwitcher({ style }: { style?: React.CSSProperties }) {
     setPending(false);
   }
 
+  function itemStyle(active: boolean): React.CSSProperties {
+    return {
+      background: "none",
+      border: "none",
+      padding: 0,
+      font: "inherit",
+      fontSize: 11,
+      letterSpacing: "0.03em",
+      cursor: active ? "default" : "pointer",
+      color: active ? "var(--color-accent)" : "var(--color-neutral-600)",
+    };
+  }
+
   return (
-    <div className="seg" style={{ fontSize: 11, ...style }}>
-      <button
-        type="button"
-        className="seg-opt"
-        style={{ color: locale === "fr" ? "var(--color-accent)" : "var(--color-neutral-500)", boxShadow: locale === "fr" ? "inset 0 0 0 1px var(--color-accent)" : "none" }}
-        onClick={() => switchTo("fr")}
-      >
-        FR
-      </button>
-      <button
-        type="button"
-        className="seg-opt"
-        style={{ color: locale === "en" ? "var(--color-accent)" : "var(--color-neutral-500)", boxShadow: locale === "en" ? "inset 0 0 0 1px var(--color-accent)" : "none" }}
-        onClick={() => switchTo("en")}
-      >
-        EN
-      </button>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, ...style }}>
+      <button type="button" style={itemStyle(locale === "fr")} onClick={() => switchTo("fr")}>FR</button>
+      <span style={{ fontSize: 11, color: "var(--color-neutral-800)" }}>/</span>
+      <button type="button" style={itemStyle(locale === "en")} onClick={() => switchTo("en")}>EN</button>
     </div>
   );
 }
