@@ -1,3 +1,5 @@
+export type Project = { id: string; name: string };
+
 // Miroir de MeetingOut (ai-service/schemas.py) tel que serialise en camelCase
 // par CamelModel.
 export type Meeting = {
@@ -26,4 +28,5 @@ export type Meeting = {
     themes: string[];
     perSegment: { speaker: string; theme: string; tone: string }[];
   } | null;
+  project?: Project | null;
 };

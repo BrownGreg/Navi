@@ -367,6 +367,12 @@ const fr = {
       deleteError: "Impossible de supprimer. Reessayez.",
       todoEmpty: "Aucune action pour l'instant.",
       menuAria: "Options de la reunion",
+      project: "Projet",
+      noProject: "Sans projet",
+      allProjects: "Tous les projets",
+      newProject: "+ Nouveau projet…",
+      newProjectPrompt: "Nom du projet (ou du client) :",
+      projectError: "Impossible de deplacer la reunion. Reessayez.",
     },
     actionPriority: {
       label: "Priorite",

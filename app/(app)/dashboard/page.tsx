@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchAuthed } from "@/lib/server-api";
-import type { Meeting } from "@/lib/types";
+import type { Meeting, Project } from "@/lib/types";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
 import DashboardView from "./DashboardView";
 
@@ -8,10 +8,16 @@ import DashboardView from "./DashboardView";
 // pointe ici) : grille + vue to-do plutot qu'un rebond vers la plus recente -
 // la liste filtrable/recherche vit toujours dans la coquille persistante
 // (AppSidebar), cette page-ci sert de vue d'ensemble avec plus d'espace et
-// de detail par reunion (renommer/supprimer, priorites d'actions).
+// de detail par reunion (renommer/supprimer, priorites d'actions, regroupement
+// par projet/client).
 export default async function DashboardPage() {
-  const [res, locale] = await Promise.all([fetchAuthed("/meetings"), getLocale()]);
-  const meetings: Meeting[] = res.ok ? await res.json() : [];
+  const [meetingsRes, projectsRes, locale] = await Promise.all([
+    fetchAuthed("/meetings"),
+    fetchAuthed("/projects"),
+    getLocale(),
+  ]);
+  const meetings: Meeting[] = meetingsRes.ok ? await meetingsRes.json() : [];
+  const projects: Project[] = projectsRes.ok ? await projectsRes.json() : [];
   const t = getDictionary(locale).app.dashboard;
 
   if (meetings.length === 0) {
@@ -26,5 +32,5 @@ export default async function DashboardPage() {
     );
   }
 
-  return <DashboardView meetings={meetings} />;
+  return <DashboardView meetings={meetings} projects={projects} />;
 }

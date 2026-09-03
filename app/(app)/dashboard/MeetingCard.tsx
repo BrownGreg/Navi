@@ -2,22 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { Meeting } from "@/lib/types";
+import type { Meeting, Project } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { localeTag } from "@/lib/i18n";
 import { apiFetch } from "@/lib/api-client";
 
+const NEW_PROJECT = "__new__";
+
 type Props = {
   meeting: Meeting;
-  onRenamed: (id: string, meeting: Meeting) => void;
+  projects: Project[];
+  onUpdated: (id: string, meeting: Meeting) => void;
   onDeleted: (id: string) => void;
+  onProjectCreated: (project: Project) => void;
 };
 
-export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
+export default function MeetingCard({ meeting, projects, onUpdated, onDeleted, onProjectCreated }: Props) {
   const { t, locale } = useI18n();
   const d = t.app.dashboard;
   const s = t.app.sidebar;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(meeting.title);
   const [busy, setBusy] = useState(false);
@@ -40,7 +45,7 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
     });
     setBusy(false);
     if (res.ok) {
-      onRenamed(meeting.id, await res.json());
+      onUpdated(meeting.id, await res.json());
       setEditing(false);
     } else {
       setError(d.renameError);
@@ -58,6 +63,47 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
     } else {
       setError(d.deleteError);
     }
+  }
+
+  async function assignProject(projectId: string | null) {
+    setBusy(true);
+    setError(null);
+    const res = await apiFetch(`/api/meetings/${meeting.id}/project`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId }),
+    });
+    setBusy(false);
+    if (res.ok) {
+      onUpdated(meeting.id, await res.json());
+    } else {
+      setError(d.projectError);
+    }
+  }
+
+  async function handleProjectSelect(value: string) {
+    setMenuOpen(false);
+    setProjectMenuOpen(false);
+    if (value === NEW_PROJECT) {
+      const name = window.prompt(d.newProjectPrompt)?.trim();
+      if (!name) return;
+      setBusy(true);
+      const res = await apiFetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      setBusy(false);
+      if (res.ok) {
+        const project: Project = await res.json();
+        onProjectCreated(project);
+        await assignProject(project.id);
+      } else {
+        setError(d.projectError);
+      }
+      return;
+    }
+    await assignProject(value || null);
   }
 
   return (
@@ -99,6 +145,11 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
             <span>{new Date(meeting.date).toLocaleDateString(localeTag(locale), { day: "2-digit", month: "short" })}</span>
             {!processing ? <span>{meeting.durationMin} {s.minutes}</span> : null}
           </div>
+          {meeting.project ? (
+            <div style={{ marginTop: 6 }}>
+              <span className="tag tag-neutral" style={{ fontSize: 10 }}>{meeting.project.name}</span>
+            </div>
+          ) : null}
         </Link>
       )}
 
@@ -115,7 +166,7 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
           </button>
           {menuOpen ? (
             <>
-              <div style={{ position: "fixed", inset: 0, zIndex: 1 }} onClick={() => setMenuOpen(false)} />
+              <div style={{ position: "fixed", inset: 0, zIndex: 1 }} onClick={() => { setMenuOpen(false); setProjectMenuOpen(false); }} />
               <div
                 style={{
                   position: "absolute",
@@ -128,7 +179,7 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
                   padding: 4,
                   display: "flex",
                   flexDirection: "column",
-                  minWidth: 130,
+                  minWidth: 150,
                 }}
               >
                 <button
@@ -137,6 +188,53 @@ export default function MeetingCard({ meeting, onRenamed, onDeleted }: Props) {
                 >
                   {d.rename}
                 </button>
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setProjectMenuOpen((v) => !v); }}
+                    style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
+                  >
+                    {d.project}…
+                  </button>
+                  {projectMenuOpen ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "100%",
+                        top: 0,
+                        marginLeft: 4,
+                        background: "var(--color-surface)",
+                        boxShadow: "var(--shadow-md)",
+                        borderRadius: "var(--radius-md)",
+                        padding: 4,
+                        display: "flex",
+                        flexDirection: "column",
+                        minWidth: 150,
+                      }}
+                    >
+                      <button
+                        onClick={() => handleProjectSelect("")}
+                        style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
+                      >
+                        {d.noProject}
+                      </button>
+                      {projects.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => handleProjectSelect(p.id)}
+                          style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
+                        >
+                          {p.name}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => handleProjectSelect(NEW_PROJECT)}
+                        style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-accent-300)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
+                      >
+                        {d.newProject}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
                 <button
                   onClick={handleDelete}
                   style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--danger)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}

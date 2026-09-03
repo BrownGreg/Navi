@@ -143,6 +143,19 @@ class MeetingUpdate(CamelModel):
     title: str
 
 
+class ProjectOut(CamelModel):
+    id: str
+    name: str
+
+
+class ProjectCreate(CamelModel):
+    name: str
+
+
+class ProjectAssign(CamelModel):
+    project_id: Optional[str] = None
+
+
 class MeetingOut(CamelModel):
     id: str
     share_id: str
@@ -159,6 +172,7 @@ class MeetingOut(CamelModel):
     native_meeting_id: Optional[str] = None
     moderation: Optional[ModerateResponse] = None
     classification: Optional["ClassificationResult"] = None
+    project: Optional[ProjectOut] = None
 
 
 # --- Classification ---

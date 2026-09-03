@@ -368,6 +368,12 @@ const en: typeof fr = {
       deleteError: "Couldn't delete. Try again.",
       todoEmpty: "No actions yet.",
       menuAria: "Meeting options",
+      project: "Project",
+      noProject: "No project",
+      allProjects: "All projects",
+      newProject: "+ New project…",
+      newProjectPrompt: "Project (or client) name:",
+      projectError: "Couldn't move the meeting. Try again.",
     },
     actionPriority: {
       label: "Priority",
