@@ -16,6 +16,7 @@ type Props = {
 type FlatAction = {
   meetingId: string;
   meetingTitle: string;
+  projectId: string | null;
   index: number;
   text: string;
   owner: string;
@@ -23,10 +24,19 @@ type FlatAction = {
   done?: boolean;
 };
 
+const NO_PROJECT = "__none__";
+
 function priorityRank(p?: string | null): number {
   if (!p) return PRIORITIES.length;
   const idx = PRIORITIES.indexOf(p as (typeof PRIORITIES)[number]);
   return idx === -1 ? PRIORITIES.length : idx;
+}
+
+function sortActions(items: FlatAction[]): FlatAction[] {
+  return [...items].sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    return priorityRank(a.priority) - priorityRank(b.priority);
+  });
 }
 
 export default function TodoList({ meetings, onActionUpdated }: Props) {
@@ -40,14 +50,36 @@ export default function TodoList({ meetings, onActionUpdated }: Props) {
     const flat: FlatAction[] = [];
     for (const m of meetings) {
       (m.cr?.actions ?? []).forEach((a, i) => {
-        flat.push({ meetingId: m.id, meetingTitle: m.title, index: i, ...a });
+        flat.push({ meetingId: m.id, meetingTitle: m.title, projectId: m.project?.id ?? null, index: i, ...a });
       });
     }
-    return flat.sort((a, b) => {
-      if (!!a.done !== !!b.done) return a.done ? 1 : -1;
-      return priorityRank(a.priority) - priorityRank(b.priority);
-    });
+    return flat;
   }, [meetings]);
+
+  // Groupe par projet (trie de chaque groupe par statut puis priorite) - "Sans
+  // projet" toujours en dernier, meme logique que le regroupement de la grille
+  // (DashboardView). Un seul groupe (filtre deja restreint a un projet, ou
+  // aucun projet nulle part) : pas d'en-tete affichee, redondante avec le
+  // selecteur de projet au-dessus.
+  const groups = useMemo(() => {
+    const map = new Map<string, { label: string; items: FlatAction[] }>();
+    for (const a of items) {
+      const key = a.projectId ?? NO_PROJECT;
+      if (!map.has(key)) {
+        const project = meetings.find((m) => m.project?.id === a.projectId)?.project;
+        map.set(key, { label: project?.name ?? d.noProject, items: [] });
+      }
+      map.get(key)!.items.push(a);
+    }
+    const sorted = Array.from(map.entries())
+      .map(([key, group]) => [key, { label: group.label, items: sortActions(group.items) }] as const)
+      .sort(([keyA, groupA], [keyB, groupB]) => {
+        if (keyA === NO_PROJECT) return 1;
+        if (keyB === NO_PROJECT) return -1;
+        return groupA.label.localeCompare(groupB.label);
+      });
+    return sorted;
+  }, [items, meetings, d.noProject]);
 
   async function update(item: FlatAction, patch: { priority?: string | null; done?: boolean }) {
     const key = `${item.meetingId}:${item.index}`;
@@ -73,58 +105,71 @@ export default function TodoList({ meetings, onActionUpdated }: Props) {
     return <p className="secondary-text">{d.todoEmpty}</p>;
   }
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 720 }}>
-      {items.map((item) => {
-        const key = `${item.meetingId}:${item.index}`;
-        const busy = pendingKey === key;
-        return (
-          <div key={key} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "10px 4px", borderBottom: "1px solid var(--color-neutral-900)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <input
-                type="checkbox"
-                checked={!!item.done}
-                disabled={busy}
-                onChange={(e) => update(item, { done: e.target.checked })}
-                style={{ width: 15, height: 15, marginTop: 2, flexShrink: 0, accentColor: "var(--color-accent)" }}
-              />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, lineHeight: 1.45, color: item.done ? "var(--color-neutral-500)" : "var(--color-neutral-200)", textDecoration: item.done ? "line-through" : "none" }}>
-                  {item.text}
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 3 }}>
-                  <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{item.owner}</span>
-                  <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>·</span>
-                  <Link href={`/reunion/${item.meetingId}`} style={{ fontSize: 11, color: "var(--color-accent-300)" }}>
-                    {item.meetingTitle}
-                  </Link>
-                </div>
-              </div>
-              <select
-                value={item.priority ?? ""}
-                disabled={busy}
-                onChange={(e) => update(item, { priority: e.target.value })}
-                aria-label={p.label}
-                style={{
-                  fontSize: 10,
-                  background: "var(--color-neutral-800)",
-                  color: "var(--color-neutral-300)",
-                  border: "1px solid var(--color-neutral-700)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "2px 3px",
-                  flexShrink: 0,
-                }}
-              >
-                <option value="">{p.none}</option>
-                {PRIORITIES.map((prio) => (
-                  <option key={prio} value={prio}>{prio}</option>
-                ))}
-              </select>
+  function renderRow(item: FlatAction) {
+    const key = `${item.meetingId}:${item.index}`;
+    const busy = pendingKey === key;
+    return (
+      <div key={key} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "10px 4px", borderBottom: "1px solid var(--color-neutral-900)" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <input
+            type="checkbox"
+            checked={!!item.done}
+            disabled={busy}
+            onChange={(e) => update(item, { done: e.target.checked })}
+            style={{ width: 15, height: 15, marginTop: 2, flexShrink: 0, accentColor: "var(--color-accent)" }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, lineHeight: 1.45, color: item.done ? "var(--color-neutral-500)" : "var(--color-neutral-200)", textDecoration: item.done ? "line-through" : "none" }}>
+              {item.text}
             </div>
-            {errorKey === key ? <span style={{ fontSize: 10.5, color: "var(--danger)", marginLeft: 25 }}>{p.saveError}</span> : null}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 3 }}>
+              <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{item.owner}</span>
+              <span style={{ fontSize: 11, color: "var(--color-neutral-600)" }}>·</span>
+              <Link href={`/reunion/${item.meetingId}`} style={{ fontSize: 11, color: "var(--color-accent-300)" }}>
+                {item.meetingTitle}
+              </Link>
+            </div>
           </div>
-        );
-      })}
+          <select
+            value={item.priority ?? ""}
+            disabled={busy}
+            onChange={(e) => update(item, { priority: e.target.value })}
+            aria-label={p.label}
+            style={{
+              fontSize: 10,
+              background: "var(--color-neutral-800)",
+              color: "var(--color-neutral-300)",
+              border: "1px solid var(--color-neutral-700)",
+              borderRadius: "var(--radius-sm)",
+              padding: "2px 3px",
+              flexShrink: 0,
+            }}
+          >
+            <option value="">{p.none}</option>
+            {PRIORITIES.map((prio) => (
+              <option key={prio} value={prio}>{prio}</option>
+            ))}
+          </select>
+        </div>
+        {errorKey === key ? <span style={{ fontSize: 10.5, color: "var(--danger)", marginLeft: 25 }}>{p.saveError}</span> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 720 }}>
+      {groups.map(([key, group]) => (
+        <div key={key}>
+          {groups.length > 1 ? (
+            <div style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-500)", marginBottom: 6 }}>
+              {group.label}
+            </div>
+          ) : null}
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {group.items.map(renderRow)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
