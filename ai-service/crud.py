@@ -12,7 +12,11 @@ from schemas import ConsentType
 def get_owned_meeting(db: Session, meeting_id: str, owner_id: str) -> models.Meeting:
     meeting = (
         db.query(models.Meeting)
-        .filter(models.Meeting.id == meeting_id, models.Meeting.owner_id == owner_id)
+        .filter(
+            models.Meeting.id == meeting_id,
+            models.Meeting.owner_id == owner_id,
+            models.Meeting.deleted_at.is_(None),
+        )
         .first()
     )
     if not meeting:

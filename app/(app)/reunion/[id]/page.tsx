@@ -54,7 +54,7 @@ export default async function MeetingPage({
           <div className="card">{t.processingCard}</div>
         </div>
       ) : (
-        <CrView meeting={meeting} initialTab={tab === "transcript" ? "transcript" : "resume"} />
+        <CrView key={meeting.id} meeting={meeting} initialTab={tab === "transcript" ? "transcript" : "resume"} />
       )}
     </div>
   );

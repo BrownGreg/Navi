@@ -38,9 +38,14 @@ class TranscribeResponse(BaseModel):
     moderation: Optional[ModerateResponse] = None
 
 
+ActionPriority = Literal["P0", "P1", "P2", "P3", "P4", "P5"]
+
+
 class CRAction(BaseModel):
     text: str
     owner: str
+    priority: Optional[ActionPriority] = None
+    done: bool = False
 
 
 class MeetingCR(BaseModel):
@@ -48,6 +53,11 @@ class MeetingCR(BaseModel):
     decisions: list[str]
     actions: list[CRAction]
     themes: list[str]
+
+
+class ActionUpdate(CamelModel):
+    priority: Optional[ActionPriority] = None
+    done: bool = False
 
 
 class GenerateCRRequest(CamelModel):
@@ -127,6 +137,10 @@ class MeetingCreate(CamelModel):
     title: str
     mode: MeetingMode = "dictaphone"
     retention_days: int = 30
+
+
+class MeetingUpdate(CamelModel):
+    title: str
 
 
 class MeetingOut(CamelModel):
