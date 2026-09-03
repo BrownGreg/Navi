@@ -1,0 +1,19 @@
+name: Keep ai-service awake
+
+# navi-ai-service (plan gratuit Render) se met en veille apres 15 min sans
+# requete HTTP entrante reelle - les jobs internes du scheduler (APScheduler)
+# ne comptent pas comme trafic externe et ne l'empechent pas de dormir. Un
+# GET periodique sur /health suffit a le garder eveille, sans toucher au
+# plan Render (gratuit) ni ajouter de dependance a un service tiers payant.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping /health
+    runs-on: ubuntu-latest
+    steps:
+      - name: GET https://navi-ai-service.onrender.com/health
+        run: curl -sf --max-time 30 https://navi-ai-service.onrender.com/health
