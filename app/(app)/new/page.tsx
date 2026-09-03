@@ -6,9 +6,15 @@ import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export default function NewMeetingPage() {
   const [mode, setMode] = useState<"visio" | "dictaphone" | null>(null);
+  const [notified, setNotified] = useState(false);
   const router = useRouter();
   const { t } = useI18n();
   const n = t.app.newMeeting;
+
+  function selectMode(next: "visio" | "dictaphone") {
+    setMode(next);
+    setNotified(false);
+  }
 
   function continueTo() {
     if (!mode) return;
@@ -40,13 +46,13 @@ export default function NewMeetingPage() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <button onClick={() => setMode("visio")} style={cardStyle(mode === "visio")}>
+          <button onClick={() => selectMode("visio")} style={cardStyle(mode === "visio")}>
             <span style={{ fontSize: 14, color: "var(--color-neutral-100)" }}>{n.visioTitle}</span>
             <span style={{ fontSize: 12, lineHeight: 1.5, color: "var(--color-neutral-400)" }}>
               {n.visioDesc}
             </span>
           </button>
-          <button onClick={() => setMode("dictaphone")} style={cardStyle(mode === "dictaphone")}>
+          <button onClick={() => selectMode("dictaphone")} style={cardStyle(mode === "dictaphone")}>
             <span style={{ fontSize: 14, color: "var(--color-neutral-100)" }}>{n.dictaTitle}</span>
             <span style={{ fontSize: 12, lineHeight: 1.5, color: "var(--color-neutral-400)" }}>
               {n.dictaDesc}
@@ -54,18 +60,26 @@ export default function NewMeetingPage() {
           </button>
         </div>
 
-        {mode === "visio" ? (
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, borderTop: "1px solid var(--color-neutral-800)", paddingTop: 16 }}>
-            <span style={{ width: 15, height: 15, borderRadius: "var(--radius-sm)", border: "1px solid var(--color-accent)", marginTop: 1, flexShrink: 0 }} />
-            <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-neutral-400)" }}>
-              {n.notice}
+        {mode ? (
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, borderTop: "1px solid var(--color-neutral-800)", paddingTop: 16, cursor: "pointer" }}>
+            <span style={{ position: "relative", width: 15, height: 15, borderRadius: "var(--radius-sm)", border: "1px solid var(--color-accent)", marginTop: 1, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: notified ? "var(--color-accent)" : "transparent" }}>
+              <input
+                type="checkbox"
+                checked={notified}
+                onChange={(e) => setNotified(e.target.checked)}
+                style={{ position: "absolute", inset: 0, opacity: 0, margin: 0, cursor: "pointer" }}
+              />
+              {notified ? <span aria-hidden="true" style={{ fontSize: 11, lineHeight: 1, color: "var(--color-bg)" }}>✓</span> : null}
             </span>
-          </div>
+            <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-neutral-400)" }}>
+              {mode === "visio" ? n.noticeVisio : n.noticeDictaphone}
+            </span>
+          </label>
         ) : null}
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 9 }}>
           <button onClick={() => router.push("/dashboard")} className="btn btn-secondary">{n.cancel}</button>
-          <button onClick={continueTo} className="btn btn-primary" disabled={!mode}>{n.continue}</button>
+          <button onClick={continueTo} className="btn btn-primary" disabled={!mode || !notified}>{n.continue}</button>
         </div>
       </div>
     </div>

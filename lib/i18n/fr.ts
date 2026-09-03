@@ -18,16 +18,16 @@ const fr = {
 
   landing: {
     eyebrow: "Comptes rendus de réunion",
-    h1: "Le compte rendu est prêt avant que vous quittiez la réunion.",
+    h1: "L'assistant IA qui transcrit vos réunions et rédige le compte-rendu à votre place.",
     lead: "Navi rejoint votre visio ou écoute la salle, puis rend un résumé, les décisions et les actions attribuées. Le tout traité en Europe, effacé à la date que vous fixez.",
     ctaPrimary: "Créer un compte",
     ctaGhost: "Voir un compte rendu",
     compatible: "Compatible",
     timeline: [
-      { time: "14:00", title: "La réunion commence", body: "Navi rejoint le lien, ou écoute la salle. Son nom est visible de tous." },
-      { time: "en direct", title: "Décisions et actions se remplissent", body: "Transcription par locuteur, sans caméra, jamais." },
-      { time: "+3 min", title: "Le compte rendu est là", body: "Relu, partagé en un lien, exporté en PDF." },
-      { time: "+30 j", title: "Tout est effacé", body: "Automatiquement, à la date que vous fixez." },
+      { time: "Étape 1", title: "Vous lancez Navi", body: "Dictaphone en réunion physique, ou bot invité dans votre visio." },
+      { time: "Étape 2", title: "Navi écoute et transcrit", body: "En direct, par intervenant, sans jamais activer de caméra." },
+      { time: "Étape 3", title: "Le compte rendu est rédigé", body: "Résumé, décisions et actions assignées, prêt en quelques minutes." },
+      { time: "Étape 4", title: "Vos données sont effacées", body: "Automatiquement, à la date de conservation que vous choisissez." },
     ],
     preview: {
       today: "Aujourd'hui",
@@ -395,7 +395,8 @@ const fr = {
       visioDesc: "Navi rejoint Meet, Teams ou Zoom et transcrit par locuteur.",
       dictaTitle: "Dictaphone",
       dictaDesc: "Le micro de cet ordinateur, pour une reunion en salle.",
-      notice: "Je previens les participants. Le bot apparait sous le nom « Navi Notetaker — enregistrement » et un lien de consentement est fourni a coller dans l'invitation.",
+      noticeVisio: "Je previens les participants. Le bot apparait sous le nom « Navi Notetaker — enregistrement » et un lien de consentement est fourni a coller dans l'invitation.",
+      noticeDictaphone: "Je previens oralement les personnes presentes dans la piece que la reunion est enregistree et transcrite.",
       cancel: "Annuler",
       continue: "Continuer",
     },
