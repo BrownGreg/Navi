@@ -188,42 +188,41 @@ export default function MeetingCard({ meeting, projects, onUpdated, onDeleted, o
                 >
                   {d.rename}
                 </button>
-                <div style={{ position: "relative" }}>
+                <div>
                   <button
                     onClick={(e) => { e.stopPropagation(); setProjectMenuOpen((v) => !v); }}
-                    style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
+                    style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
                   >
-                    {d.project}…
+                    {d.project}… <span style={{ color: "var(--color-neutral-500)" }}>{projectMenuOpen ? "▴" : "▾"}</span>
                   </button>
                   {projectMenuOpen ? (
+                    // Accordeon integre au menu (pas un panneau lateral) : un
+                    // flyout ouvert vers la droite (left: 100%) sortait de
+                    // l'ecran des que la carte n'etait pas dans la colonne la
+                    // plus a gauche - bug reel signale (menu inutilisable en
+                    // mise en page a une colonne).
                     <div
                       style={{
-                        position: "absolute",
-                        left: "100%",
-                        top: 0,
-                        marginLeft: 4,
-                        background: "var(--color-surface)",
-                        boxShadow: "var(--shadow-md)",
-                        borderRadius: "var(--radius-md)",
-                        padding: 4,
                         display: "flex",
                         flexDirection: "column",
-                        minWidth: 150,
+                        marginLeft: 8,
+                        paddingLeft: 6,
+                        borderLeft: "2px solid var(--color-neutral-800)",
                       }}
                     >
                       <button
                         onClick={() => handleProjectSelect("")}
                         style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
                       >
-                        {d.noProject}
+                        {!meeting.project ? "✓ " : ""}{d.noProject}
                       </button>
-                      {projects.map((p) => (
+                      {projects.map((proj) => (
                         <button
-                          key={p.id}
-                          onClick={() => handleProjectSelect(p.id)}
+                          key={proj.id}
+                          onClick={() => handleProjectSelect(proj.id)}
                           style={{ textAlign: "left", background: "transparent", border: "none", padding: "7px 10px", fontSize: 12.5, color: "var(--color-neutral-200)", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
                         >
-                          {p.name}
+                          {meeting.project?.id === proj.id ? "✓ " : ""}{proj.name}
                         </button>
                       ))}
                       <button
