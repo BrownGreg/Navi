@@ -14,5 +14,13 @@ ai-service/*.db
 ai-service/.coverage
 projet_certifiant
 rapport_technique.md
+rapport_technique.tex
+rapport_technique.pdf
+rapport_technique.aux
+rapport_technique.log
+rapport_technique.out
+rapport_technique.toc
+post-mortem.md
 dev.db
 test.mp3
+model/*
