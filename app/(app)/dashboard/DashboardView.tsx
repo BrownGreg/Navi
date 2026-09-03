@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { Meeting, Project } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { format } from "@/lib/i18n";
+import { apiFetch } from "@/lib/api-client";
 import MeetingCard from "./MeetingCard";
 import TodoList from "./TodoList";
 
@@ -18,6 +19,7 @@ export default function DashboardView({ meetings: initialMeetings, projects: ini
   const [projects, setProjects] = useState(initialProjects);
   const [view, setView] = useState<View>("grid");
   const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [projectBusy, setProjectBusy] = useState(false);
 
   function handleUpdated(id: string, updated: Meeting) {
     setMeetings((prev) => prev.map((m) => (m.id === id ? updated : m)));
@@ -29,6 +31,37 @@ export default function DashboardView({ meetings: initialMeetings, projects: ini
 
   function handleProjectCreated(project: Project) {
     setProjects((prev) => [...prev, project].sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  async function createProject() {
+    const name = window.prompt(d.newProjectPrompt)?.trim();
+    if (!name) return;
+    setProjectBusy(true);
+    const res = await apiFetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    setProjectBusy(false);
+    if (res.ok) {
+      handleProjectCreated(await res.json());
+    } else {
+      window.alert(d.projectError);
+    }
+  }
+
+  async function deleteProject(project: Project) {
+    if (!window.confirm(format(d.confirmDeleteProject, { name: project.name }))) return;
+    setProjectBusy(true);
+    const res = await apiFetch(`/api/projects/${project.id}`, { method: "DELETE" });
+    setProjectBusy(false);
+    if (res.ok) {
+      setProjects((prev) => prev.filter((p) => p.id !== project.id));
+      setMeetings((prev) => prev.map((m) => (m.project?.id === project.id ? { ...m, project: null } : m)));
+      if (projectFilter === project.id) setProjectFilter("all");
+    } else {
+      window.alert(d.deleteProjectError);
+    }
   }
 
   const filteredMeetings = useMemo(() => {
@@ -87,28 +120,59 @@ export default function DashboardView({ meetings: initialMeetings, projects: ini
           </button>
         </div>
 
-        {projects.length > 0 ? (
-          <select
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            style={{ fontSize: 12, background: "var(--color-neutral-900)", color: "var(--color-neutral-300)", border: "1px solid var(--color-neutral-800)", borderRadius: "var(--radius-md)", padding: "6px 10px" }}
-          >
-            <option value="all">{d.allProjects}</option>
-            <option value={NO_PROJECT}>{d.noProject}</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-        ) : null}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {projects.length > 0 ? (
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              style={{ fontSize: 12, background: "var(--color-neutral-900)", color: "var(--color-neutral-300)", border: "1px solid var(--color-neutral-800)", borderRadius: "var(--radius-md)", padding: "6px 10px" }}
+            >
+              <option value="all">{d.allProjects}</option>
+              <option value={NO_PROJECT}>{d.noProject}</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          ) : null}
+          {projectFilter !== "all" && projectFilter !== NO_PROJECT ? (
+            <button
+              disabled={projectBusy}
+              onClick={() => {
+                const project = projects.find((p) => p.id === projectFilter);
+                if (project) deleteProject(project);
+              }}
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: "6px 10px", color: "var(--danger)" }}
+            >
+              {d.deleteProject}
+            </button>
+          ) : null}
+          <button disabled={projectBusy} onClick={createProject} className="btn btn-secondary" style={{ fontSize: 11, padding: "6px 10px" }}>
+            {d.newProject}
+          </button>
+        </div>
       </div>
 
       {view === "grid" ? (
         projectFilter === "all" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            {groupedByProject.map(([key, group]) => (
+            {groupedByProject.map(([key, group]) => {
+              const project = key === NO_PROJECT ? null : projects.find((p) => p.id === key) ?? null;
+              return (
               <div key={key}>
-                <div style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-500)", marginBottom: 10 }}>
-                  {group.label}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--color-neutral-500)" }}>
+                    {group.label}
+                  </span>
+                  {project ? (
+                    <button
+                      disabled={projectBusy}
+                      onClick={() => deleteProject(project)}
+                      style={{ background: "transparent", border: "none", color: "var(--color-neutral-600)", cursor: "pointer", fontSize: 10.5, padding: 0 }}
+                    >
+                      {d.deleteProject}
+                    </button>
+                  ) : null}
                 </div>
                 <div className="meetings-grid">
                   {group.items.map((m) => (
@@ -123,7 +187,8 @@ export default function DashboardView({ meetings: initialMeetings, projects: ini
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="meetings-grid">

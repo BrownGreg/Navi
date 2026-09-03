@@ -373,6 +373,9 @@ const fr = {
       newProject: "+ Nouveau projet…",
       newProjectPrompt: "Nom du projet (ou du client) :",
       projectError: "Impossible de deplacer la reunion. Reessayez.",
+      deleteProject: "Supprimer le projet",
+      confirmDeleteProject: "Supprimer le projet « {name} » ? Les reunions qu'il contient ne seront pas supprimees, seulement detachees du projet.",
+      deleteProjectError: "Impossible de supprimer le projet. Reessayez.",
     },
     actionPriority: {
       label: "Priorite",

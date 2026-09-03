@@ -13,7 +13,8 @@ export default async function MeetingPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
-  const [{ tab }, res, locale] = await Promise.all([searchParams, fetchAuthed(`/meetings/${id}`), getLocale()]);
+  const [{ tab }, locale] = await Promise.all([searchParams, getLocale()]);
+  const res = await fetchAuthed(`/meetings/${id}?locale=${locale}`);
   if (res.status === 404) return notFound();
   const meeting: Meeting = await res.json();
   const t = getDictionary(locale).app.reunion;

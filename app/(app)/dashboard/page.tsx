@@ -11,10 +11,10 @@ import DashboardView from "./DashboardView";
 // de detail par reunion (renommer/supprimer, priorites d'actions, regroupement
 // par projet/client).
 export default async function DashboardPage() {
-  const [meetingsRes, projectsRes, locale] = await Promise.all([
-    fetchAuthed("/meetings"),
+  const locale = await getLocale();
+  const [meetingsRes, projectsRes] = await Promise.all([
+    fetchAuthed(`/meetings?locale=${locale}`),
     fetchAuthed("/projects"),
-    getLocale(),
   ]);
   const meetings: Meeting[] = meetingsRes.ok ? await meetingsRes.json() : [];
   const projects: Project[] = projectsRes.ok ? await projectsRes.json() : [];
