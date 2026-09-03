@@ -374,6 +374,9 @@ const en: typeof fr = {
       newProject: "+ New project…",
       newProjectPrompt: "Project (or client) name:",
       projectError: "Couldn't move the meeting. Try again.",
+      deleteProject: "Delete project",
+      confirmDeleteProject: "Delete project \"{name}\"? Its meetings won't be deleted, only detached from the project.",
+      deleteProjectError: "Couldn't delete the project. Try again.",
     },
     actionPriority: {
       label: "Priority",

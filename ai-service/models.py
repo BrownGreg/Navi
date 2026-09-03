@@ -60,6 +60,12 @@ class Meeting(Base):
     retention_days: Mapped[int] = mapped_column(Integer, default=30)
     transcript: Mapped[list | None] = mapped_column(JSON, nullable=True)
     cr: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Cache des traductions du CR par langue d'interface (ex: {"en": {...}}) -
+    # cr reste toujours la version francaise generee (source de verite), cette
+    # colonne ne fait jamais foi seule. Traduit une fois via Mistral/Scaleway
+    # (clients/translator.py) au premier affichage en anglais, jamais regenere
+    # ensuite - evite de re-appeler l'IA a chaque changement de langue.
+    cr_translations: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     platform: Mapped[str | None] = mapped_column(String, nullable=True)
     native_meeting_id: Mapped[str | None] = mapped_column(String, nullable=True)
     moderation: Mapped[dict | None] = mapped_column(JSON, nullable=True)

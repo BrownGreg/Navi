@@ -17,7 +17,8 @@ type Meeting = {
 
 export default async function SharedCRPage({ params }: { params: Promise<{ shareId: string }> }) {
   const { shareId } = await params;
-  const [res, locale] = await Promise.all([fetchPublic(`/meetings/by-share/${shareId}`), getLocale()]);
+  const locale = await getLocale();
+  const res = await fetchPublic(`/meetings/by-share/${shareId}?locale=${locale}`);
   if (res.status === 404) return notFound();
   const meeting: Meeting = await res.json();
   const t = getDictionary(locale);

@@ -1,9 +1,11 @@
 from datetime import datetime, timezone
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 import models
+from clients.translator import translate_cr
 from crud import get_owned_meeting
 from db import get_db
 from deps import get_current_user
@@ -11,6 +13,7 @@ from schemas import (
     ActionUpdate,
     ConsentGrantRequest,
     ConsentRecordOut,
+    MeetingCR,
     MeetingCreate,
     MeetingOut,
     MeetingUpdate,
@@ -19,18 +22,51 @@ from schemas import (
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
+Locale = Literal["fr", "en"]
+
+
+async def _localize(meeting: models.Meeting, locale: Locale, db: Session) -> MeetingOut:
+    """Serialise `meeting` en MeetingOut, avec son CR traduit si `locale` !=
+    "fr" (langue source, cf. clients/translator.py). Traduit et met en cache
+    dans cr_translations au premier appel pour une reunion/langue donnee,
+    sert le cache ensuite - jamais retraduit.
+
+    Construit le MeetingOut AVANT tout commit() : commit() expire par defaut
+    les attributs de l'objet ORM (SQLAlchemy relit a la demande), et
+    ecrire/detacher `meeting` ensuite casserait la (re)serialisation de ses
+    autres champs (project notamment, charge en lazy). Le CR traduit est
+    substitue sur la copie Pydantic deja construite, jamais sur l'objet ORM -
+    la version francaise en base ne doit jamais etre ecrasee.
+    """
+    out = MeetingOut.model_validate(meeting)
+    if locale == "fr" or not meeting.cr:
+        return out
+
+    cached = (meeting.cr_translations or {}).get(locale)
+    if cached is None:
+        cr, source = await translate_cr(MeetingCR(**meeting.cr), locale)
+        if source == "real":
+            meeting.cr_translations = {**(meeting.cr_translations or {}), locale: cr.model_dump()}
+            db.commit()
+        cached = cr.model_dump()
+
+    out.cr = MeetingCR(**cached)
+    return out
+
 
 @router.get("", response_model=list[MeetingOut])
-def list_meetings(
+async def list_meetings(
+    locale: Locale = "fr",
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> list[models.Meeting]:
-    return (
+) -> list[MeetingOut]:
+    meetings = (
         db.query(models.Meeting)
         .filter(models.Meeting.owner_id == current_user.id, models.Meeting.deleted_at.is_(None))
         .order_by(models.Meeting.date.desc())
         .all()
     )
+    return [await _localize(m, locale, db) for m in meetings]
 
 
 @router.post("", response_model=MeetingOut)
@@ -86,7 +122,7 @@ def grant_consent(
 
 
 @router.get("/by-share/{share_id}", response_model=MeetingOut)
-def get_meeting_by_share(share_id: str, db: Session = Depends(get_db)) -> models.Meeting:
+async def get_meeting_by_share(share_id: str, locale: Locale = "fr", db: Session = Depends(get_db)) -> MeetingOut:
     meeting = (
         db.query(models.Meeting)
         .filter(models.Meeting.share_id == share_id, models.Meeting.deleted_at.is_(None))
@@ -94,16 +130,18 @@ def get_meeting_by_share(share_id: str, db: Session = Depends(get_db)) -> models
     )
     if not meeting:
         raise HTTPException(status_code=404, detail="not found")
-    return meeting
+    return await _localize(meeting, locale, db)
 
 
 @router.get("/{meeting_id}", response_model=MeetingOut)
-def get_meeting(
+async def get_meeting(
     meeting_id: str,
+    locale: Locale = "fr",
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> models.Meeting:
-    return get_owned_meeting(db, meeting_id, current_user.id)
+) -> MeetingOut:
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+    return await _localize(meeting, locale, db)
 
 
 @router.patch("/{meeting_id}", response_model=MeetingOut)
