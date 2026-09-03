@@ -29,7 +29,7 @@ export default async function CalendarSettingsPage({
     fetchAuthed("/calendar/upcoming"),
     getLocale(),
   ]);
-  const connections: CalendarConnection[] = await res.json();
+  const connections: CalendarConnection[] = res.ok ? await res.json() : [];
   const upcoming: UpcomingCalendarEvent[] = upcomingRes.ok ? await upcomingRes.json() : [];
   const t = getDictionary(locale).app.settingsCalendar;
   const PROVIDER_LABELS = t.providers;
