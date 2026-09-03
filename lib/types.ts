@@ -11,7 +11,12 @@ export type Meeting = {
   source: "real" | "mock";
   retentionDays: number;
   transcript?: { speaker: string; text: string; start: number; end?: number }[] | null;
-  cr?: { resume: string; decisions: string[]; actions: { text: string; owner: string }[]; themes: string[] } | null;
+  cr?: {
+    resume: string;
+    decisions: string[];
+    actions: { text: string; owner: string; priority?: string | null; done?: boolean }[];
+    themes: string[];
+  } | null;
   platform?: "google_meet" | "teams" | "zoom" | null;
   nativeMeetingId?: string | null;
   moderation?: { flagged: boolean; category?: string | null; rationale?: string | null; source: string } | null;

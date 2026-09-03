@@ -4,9 +4,12 @@ import { useState } from "react";
 import type { Meeting } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { format } from "@/lib/i18n";
+import { apiFetch } from "@/lib/api-client";
 import ClassifyButton from "./ClassifyButton";
 
 type Tab = "resume" | "decisions" | "transcript" | "analyse";
+
+const ACTION_PRIORITIES = ["P0", "P1", "P2", "P3", "P4", "P5"] as const;
 
 function tonBadgeStyle(ton: string): React.CSSProperties {
   const map: Record<string, { color: string; background: string; border: string }> = {
@@ -29,9 +32,11 @@ function urgenceBadgeStyle(urgence: string): React.CSSProperties {
   return { display: "inline-block", fontSize: 12, padding: "3px 10px", borderRadius: 999, border: `1px solid ${s.border}`, color: s.color, background: s.background };
 }
 
-export default function CrView({ meeting, initialTab = "resume" }: { meeting: Meeting; initialTab?: Tab }) {
+export default function CrView({ meeting: initialMeeting, initialTab = "resume" }: { meeting: Meeting; initialTab?: Tab }) {
   const { t } = useI18n();
   const c = t.app.crView;
+  const p = t.app.actionPriority;
+  const [meeting, setMeeting] = useState(initialMeeting);
   const hasClassification = !!meeting.classification;
   const showClassifyButton = meeting.status === "ready" && !hasClassification;
   const tabs: { id: Tab; label: string }[] = [
@@ -41,6 +46,29 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
     ...(hasClassification ? [{ id: "analyse" as Tab, label: c.tabAnalyse }] : []),
   ];
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [errorIndex, setErrorIndex] = useState<number | null>(null);
+
+  async function updateAction(index: number, patch: { priority?: string | null; done?: boolean }) {
+    if (!meeting.cr) return;
+    const current = meeting.cr.actions[index];
+    setPendingIndex(index);
+    setErrorIndex(null);
+    const res = await apiFetch(`/api/meetings/${meeting.id}/actions/${index}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        priority: patch.priority !== undefined ? patch.priority || null : current.priority ?? null,
+        done: patch.done !== undefined ? patch.done : current.done ?? false,
+      }),
+    });
+    setPendingIndex(null);
+    if (res.ok) {
+      setMeeting(await res.json());
+    } else {
+      setErrorIndex(index);
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}>
@@ -159,13 +187,52 @@ export default function CrView({ meeting, initialTab = "resume" }: { meeting: Me
                 <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{meeting.cr.actions.length}</span>
               </div>
               {meeting.cr.actions.map((a, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
-                  <span style={{ width: 14, height: 14, border: "1px solid var(--color-neutral-600)", borderRadius: "var(--radius-sm)", marginTop: 1, flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45, color: "var(--color-neutral-200)" }}>
-                    {a.text}
-                    <br />
-                    <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{a.owner}</span>
-                  </span>
+                <div key={i} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!a.done}
+                      disabled={pendingIndex === i}
+                      onChange={(e) => updateAction(i, { done: e.target.checked })}
+                      style={{ width: 14, height: 14, marginTop: 1, flexShrink: 0, accentColor: "var(--color-accent)" }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 12.5,
+                        lineHeight: 1.45,
+                        color: a.done ? "var(--color-neutral-500)" : "var(--color-neutral-200)",
+                        textDecoration: a.done ? "line-through" : "none",
+                      }}
+                    >
+                      {a.text}
+                      <br />
+                      <span style={{ fontSize: 11, color: "var(--color-neutral-500)" }}>{a.owner}</span>
+                    </span>
+                    <select
+                      value={a.priority ?? ""}
+                      disabled={pendingIndex === i}
+                      onChange={(e) => updateAction(i, { priority: e.target.value })}
+                      aria-label={p.label}
+                      style={{
+                        fontSize: 10,
+                        background: "var(--color-neutral-800)",
+                        color: "var(--color-neutral-300)",
+                        border: "1px solid var(--color-neutral-700)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "2px 3px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <option value="">{p.none}</option>
+                      {ACTION_PRIORITIES.map((prio) => (
+                        <option key={prio} value={prio}>{prio}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {errorIndex === i ? (
+                    <span style={{ fontSize: 10.5, color: "var(--danger)", marginLeft: 23 }}>{p.saveError}</span>
+                  ) : null}
                 </div>
               ))}
             </div>

@@ -49,6 +49,10 @@ class Meeting(Base):
     native_meeting_id: Mapped[str | None] = mapped_column(String, nullable=True)
     moderation: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     classification: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Suppression douce (cf. delete_meeting) : la ligne survit deja anonymisee
+    # (voir RgpdRequest ci-dessous) - ce champ la masque en plus des listes
+    # (list_meetings, get_meeting_by_share) sans revenir sur ce choix existant.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     owner: Mapped["User"] = relationship(back_populates="meetings")
 
