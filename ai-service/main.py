@@ -12,6 +12,7 @@ from routers import (
     generate_cr,
     meetings,
     moderate,
+    projects,
     rgpd,
     transcribe,
     visio,
@@ -54,6 +55,7 @@ app.include_router(classify.router, prefix=API_PREFIX)
 app.include_router(export.router, prefix=API_PREFIX)
 app.include_router(rgpd.router, prefix=API_PREFIX)
 app.include_router(calendar.router, prefix=API_PREFIX)
+app.include_router(projects.router, prefix=API_PREFIX)
 
 
 @app.on_event("startup")

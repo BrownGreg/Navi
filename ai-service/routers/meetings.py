@@ -14,6 +14,7 @@ from schemas import (
     MeetingCreate,
     MeetingOut,
     MeetingUpdate,
+    ProjectAssign,
 )
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
@@ -117,6 +118,37 @@ def update_meeting(
     title = body.title.strip()
     if title:
         meeting.title = title
+    db.commit()
+    db.refresh(meeting)
+    return meeting
+
+
+@router.patch("/{meeting_id}/project", response_model=MeetingOut)
+def assign_project(
+    meeting_id: str,
+    body: ProjectAssign,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> models.Meeting:
+    """Rattache (ou detache, si project_id est null) une reunion a un projet.
+
+    Endpoint distinct du renommage (PATCH /{meeting_id}) plutot qu'un champ de
+    plus sur MeetingUpdate : deplacer vers un projet est une action a part,
+    pas une correction de metadonnee, et ca evite l'ambiguite PATCH classique
+    entre "champ absent du corps" et "champ explicitement remis a null".
+    """
+    meeting = get_owned_meeting(db, meeting_id, current_user.id)
+
+    if body.project_id:
+        project = (
+            db.query(models.Project)
+            .filter(models.Project.id == body.project_id, models.Project.owner_id == current_user.id)
+            .first()
+        )
+        if not project:
+            raise HTTPException(status_code=404, detail="projet introuvable")
+
+    meeting.project_id = body.project_id
     db.commit()
     db.refresh(meeting)
     return meeting
