@@ -52,7 +52,9 @@ class Meeting(Base):
     share_id: Mapped[str] = mapped_column(String, unique=True, index=True, default=_share_id)
     title: Mapped[str] = mapped_column(String, nullable=False)
     mode: Mapped[str] = mapped_column(String, nullable=False)
-    project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"), nullable=True, index=True)
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id"), nullable=True, index=True
+    )
     date: Mapped[datetime] = mapped_column(DateTime, default=_now)
     duration_min: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String, default="processing")

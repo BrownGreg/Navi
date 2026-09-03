@@ -32,7 +32,12 @@ def _month_start() -> datetime:
 
 
 def _seed_meeting(
-    db_session: Session, owner_id: str, *, mode: str, duration_min: int, date: datetime | None = None
+    db_session: Session,
+    owner_id: str,
+    *,
+    mode: str,
+    duration_min: int,
+    date: datetime | None = None,
 ) -> models.Meeting:
     meeting = models.Meeting(
         owner_id=owner_id,

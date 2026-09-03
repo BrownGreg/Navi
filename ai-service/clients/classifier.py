@@ -138,7 +138,9 @@ async def classify(transcript: list[TranscriptSegment]) -> tuple[ClassificationR
             res = await _post_with_retry(payload)
             return _parse_classification(res), "real"
         except Exception as err:  # noqa: BLE001 - filet de securite volontaire
-            logger.error("[classifier] Mistral indisponible, tentative sous-traitant de secours: %s", err)
+            logger.error(
+                "[classifier] Mistral indisponible, tentative sous-traitant de secours: %s", err
+            )
     else:
         logger.info("[classifier] MISTRAL_API_KEY absente")
 
