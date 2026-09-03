@@ -19,16 +19,16 @@ const en: typeof fr = {
 
   landing: {
     eyebrow: "Meeting minutes",
-    h1: "Your minutes are ready before you leave the meeting.",
+    h1: "The AI assistant that transcribes your meetings and writes the minutes for you.",
     lead: "Navi joins your video call or listens in the room, then produces a summary, decisions, and assigned actions. All processed in Europe, erased on the date you set.",
     ctaPrimary: "Create an account",
     ctaGhost: "See a sample report",
     compatible: "Compatible with",
     timeline: [
-      { time: "2:00 PM", title: "The meeting starts", body: "Navi joins the link, or listens in the room. Its name is visible to everyone." },
-      { time: "live", title: "Decisions and actions fill in", body: "Speaker-by-speaker transcription, no camera, ever." },
-      { time: "+3 min", title: "The report is ready", body: "Reviewed, shared via a link, exported to PDF." },
-      { time: "+30 d", title: "Everything is erased", body: "Automatically, on the date you set." },
+      { time: "Step 1", title: "You start Navi", body: "Dictaphone in an in-person meeting, or a bot invited into your video call." },
+      { time: "Step 2", title: "Navi listens and transcribes", body: "Live, speaker by speaker, without ever turning on a camera." },
+      { time: "Step 3", title: "The report gets written", body: "Summary, decisions, and assigned actions, ready in minutes." },
+      { time: "Step 4", title: "Your data gets erased", body: "Automatically, on the retention date you choose." },
     ],
     preview: {
       today: "Today",
@@ -396,7 +396,8 @@ const en: typeof fr = {
       visioDesc: "Navi joins Meet, Teams, or Zoom and transcribes by speaker.",
       dictaTitle: "Dictaphone",
       dictaDesc: "This computer's microphone, for an in-room meeting.",
-      notice: "I'll notify participants. The bot appears under the name \"Navi Notetaker — recording\" and a consent link is provided to paste into the invite.",
+      noticeVisio: "I'll notify participants. The bot appears under the name \"Navi Notetaker — recording\" and a consent link is provided to paste into the invite.",
+      noticeDictaphone: "I'll tell the people in the room out loud that the meeting is being recorded and transcribed.",
       cancel: "Cancel",
       continue: "Continue",
     },
