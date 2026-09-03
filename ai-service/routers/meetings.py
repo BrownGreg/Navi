@@ -122,7 +122,9 @@ def grant_consent(
 
 
 @router.get("/by-share/{share_id}", response_model=MeetingOut)
-async def get_meeting_by_share(share_id: str, locale: Locale = "fr", db: Session = Depends(get_db)) -> MeetingOut:
+async def get_meeting_by_share(
+    share_id: str, locale: Locale = "fr", db: Session = Depends(get_db)
+) -> MeetingOut:
     meeting = (
         db.query(models.Meeting)
         .filter(models.Meeting.share_id == share_id, models.Meeting.deleted_at.is_(None))
@@ -180,7 +182,9 @@ def assign_project(
     if body.project_id:
         project = (
             db.query(models.Project)
-            .filter(models.Project.id == body.project_id, models.Project.owner_id == current_user.id)
+            .filter(
+                models.Project.id == body.project_id, models.Project.owner_id == current_user.id
+            )
             .first()
         )
         if not project:
@@ -242,7 +246,11 @@ def update_action(
         raise HTTPException(status_code=404, detail="action introuvable")
 
     updated_actions = list(actions)
-    updated_actions[index] = {**updated_actions[index], "priority": body.priority, "done": body.done}
+    updated_actions[index] = {
+        **updated_actions[index],
+        "priority": body.priority,
+        "done": body.done,
+    }
     meeting.cr = {**meeting.cr, "actions": updated_actions}
     db.commit()
     db.refresh(meeting)

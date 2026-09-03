@@ -198,7 +198,9 @@ class TestScalewayFallback:
 
     async def test_classify_falls_back_to_scaleway_when_mistral_fails(self) -> None:
         transcript = [TranscriptSegment(speaker="A", text="On valide le budget.", start=0)]
-        content = '{"tone": "positif", "urgency": "faible", "themes": ["budget"], "per_segment": []}'
+        content = (
+            '{"tone": "positif", "urgency": "faible", "themes": ["budget"], "per_segment": []}'
+        )
 
         with patch("config.MISTRAL_API_KEY", "fake-mistral-key"):
             with patch("config.SCALEWAY_API_KEY", "fake-scaleway-key"):

@@ -146,7 +146,9 @@ async def translate_cr(cr: MeetingCR, target_locale: str) -> tuple[MeetingCR, st
             res = await _post_with_retry(payload)
             return _rebuild(cr, _parse_translation(res)), "real"
         except Exception as err:  # noqa: BLE001 - filet de securite volontaire
-            logger.error("[translator] Mistral indisponible, tentative sous-traitant de secours: %s", err)
+            logger.error(
+                "[translator] Mistral indisponible, tentative sous-traitant de secours: %s", err
+            )
 
     if config.SCALEWAY_API_KEY:
         try:

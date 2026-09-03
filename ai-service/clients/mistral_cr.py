@@ -110,7 +110,9 @@ async def generate_cr(transcript: list[TranscriptSegment]) -> tuple[MeetingCR, s
             res = await _post_with_retry(payload)
             return _parse_cr(res), "real"
         except Exception as err:  # noqa: BLE001 - filet de securite volontaire
-            logger.error("[mistral_cr] Mistral indisponible, tentative sous-traitant de secours: %s", err)
+            logger.error(
+                "[mistral_cr] Mistral indisponible, tentative sous-traitant de secours: %s", err
+            )
 
     if config.SCALEWAY_API_KEY:
         try:

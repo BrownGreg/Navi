@@ -48,10 +48,16 @@ async def _transcribe_via_self_hosted(
     timestamp_granularities que Mistral (a confirmer une fois l'infra
     provisionnee - vLLM ne garantit pas cette forme de reponse a l'identique)."""
     files = {"file": ("recording.webm", audio_bytes, mime_type or "audio/webm")}
-    data = {"model": "voxtral-mini-3b-2507", "diarize": "true", "timestamp_granularities": "segment"}
+    data = {
+        "model": "voxtral-mini-3b-2507",
+        "diarize": "true",
+        "timestamp_granularities": "segment",
+    }
 
     async with httpx.AsyncClient(timeout=60) as client:
-        res = await client.post(f"{config.SELF_HOSTED_VOXTRAL_URL}/v1/audio/transcriptions", data=data, files=files)
+        res = await client.post(
+            f"{config.SELF_HOSTED_VOXTRAL_URL}/v1/audio/transcriptions", data=data, files=files
+        )
     if res.status_code >= 400:
         raise RuntimeError(f"self-hosted Voxtral error: {res.status_code} - {res.text}")
 
