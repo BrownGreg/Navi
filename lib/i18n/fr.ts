@@ -354,6 +354,8 @@ const fr = {
       emptyTitle: "Aucune reunion pour l'instant",
       emptyBody: "Creez la premiere pour voir apparaitre son compte-rendu ici.",
       newMeeting: "+ Nouvelle reunion",
+      title: "Vos reunions",
+      count: "{count} reunion(s)",
     },
     reunion: {
       modeVisio: "Visio",

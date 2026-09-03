@@ -355,6 +355,8 @@ const en: typeof fr = {
       emptyTitle: "No meeting yet",
       emptyBody: "Create the first one to see its report appear here.",
       newMeeting: "+ New meeting",
+      title: "Your meetings",
+      count: "{count} meeting(s)",
     },
     reunion: {
       modeVisio: "Video",
