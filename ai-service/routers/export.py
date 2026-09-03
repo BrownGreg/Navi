@@ -125,6 +125,13 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
         textColor=colors.HexColor("#9CA3AF"),
         alignment=1,  # centre
     )
+    style_table_cell = ParagraphStyle(
+        "NaviTableCell",
+        parent=style_body,
+        fontSize=9,
+        leading=12,
+        spaceAfter=0,
+    )
 
     cr = MeetingCR(**meeting.cr)
 
@@ -171,7 +178,12 @@ def _build_pdf(meeting: models.Meeting) -> bytes:
     if cr.actions:
         table_data = [["Tâche", "Responsable"]]
         for action in cr.actions:
-            table_data.append([action.text, action.owner])
+            table_data.append(
+                [
+                    Paragraph(action.text, style_table_cell),
+                    Paragraph(action.owner, style_table_cell),
+                ]
+            )
 
         col_widths = [doc.width * 0.68, doc.width * 0.32]
         action_table = Table(table_data, colWidths=col_widths)
