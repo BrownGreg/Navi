@@ -9,6 +9,8 @@ Both capture modes are functional end-to-end with real APIs:
 
 **Mock is not a default mode**: each integration falls back to it only as a safety net (missing API key, timeout, quota, unexpected response) — never as the nominal path. Without an API key, everything still works end-to-end in simulated mode (a "demo mode" badge in the UI).
 
+Once a summary exists, the dashboard (`/dashboard`) is a real overview rather than a redirect to the latest meeting: a card grid grouped by project/client, a to-do view aggregating action items across every meeting (or a single project), rename/delete on each meeting, and manual project creation/assignment/deletion. Action items support a P0–P5 priority and a real done/not-done state (`PATCH /meetings/{id}/actions/{index}`). Switching the interface to English also translates the generated summary/decisions/actions/themes on the fly (Mistral, same fallback chain as generation), translated once per meeting and cached (`Meeting.cr_translations`) — never re-translated, and the French original in storage is never overwritten.
+
 ## Prerequisites
 
 - Node.js 20 or newer
@@ -64,7 +66,7 @@ This file is shared by Next.js and `ai-service` (loaded via `python-dotenv`). Fi
 
 Restart both processes after modifying `.env.local`. If a key is missing or a call fails, `ai-service` logs the error (`logging`, `ERROR` level) and automatically falls back to the corresponding mock instead of crashing.
 
-**Compliance**: transcription, summary generation, classification, and now moderation (Mistral Moderation 2, migrated from gpt-oss-safeguard-20b/Groq) all go through Mistral (EU) — a single AI sub-processor to assess. See `ai-service/clients/moderation.py` and `rapport_technique.md` (not version-controlled, see below) for the history of this decision.
+**Compliance**: transcription, summary generation, classification, and now moderation (Mistral Moderation 2, migrated from gpt-oss-safeguard-20b/Groq) all go through Mistral (EU) — a single AI sub-processor to assess. See `ai-service/clients/moderation.py` and `rapport_technique.tex` (not version-controlled, see below) for the history of this decision.
 
 Integrations are written on a best-effort basis from their public documentation (checked mid-2026, see comments in the code). See `ai-service/clients/*.py`.
 
@@ -72,8 +74,9 @@ Integrations are written on a best-effort basis from their public documentation 
 
 | Screen | Starting URL | Functional? |
 |---|---|---|
+| Public landing page | `/` | Yes (marketing, unauthenticated — CTA to `/sign-up` / `/sign-in`) |
 | Sign in / sign up | `/sign-in`, `/sign-up` | Yes (httpOnly JWT cookie, bcrypt) |
-| Home / history | `/` | Yes (protected, once signed in) |
+| Dashboard (meeting overview) | `/dashboard` | Yes — card grid grouped by project/client, to-do view across meetings, rename/delete, project create/assign/delete |
 | Mode selection | `/new` | Yes |
 | Dictaphone — consent → recording → processing → summary | `/new/dictaphone/consent` | Yes, end-to-end (Voxtral + Mistral Moderation 2 + Mistral) |
 | Visio — consent → join Vexa → live meeting → processing → summary | `/new/visio/consent` | Yes, end-to-end (Vexa + Mistral Moderation 2 + Mistral) |
@@ -107,11 +110,11 @@ next.config.js                 declarative rewrite /api/* -> AI_SERVICE_URL (no 
 ai-service/                    FastAPI — full backend (Python 3.12)
   main.py                        FastAPI app, router registration, /health
   config.py                      reads env vars (shared with Next.js via .env.local)
-  models.py, schemas.py, db.py   SQLAlchemy (Users, Meetings, CalendarConnection, ConsentRecord, ParticipantNotification, RgpdRequest) + Pydantic
+  models.py, schemas.py, db.py   SQLAlchemy (Users, Meetings, Projects, CalendarConnection, ConsentRecord, ParticipantNotification, RgpdRequest) + Pydantic
   security.py, deps.py           httpOnly JWT cookie, bcrypt, get_current_user dependency
   scheduler.py                   APScheduler: calendar sync (5 min) + automatic GDPR purge (retention_days, then consent/notification evidence separately)
-  routers/                       auth, meetings, transcribe, visio, moderate, generate_cr, classify, export, rgpd, calendar
-  clients/                       one provider per file (voxtral, mistral_cr, classifier, moderation, vexa, google_calendar, microsoft_calendar), mock fallback included
+  routers/                       auth, meetings, projects, transcribe, visio, moderate, generate_cr, classify, export, rgpd, calendar
+  clients/                       one provider per file (voxtral, mistral_cr, classifier, moderation, translator, vexa, google_calendar, microsoft_calendar), mock fallback included
   services/                      logic shared between routers and the scheduler (e.g. visio_join.py)
   tests/                         pytest suite (see below)
 ```
@@ -143,4 +146,4 @@ A CI pipeline (`.github/workflows/ci.yml`) runs these same steps (Python lint + 
 
 ## Additional documentation
 
-`rapport_technique.md` (not version-controlled in this repo, see `.gitignore`) documents the detailed architecture, AI integrations, GDPR strategy, and technical choices of the associated certification project.
+`rapport_technique.tex` (not version-controlled in this repo, see `.gitignore`) documents the detailed architecture, AI integrations, GDPR strategy, and technical choices of the associated certification project.
